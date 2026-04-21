@@ -4,7 +4,7 @@ import { signUp, signIn } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
 
 export default function AuthScreen() {
-  const [mode, setMode] = useState('signup') // signup | signin
+  const [mode, setMode] = useState('signup')
   const [step, setStep] = useState(1)
   const [teamCode, setTeamCode] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -12,15 +12,13 @@ export default function AuthScreen() {
   const [ageBracket, setAgeBracket] = useState(null)
   const [username, setUsername] = useState('')
   const [generatedUsername, setGeneratedUsername] = useState('')
+  const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
   const { refresh } = useAuth()
 
-  const continueFromStep1 = () => {
-    setError('')
-    setStep(2)
-  }
+  const continueFromStep1 = () => { setError(''); setStep(2) }
 
   const finishSignup = async () => {
     if (!displayName.trim() || !position || !ageBracket) {
@@ -55,6 +53,16 @@ export default function AuthScreen() {
     }
   }
 
+  const copyUsername = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedUsername)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (e) {
+      // ignore
+    }
+  }
+
   if (mode === 'signin') {
     return (
       <div className="auth-wrap fade-in">
@@ -71,7 +79,7 @@ export default function AuthScreen() {
             <input
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => setUsername(e.target.value.replace('@', ''))}
               placeholder="e.g. connorm4821"
               autoCapitalize="none"
               autoCorrect="off"
@@ -188,27 +196,35 @@ export default function AuthScreen() {
 
         {step === 3 && (
           <>
-            <div className="sam-avatar">🏒</div>
-            <div className="label-sm" style={{ color: 'var(--ice)', textAlign: 'center' }}>Coach Sam</div>
-            <div className="sam-msg">
-              Welcome, {displayName}. Save your username — it's how you get back in next time.
-            </div>
-
-            <div className="username-card">
-              <div className="label-sm">Your username</div>
-              <div className="username-value">@{generatedUsername}</div>
-            </div>
-
-            <div className="rank-preview">
-              <div>
-                <div className="label-sm" style={{ color: 'var(--ice)' }}>Rookie I</div>
-                <div className="auth-sub" style={{ marginTop: 2 }}>Your starting rank</div>
+            <div className="celebration">
+              <div className="celebration-ring">
+                <div className="celebration-inner">🎉</div>
               </div>
-              <RankStar />
+              <div className="celebration-title">You're in, {displayName}!</div>
+            </div>
+
+            <div className="save-warn">
+              <div className="save-warn-icon">⚠️</div>
+              <div>
+                <div className="save-warn-title">Save your username</div>
+                <div className="save-warn-sub">You'll need it to sign in on a different phone or browser.</div>
+              </div>
+            </div>
+
+            <div className="username-big">
+              <div className="username-label">YOUR USERNAME</div>
+              <div className="username-value-big">@{generatedUsername}</div>
+              <button className={`copy-btn ${copied ? 'copy-btn--done' : ''}`} onClick={copyUsername}>
+                {copied ? '✓ Copied to clipboard' : 'Tap to copy'}
+              </button>
+            </div>
+
+            <div className="save-tips">
+              Screenshot this · text it to a parent · save it in Notes
             </div>
 
             <button className="btn-primary" onClick={() => navigate('/')}>
-              Log my first bucket 🪣
+              Got it — let's shoot 🏒
             </button>
           </>
         )}
@@ -227,79 +243,52 @@ function BrandLogo() {
   )
 }
 
-function RankStar() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24">
-      <polygon points="12,2 15,9 22,9 16.5,13.5 18.5,21 12,17 5.5,21 7.5,13.5 2,9 9,9" fill="#a8d4f5" opacity="0.8" />
-    </svg>
-  )
-}
-
 const styles = `
 .auth-wrap {
   min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   padding: 20px;
 }
 .auth-card {
-  width: 100%;
-  max-width: 360px;
+  width: 100%; max-width: 360px;
   background: var(--surface);
   border: 0.5px solid var(--border-dim);
   border-radius: var(--radius-lg);
   padding: 20px 18px;
 }
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex; align-items: center; gap: 10px;
   margin-bottom: 18px;
 }
 .brand-name {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  font-weight: 800; font-size: 20px;
+  letter-spacing: 1px; text-transform: uppercase;
 }
 .step-chip {
   display: inline-block;
   background: var(--bg);
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 10px;
-  color: var(--text-mute);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  font-weight: 500;
-  margin-bottom: 12px;
+  font-size: 10px; color: var(--text-mute);
+  letter-spacing: 1px; text-transform: uppercase;
+  font-weight: 500; margin-bottom: 12px;
 }
 .auth-title {
   font-family: var(--font-display);
-  font-size: 24px;
-  line-height: 1.1;
-  margin-bottom: 4px;
-  font-weight: 700;
+  font-size: 24px; line-height: 1.1;
+  margin-bottom: 4px; font-weight: 700;
 }
 .auth-sub {
-  font-size: 13px;
-  color: var(--text-mute);
+  font-size: 13px; color: var(--text-mute);
   margin: 0 0 18px;
 }
-.input-label {
-  display: block;
-  margin-bottom: 16px;
-}
+.input-label { display: block; margin-bottom: 16px; }
 .input-label > span {
   display: block;
-  font-size: 10px;
-  color: var(--text-mute);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-  font-weight: 500;
+  font-size: 10px; color: var(--text-mute);
+  letter-spacing: 1.5px; text-transform: uppercase;
+  margin-bottom: 6px; font-weight: 500;
 }
 .input-field {
   width: 100%;
@@ -312,20 +301,13 @@ const styles = `
   outline: none;
   transition: border-color 0.15s;
 }
-.input-field:focus {
-  border-color: var(--accent);
-}
+.input-field:focus { border-color: var(--accent); }
 .input-field--code {
   letter-spacing: 2px;
   font-family: var(--font-display);
-  font-weight: 700;
-  color: var(--ice);
+  font-weight: 700; color: var(--ice);
 }
-.chip-row {
-  display: grid;
-  gap: 6px;
-  margin-bottom: 16px;
-}
+.chip-row { display: grid; gap: 6px; margin-bottom: 16px; }
 .chip-row--3 { grid-template-columns: repeat(3, 1fr); }
 .chip-row--4 { grid-template-columns: repeat(2, 1fr); }
 .chip {
@@ -334,13 +316,10 @@ const styles = `
   border-radius: var(--radius);
   padding: 10px 8px;
   color: var(--ice);
-  font-size: 13px;
-  text-align: center;
+  font-size: 13px; text-align: center;
   transition: all 0.15s;
 }
-.chip--big {
-  padding: 14px 6px;
-}
+.chip--big { padding: 14px 6px; }
 .chip--active {
   background: var(--accent);
   border-color: var(--accent-soft);
@@ -348,31 +327,22 @@ const styles = `
 }
 .chip-letter {
   font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  line-height: 1;
+  font-size: 22px; font-weight: 800;
+  letter-spacing: 1px; line-height: 1;
 }
-.chip-sub {
-  font-size: 10px;
-  margin-top: 3px;
-  opacity: 0.75;
-}
+.chip-sub { font-size: 10px; margin-top: 3px; opacity: 0.75; }
 .btn-primary {
   width: 100%;
   background: var(--accent);
   color: white;
   border-radius: var(--radius);
   padding: 14px;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 14px; font-weight: 600;
   letter-spacing: 0.3px;
   margin-bottom: 8px;
   transition: transform 0.1s;
 }
-.btn-primary:active:not(:disabled) {
-  transform: scale(0.98);
-}
+.btn-primary:active:not(:disabled) { transform: scale(0.98); }
 .btn-text {
   width: 100%;
   color: var(--text-mute);
@@ -380,9 +350,7 @@ const styles = `
   padding: 10px;
   text-align: center;
 }
-.btn-text:hover {
-  color: var(--ice);
-}
+.btn-text:hover { color: var(--ice); }
 .error {
   background: rgba(255, 84, 84, 0.1);
   border: 0.5px solid rgba(255, 84, 84, 0.3);
@@ -392,51 +360,85 @@ const styles = `
   font-size: 13px;
   margin-bottom: 12px;
 }
-.sam-avatar {
-  width: 52px;
-  height: 52px;
+
+/* Step 3 — celebration + username save */
+.celebration { text-align: center; margin: 4px 0 20px; }
+.celebration-ring {
+  width: 64px; height: 64px;
   border-radius: 50%;
   background: var(--accent-bg);
-  border: 2px solid var(--ice);
-  margin: 8px auto 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
+  border: 2px solid var(--accent);
+  margin: 0 auto 10px;
+  display: flex; align-items: center; justify-content: center;
 }
-.sam-msg {
-  background: var(--bg);
-  border-left: 2px solid var(--ice);
+.celebration-inner { font-size: 28px; }
+.celebration-title {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.save-warn {
+  background: rgba(255, 122, 41, 0.08);
+  border: 0.5px solid rgba(255, 122, 41, 0.3);
   border-radius: var(--radius);
   padding: 12px 14px;
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 12px 0 18px;
+  margin-bottom: 14px;
+  display: flex; gap: 10px; align-items: flex-start;
 }
-.username-card {
+.save-warn-icon { font-size: 18px; line-height: 1; }
+.save-warn-title {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--warn-soft);
+}
+.save-warn-sub {
+  font-size: 12px; color: var(--text-soft);
+  margin-top: 2px; line-height: 1.4;
+}
+
+.username-big {
   background: var(--bg);
   border: 0.5px dashed var(--border);
   border-radius: var(--radius);
-  padding: 12px 14px;
+  padding: 16px 14px;
   text-align: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
-.username-value {
+.username-label {
+  font-size: 10px; color: var(--text-mute);
+  letter-spacing: 2px; font-weight: 500;
+}
+.username-value-big {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 28px; font-weight: 800;
   color: var(--ice);
   letter-spacing: 1px;
-  margin-top: 4px;
-  font-weight: 700;
+  margin: 6px 0 12px;
 }
-.rank-preview {
-  background: var(--surface-raised);
-  border: 0.5px solid var(--border);
+.copy-btn {
+  width: 100%;
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
   border-radius: var(--radius);
-  padding: 12px 14px;
+  padding: 10px;
+  color: var(--ice);
+  font-size: 12px; font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: all 0.15s;
+}
+.copy-btn--done {
+  background: rgba(61, 214, 140, 0.15);
+  border-color: rgba(61, 214, 140, 0.4);
+  color: var(--success);
+}
+
+.save-tips {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-mute);
   margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  letter-spacing: 0.3px;
 }
 `

@@ -4,30 +4,28 @@ import { logShots, getStats, getRandomTeammate } from '../lib/shots'
 import { pickLineStable } from '../lib/coachSam'
 import { getRank } from '../lib/ranks'
 
-const SHOT_TYPES = {
-  shooter: ['Wrist', 'Snap', 'Slap', 'Backhand'],
-  goalie: ['Saves'], // Phase 1 keeps it simple; goalie-specific types expand in Phase 2
-}
+const SHOT_TYPES_SHOOTER = ['Wrist', 'Snap', 'Slap', 'Backhand']
+const SHOT_TYPES_GOALIE = ['Saves']
+const LONG_PRESS_MS = 350
 
 export default function HomeScreen() {
   const { player, refresh } = useAuth()
-  const [bucketSize, setBucketSize] = useState(null)
-  const [bucketUsed, setBucketUsed] = useState(0)
-  const [selectedType, setSelectedType] = useState('Wrist')
-  const [showBucketInput, setShowBucketInput] = useState(false)
-  const [bucketInput, setBucketInput] = useState('50')
   const [stats, setStats] = useState({ todayTotal: 0, weekTotal: 0, todayByType: {} })
   const [teammate, setTeammate] = useState(null)
   const [pendingQueue, setPendingQueue] = useState([])
   const [floatNumbers, setFloatNumbers] = useState([])
   const [pulsing, setPulsing] = useState({})
-  const queueRef = useRef(null)
+  const [lastTapped, setLastTapped] = useState(null)
+  const [showQuickAdd, setShowQuickAdd] = useState(false)
+  const [undoStack, setUndoStack] = useState([])
+  const flushTimer = useRef(null)
+  const longPressTimer = useRef(null)
+  const longPressFired = useRef(false)
 
-  const shotTypes = player?.position === 'G' ? SHOT_TYPES.goalie : SHOT_TYPES.shooter
+  const shotTypes = player?.position === 'G' ? SHOT_TYPES_GOALIE : SHOT_TYPES_SHOOTER
 
   useEffect(() => {
     if (!player) return
-    setSelectedType(player.position === 'G' ? 'Saves' : 'Wrist')
     ;(async () => {
       const s = await getStats(player.id)
       setStats(s)
@@ -38,7 +36,6 @@ export default function HomeScreen() {
 
   const rank = useMemo(() => getRank(player?.lifetime_shots || 0), [player?.lifetime_shots])
 
-  // Coach Sam greeting - stable across the session day
   const samLine = useMemo(() => {
     if (!player) return ''
     const today = new Date().toISOString().slice(0, 10)
@@ -49,78 +46,81 @@ export default function HomeScreen() {
     })
   }, [player])
 
-  // Flush the pending queue every 500ms — optimistic UI, batched writes
   useEffect(() => {
     if (!player) return
-    queueRef.current = setInterval(async () => {
+    flushTimer.current = setInterval(async () => {
       setPendingQueue((queue) => {
         if (queue.length === 0) return queue
         const batch = {}
         queue.forEach((q) => { batch[q.type] = (batch[q.type] || 0) + q.count })
         Object.entries(batch).forEach(async ([type, count]) => {
+          if (count === 0) return
           try {
             await logShots({ playerId: player.id, shotType: type, count })
           } catch (e) {
-            console.error('Log failed, will retry next tick', e)
+            console.error('Log failed', e)
           }
         })
         return []
       })
-      // Refresh stats + player (lifetime shots) occasionally
       const s = await getStats(player.id)
       setStats(s)
     }, 1500)
-    return () => clearInterval(queueRef.current)
+    return () => clearInterval(flushTimer.current)
   }, [player])
 
-  // Periodic full refresh to get the trigger-updated lifetime_shots
   useEffect(() => {
     if (!player) return
     const t = setInterval(() => { refresh() }, 4000)
     return () => clearInterval(t)
   }, [player, refresh])
 
-  const logOne = (count = 1) => {
-    if (!selectedType || !player) return
-    if (bucketSize && bucketUsed + count > bucketSize) {
-      count = Math.max(0, bucketSize - bucketUsed)
-      if (count === 0) return
-    }
-
-    // Optimistic: update stats and bucket immediately
+  const logShot = (type, count = 1) => {
+    if (!player) return
     setStats((s) => ({
       ...s,
-      todayTotal: s.todayTotal + count,
-      weekTotal: s.weekTotal + count,
-      todayByType: { ...s.todayByType, [selectedType]: (s.todayByType[selectedType] || 0) + count },
+      todayTotal: Math.max(0, s.todayTotal + count),
+      weekTotal: Math.max(0, s.weekTotal + count),
+      todayByType: { ...s.todayByType, [type]: Math.max(0, (s.todayByType[type] || 0) + count) },
     }))
-    setBucketUsed((u) => u + count)
-    setPendingQueue((q) => [...q, { type: selectedType, count }])
+    setPendingQueue((q) => [...q, { type, count }])
+    if (count > 0) setUndoStack((u) => [...u.slice(-9), { type, count, ts: Date.now() }])
+    setLastTapped(type)
 
-    // Pulse + float up
-    setPulsing((p) => ({ ...p, [selectedType]: true }))
-    setTimeout(() => setPulsing((p) => ({ ...p, [selectedType]: false })), 300)
+    setPulsing((p) => ({ ...p, [type]: true }))
+    setTimeout(() => setPulsing((p) => ({ ...p, [type]: false })), 250)
 
     const id = Math.random()
-    setFloatNumbers((fn) => [...fn, { id, type: selectedType, value: count }])
-    setTimeout(() => setFloatNumbers((fn) => fn.filter((f) => f.id !== id)), 900)
+    setFloatNumbers((fn) => [...fn, { id, type, value: count }])
+    setTimeout(() => setFloatNumbers((fn) => fn.filter((f) => f.id !== id)), 800)
+
+    if (navigator.vibrate) navigator.vibrate(Math.abs(count) >= 5 ? 25 : 10)
   }
 
-  const startBucket = () => {
-    const n = parseInt(bucketInput, 10)
-    if (!n || n < 1) return
-    setBucketSize(n)
-    setBucketUsed(0)
-    setShowBucketInput(false)
+  const handlePressStart = (type) => {
+    longPressFired.current = false
+    longPressTimer.current = setTimeout(() => {
+      longPressFired.current = true
+      logShot(type, 5)
+    }, LONG_PRESS_MS)
   }
 
-  const clearBucket = () => {
-    setBucketSize(null)
-    setBucketUsed(0)
+  const handlePressEnd = (type) => {
+    clearTimeout(longPressTimer.current)
+    if (!longPressFired.current) logShot(type, 1)
   }
 
-  const bucketRemaining = bucketSize ? Math.max(0, bucketSize - bucketUsed) : null
-  const bucketFillPct = bucketSize ? (bucketRemaining / bucketSize) : 1
+  const handlePressCancel = () => {
+    clearTimeout(longPressTimer.current)
+    longPressFired.current = false
+  }
+
+  const handleUndo = () => {
+    const last = undoStack[undoStack.length - 1]
+    if (!last) return
+    logShot(last.type, -last.count)
+    setUndoStack((u) => u.slice(0, -1))
+  }
 
   if (!player) return null
 
@@ -145,111 +145,48 @@ export default function HomeScreen() {
       {samLine && (
         <div className="sam">
           <div className="sam-bubble">🏒</div>
-          <div>
-            <div className="label-sm" style={{ color: 'var(--ice)' }}>Coach Sam</div>
-            <div className="sam-text">{samLine}</div>
-          </div>
+          <div className="sam-text">{samLine}</div>
         </div>
       )}
 
-      {/* Bucket */}
-      {!showBucketInput && bucketSize === null && (
-        <button className="bucket-start" onClick={() => setShowBucketInput(true)}>
-          <span className="bucket-emoji">🪣</span>
-          <span>Start a bucket</span>
-          <span className="bucket-start-hint">count your pucks</span>
-        </button>
-      )}
-
-      {showBucketInput && (
-        <div className="bucket-input-wrap">
-          <div className="label-sm" style={{ textAlign: 'center', marginBottom: 8 }}>How many pucks?</div>
-          <div className="bucket-input-row">
-            {[30, 50, 80, 120].map((n) => (
-              <button
-                key={n}
-                className={`bucket-preset ${bucketInput === String(n) ? 'bucket-preset--active' : ''}`}
-                onClick={() => setBucketInput(String(n))}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
-          <input
-            type="number"
-            value={bucketInput}
-            onChange={(e) => setBucketInput(e.target.value.replace(/[^0-9]/g, ''))}
-            inputMode="numeric"
-            className="bucket-input"
-            placeholder="Or type it in"
-          />
-          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-            <button className="btn-secondary" onClick={() => setShowBucketInput(false)}>Cancel</button>
-            <button className="btn-primary-sm" onClick={startBucket}>Start shooting →</button>
-          </div>
-        </div>
-      )}
-
-      {bucketSize !== null && (
-        <div className="bucket">
-          <div className="bucket-label">Bucket remaining</div>
-          <div className="bucket-visual">
-            <svg viewBox="0 0 200 140" style={{ width: '100%', display: 'block' }}>
-              <defs>
-                <clipPath id="bucketMask"><path d="M 30 30 L 170 30 L 155 130 L 45 130 Z" /></clipPath>
-              </defs>
-              <path d="M 30 30 L 170 30 L 155 130 L 45 130 Z" fill="#141b2d" stroke="#1f2942" strokeWidth="1" />
-              <g clipPath="url(#bucketMask)">
-                <rect x="0" y={30 + (100 * (1 - bucketFillPct))} width="200" height="120" fill="#2979ff" opacity="0.85" />
-              </g>
-              <path d="M 30 30 L 170 30 L 155 130 L 45 130 Z" fill="none" stroke="#2c3e5e" strokeWidth="1.5" />
-              <ellipse cx="100" cy="30" rx="70" ry="6" fill="none" stroke="#2c3e5e" strokeWidth="1.5" />
-            </svg>
-            <div className="bucket-count">
-              <div className="bucket-number tnum">{bucketRemaining}</div>
-              <div className="bucket-of">of {bucketSize} left</div>
-            </div>
-          </div>
-          <button className="bucket-reset" onClick={clearBucket}>Clear bucket</button>
-        </div>
-      )}
-
-      <div className="shot-hint">
-        {bucketSize ? 'Tap a shot type as you rip them' : 'Tap a shot type to log'}
-      </div>
-
-      {/* Shot type grid */}
       <div className="shots-grid">
         {shotTypes.map((t) => {
           const todayCount = stats.todayByType[t] || 0
-          const active = selectedType === t
+          const active = lastTapped === t
           return (
-            <div
+            <button
               key={t}
               className={`shot-card ${active ? 'shot-card--active' : ''} ${pulsing[t] ? 'pulse' : ''}`}
-              onClick={() => setSelectedType(t)}
+              onTouchStart={(e) => { e.preventDefault(); handlePressStart(t) }}
+              onTouchEnd={(e) => { e.preventDefault(); handlePressEnd(t) }}
+              onTouchCancel={handlePressCancel}
+              onMouseDown={() => handlePressStart(t)}
+              onMouseUp={() => handlePressEnd(t)}
+              onMouseLeave={handlePressCancel}
+              onContextMenu={(e) => e.preventDefault()}
             >
-              <div className="shot-card-head">
-                <div className="shot-card-name">{t}</div>
-                <div className="shot-card-add">+1</div>
-              </div>
-              <div className="shot-card-value tnum">{todayCount}</div>
+              <div className="shot-name">{t}</div>
+              <div className="shot-value tnum">{todayCount}</div>
+              <div className="shot-hint">tap +1 · hold +5</div>
               {floatNumbers.filter((f) => f.type === t).map((f) => (
-                <div key={f.id} className="shot-float float-up">+{f.value}</div>
+                <div key={f.id} className={`shot-float float-up ${f.value < 0 ? 'shot-float--neg' : ''}`}>
+                  {f.value > 0 ? `+${f.value}` : f.value}
+                </div>
               ))}
-            </div>
+            </button>
           )
         })}
       </div>
 
-      {/* Log controls */}
-      <div className="log-controls">
-        <button className="log-btn" onClick={() => logOne(1)}>Tap +1</button>
-        <button className="log-btn log-btn--alt" onClick={() => logOne(5)}>+5</button>
-        <button className="log-btn log-btn--alt" onClick={() => logOne(10)}>+10</button>
+      <div className="action-row">
+        <button className="action-btn" onClick={() => setShowQuickAdd(true)}>
+          Quick add a session
+        </button>
+        <button className="action-btn action-btn--icon" onClick={handleUndo} disabled={undoStack.length === 0}>
+          ↩ Undo
+        </button>
       </div>
 
-      {/* Stats row */}
       <div className="stats-row">
         <div className="stat">
           <div className="label-sm">Today</div>
@@ -265,7 +202,6 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      {/* Rank progress */}
       {!rank.isMax && (
         <div className="rank-strip">
           <div>
@@ -278,14 +214,11 @@ export default function HomeScreen() {
         </div>
       )}
 
-      {/* Teammate / leaderboard hint */}
       {teammate && (
         <div className="teammate-strip">
           <div>
             <div className="label-sm">Teammate pace</div>
-            <div className="teammate-name">
-              {teammate.display_name} · <span className="tnum">{teammate.lifetime_shots.toLocaleString()}</span>
-            </div>
+            <div className="teammate-name">{teammate.display_name} · <span className="tnum">{teammate.lifetime_shots.toLocaleString()}</span></div>
           </div>
           <div className={`teammate-tag ${player.lifetime_shots > teammate.lifetime_shots ? 'teammate-tag--lead' : 'teammate-tag--chase'}`}>
             {player.lifetime_shots > teammate.lifetime_shots
@@ -295,7 +228,76 @@ export default function HomeScreen() {
         </div>
       )}
 
+      {showQuickAdd && (
+        <QuickAddSheet
+          shotTypes={shotTypes}
+          onClose={() => setShowQuickAdd(false)}
+          onSubmit={(amounts) => {
+            Object.entries(amounts).forEach(([type, count]) => {
+              if (count > 0) logShot(type, count)
+            })
+            setShowQuickAdd(false)
+          }}
+        />
+      )}
+
       <style>{styles}</style>
+    </div>
+  )
+}
+
+function QuickAddSheet({ shotTypes, onClose, onSubmit }) {
+  const [amounts, setAmounts] = useState(Object.fromEntries(shotTypes.map((t) => [t, ''])))
+
+  const updateAmount = (type, val) => {
+    const clean = val.replace(/[^0-9]/g, '').slice(0, 4)
+    setAmounts((a) => ({ ...a, [type]: clean }))
+  }
+
+  const total = Object.values(amounts).reduce((s, v) => s + (parseInt(v, 10) || 0), 0)
+
+  const submit = () => {
+    const numeric = {}
+    Object.entries(amounts).forEach(([t, v]) => { numeric[t] = parseInt(v, 10) || 0 })
+    onSubmit(numeric)
+  }
+
+  return (
+    <div className="qa-overlay" onClick={onClose}>
+      <div className="qa-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="qa-header">
+          <div>
+            <div className="qa-title">Quick add</div>
+            <div className="qa-sub">Type how many of each, save once</div>
+          </div>
+          <button className="qa-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="qa-rows">
+          {shotTypes.map((t) => (
+            <div key={t} className="qa-row">
+              <div className="qa-row-name">{t}</div>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={amounts[t]}
+                onChange={(e) => updateAmount(t, e.target.value)}
+                placeholder="0"
+                className="qa-input"
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="qa-total">
+          <span className="label-sm">Total</span>
+          <span className="qa-total-num tnum">{total}</span>
+        </div>
+
+        <button className="qa-submit" onClick={submit} disabled={total === 0}>
+          Log {total} shot{total === 1 ? '' : 's'}
+        </button>
+      </div>
     </div>
   )
 }
@@ -309,13 +311,9 @@ function FlameIcon() {
 }
 
 const styles = `
-.home {
-  padding: 12px 14px 20px;
-}
+.home { padding: 12px 14px 20px; }
 .topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: flex; justify-content: space-between; align-items: center;
   padding: 6px 4px 14px;
 }
 .me { display: flex; align-items: center; gap: 10px; }
@@ -328,230 +326,110 @@ const styles = `
 }
 .me-name {
   font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  line-height: 1.1;
+  font-size: 15px; font-weight: 700;
+  letter-spacing: 0.4px; line-height: 1.1;
 }
 .me-sub { font-size: 11px; color: var(--text-mute); margin-top: 2px; }
 .streak {
   display: flex; align-items: center; gap: 5px;
   background: var(--surface);
-  padding: 6px 11px;
-  border-radius: 999px;
-  font-size: 13px;
-  color: var(--warn-soft);
-  font-weight: 600;
+  padding: 6px 11px; border-radius: 999px;
+  font-size: 13px; color: var(--warn-soft); font-weight: 600;
 }
+
 .sam {
   background: var(--surface);
   border-left: 2px solid var(--ice);
   border-radius: var(--radius);
   padding: 11px 14px;
-  margin-bottom: 14px;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
+  margin-bottom: 16px;
+  display: flex; gap: 10px; align-items: center;
 }
 .sam-bubble {
-  width: 28px; height: 28px; border-radius: 50%;
+  width: 26px; height: 26px; border-radius: 50%;
   background: var(--accent-bg);
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  font-size: 14px;
+  flex-shrink: 0; font-size: 13px;
 }
-.sam-text { font-size: 14px; line-height: 1.45; margin-top: 2px; }
+.sam-text { font-size: 14px; line-height: 1.4; }
 
-.bucket-start {
-  width: 100%;
-  background: var(--surface);
-  border: 0.5px dashed var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 14px;
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-.bucket-emoji { font-size: 22px; }
-.bucket-start-hint { font-family: var(--font-body); font-size: 11px; color: var(--text-mute); font-weight: 400; margin-left: 6px; }
-
-.bucket-input-wrap {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  margin-bottom: 14px;
-}
-.bucket-input-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  margin-bottom: 10px;
-}
-.bucket-preset {
-  background: var(--bg);
-  border: 0.5px solid var(--border-dim);
-  border-radius: var(--radius);
-  padding: 10px;
-  color: var(--ice);
-  font-weight: 600;
-  font-family: var(--font-display);
-  font-size: 16px;
-}
-.bucket-preset--active {
-  background: var(--accent);
-  border-color: var(--accent-soft);
-  color: white;
-}
-.bucket-input {
-  width: 100%;
-  background: var(--bg);
-  border: 0.5px solid var(--border-dim);
-  border-radius: var(--radius);
-  padding: 10px 14px;
-  color: var(--text);
-  font-size: 16px;
-  outline: none;
-  text-align: center;
-  font-family: var(--font-display);
-  font-weight: 700;
-}
-.bucket-input:focus { border-color: var(--accent); }
-
-.bucket {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 12px 14px 10px;
-  margin-bottom: 14px;
-  text-align: center;
-}
-.bucket-label {
-  font-size: 10px; color: var(--text-mute);
-  letter-spacing: 2px; text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.bucket-visual { position: relative; width: 180px; margin: 0 auto; }
-.bucket-count {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding-top: 18px;
-  pointer-events: none;
-}
-.bucket-number {
-  font-family: var(--font-display);
-  font-size: 42px;
-  font-weight: 800;
-  color: white;
-  line-height: 1;
-}
-.bucket-of {
-  font-size: 10px;
-  color: var(--text-soft);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-.bucket-reset {
-  font-size: 11px;
-  color: var(--text-mute);
-  padding: 4px 8px;
-  margin-top: 2px;
-}
-
-.shot-hint {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-mute);
-  margin-bottom: 10px;
-  letter-spacing: 0.3px;
-}
 .shots-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 .shot-card {
   background: var(--surface);
   border: 0.5px solid var(--border-dim);
-  border-radius: 14px;
-  padding: 14px 12px;
+  border-radius: 18px;
+  padding: 18px 16px 14px;
   color: var(--text);
   position: relative;
   overflow: hidden;
-  transition: transform 0.12s;
+  text-align: left;
+  min-height: 130px;
+  transition: transform 0.1s, background 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
-.shot-card:active { transform: scale(0.98); }
+.shot-card:active {
+  transform: scale(0.97);
+  background: var(--surface-raised);
+}
 .shot-card--active {
   background: var(--accent);
   border-color: var(--accent-soft);
   color: white;
 }
-.shot-card-head {
-  display: flex; justify-content: space-between; align-items: baseline;
-}
-.shot-card-name {
+.shot-name {
   font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  font-size: 15px; font-weight: 700;
+  letter-spacing: 0.6px; text-transform: uppercase;
+  opacity: 0.9;
 }
-.shot-card-add {
-  font-size: 10px;
-  opacity: 0.7;
-}
-.shot-card-value {
+.shot-value {
   font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 800;
-  margin-top: 4px;
-  color: inherit;
+  font-size: 42px; font-weight: 800;
+  margin-top: 6px; line-height: 1;
+  color: var(--ice);
 }
-.shot-card--active .shot-card-value { color: white; }
-.shot-card:not(.shot-card--active) .shot-card-value { color: var(--ice); }
+.shot-card--active .shot-value { color: white; }
+.shot-hint {
+  font-size: 10px; color: var(--text-mute);
+  letter-spacing: 0.5px; margin-top: 8px; opacity: 0.7;
+}
+.shot-card--active .shot-hint { color: rgba(255,255,255,0.85); opacity: 1; }
 .shot-float {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
+  position: absolute; bottom: 14px; right: 16px;
   font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--success);
-  pointer-events: none;
+  font-size: 18px; font-weight: 800;
+  color: var(--success); pointer-events: none;
 }
+.shot-float--neg { color: var(--warn-soft); }
 
-.log-controls {
+.action-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 1fr auto;
   gap: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
-.log-btn {
-  background: var(--accent);
-  color: white;
+.action-btn {
+  background: transparent;
+  color: var(--text-mute);
+  border: 0.5px solid var(--border-dim);
   border-radius: var(--radius);
-  padding: 13px;
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  transition: transform 0.1s;
+  padding: 10px;
+  font-size: 12px; font-weight: 500; letter-spacing: 0.3px;
+  font-family: inherit;
+  transition: all 0.1s;
 }
-.log-btn:active { transform: scale(0.97); }
-.log-btn--alt {
+.action-btn:active:not(:disabled) {
   background: var(--surface);
   color: var(--ice);
-  border: 0.5px solid var(--border-dim);
-  font-size: 14px;
 }
+.action-btn--icon { padding: 10px 16px; }
 
 .stats-row {
   display: grid;
@@ -567,10 +445,8 @@ const styles = `
 }
 .stat-value {
   font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1;
-  margin-top: 4px;
+  font-size: 22px; font-weight: 800;
+  line-height: 1; margin-top: 4px;
 }
 
 .rank-strip {
@@ -581,9 +457,7 @@ const styles = `
 }
 .rank-strip-name {
   font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  margin-top: 2px;
+  font-size: 14px; font-weight: 700; margin-top: 2px;
 }
 .rank-bar {
   height: 4px; background: var(--bg);
@@ -591,8 +465,8 @@ const styles = `
   margin-top: 6px;
 }
 .rank-bar-fill {
-  height: 100%; background: var(--ice); border-radius: 999px;
-  transition: width 0.3s;
+  height: 100%; background: var(--ice);
+  border-radius: 999px; transition: width 0.3s;
 }
 
 .teammate-strip {
@@ -603,39 +477,98 @@ const styles = `
 }
 .teammate-name {
   font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  margin-top: 2px;
+  font-size: 14px; font-weight: 700; margin-top: 2px;
 }
 .teammate-tag {
   padding: 4px 10px;
   border-radius: 999px;
   font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+}
+.teammate-tag--lead { background: rgba(61, 214, 140, 0.15); color: var(--success); }
+.teammate-tag--chase { background: rgba(255, 122, 41, 0.15); color: var(--warn-soft); }
+
+.qa-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.qa-sheet {
+  width: 100%; max-width: 430px;
+  background: var(--surface);
+  border-top: 0.5px solid var(--border);
+  border-radius: 24px 24px 0 0;
+  padding: 18px 16px max(20px, env(safe-area-inset-bottom, 20px));
+  animation: slide-up 0.25s ease-out;
+}
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.qa-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px;
+}
+.qa-title {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 700; letter-spacing: 0.4px;
+}
+.qa-sub { font-size: 12px; color: var(--text-mute); margin-top: 2px; }
+.qa-close {
+  background: var(--bg);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  color: var(--text-mute);
   font-size: 14px;
-  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
 }
-.teammate-tag--lead {
-  background: rgba(61, 214, 140, 0.15);
-  color: var(--success);
+.qa-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.qa-row {
+  display: flex; align-items: center;
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 12px 14px;
 }
-.teammate-tag--chase {
-  background: rgba(255, 122, 41, 0.15);
-  color: var(--warn-soft);
-}
-.btn-primary-sm {
+.qa-row-name {
   flex: 1;
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.qa-input {
+  width: 80px;
+  background: transparent;
+  border: 0.5px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 700;
+  color: var(--ice);
+  outline: none;
+}
+.qa-input:focus { border-color: var(--accent); }
+.qa-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+}
+.qa-total-num {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 800;
+  color: var(--ice);
+}
+.qa-submit {
+  width: 100%;
   background: var(--accent);
   color: white;
   border-radius: var(--radius);
-  padding: 10px;
-  font-weight: 600;
+  padding: 14px;
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 700; letter-spacing: 0.5px;
 }
-.btn-secondary {
-  background: var(--bg);
-  color: var(--text-mute);
-  border: 0.5px solid var(--border-dim);
-  border-radius: var(--radius);
-  padding: 10px 14px;
-  font-weight: 500;
-}
+.qa-submit:disabled { opacity: 0.4; }
 `
