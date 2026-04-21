@@ -1,38 +1,40 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { logShots, getStats, getRandomTeammate } from '../lib/shots'
+import { logShots, getStats, getTodayRival } from '../lib/shots'
 import { pickLineStable } from '../lib/coachSam'
 import { getRank } from '../lib/ranks'
 
 const SHOT_TYPES_SHOOTER = ['Wrist', 'Snap', 'Slap', 'Backhand']
 const SHOT_TYPES_GOALIE = ['Saves']
-const LONG_PRESS_MS = 350
 
 export default function HomeScreen() {
   const { player, refresh } = useAuth()
   const [stats, setStats] = useState({ todayTotal: 0, weekTotal: 0, todayByType: {} })
-  const [teammate, setTeammate] = useState(null)
-  const [pendingQueue, setPendingQueue] = useState([])
-  const [floatNumbers, setFloatNumbers] = useState([])
-  const [pulsing, setPulsing] = useState({})
-  const [lastTapped, setLastTapped] = useState(null)
-  const [showQuickAdd, setShowQuickAdd] = useState(false)
+  const [rival, setRival] = useState(null)
+  const [entryType, setEntryType] = useState(null) // which shot type the pad is open for
   const [undoStack, setUndoStack] = useState([])
-  const flushTimer = useRef(null)
-  const longPressTimer = useRef(null)
-  const longPressFired = useRef(false)
+  const [toast, setToast] = useState('')
 
   const shotTypes = player?.position === 'G' ? SHOT_TYPES_GOALIE : SHOT_TYPES_SHOOTER
 
   useEffect(() => {
     if (!player) return
-    ;(async () => {
-      const s = await getStats(player.id)
-      setStats(s)
-      const tm = await getRandomTeammate(player.team_id, player.id)
-      setTeammate(tm)
-    })()
+    refreshStats()
+    getTodayRival(player.team_id, player.id).then(setRival)
   }, [player])
+
+  const refreshStats = async () => {
+    if (!player) return
+    const s = await getStats(player.id)
+    setStats(s)
+  }
+
+  // Periodic refresh for lifetime count (updated by the trigger)
+  useEffect(() => {
+    if (!player) return
+    const t = setInterval(() => { refresh() }, 4000)
+    return () => clearInterval(t)
+  }, [player, refresh])
 
   const rank = useMemo(() => getRank(player?.lifetime_shots || 0), [player?.lifetime_shots])
 
@@ -46,83 +48,91 @@ export default function HomeScreen() {
     })
   }, [player])
 
-  useEffect(() => {
-    if (!player) return
-    flushTimer.current = setInterval(async () => {
-      setPendingQueue((queue) => {
-        if (queue.length === 0) return queue
-        const batch = {}
-        queue.forEach((q) => { batch[q.type] = (batch[q.type] || 0) + q.count })
-        Object.entries(batch).forEach(async ([type, count]) => {
-          if (count === 0) return
-          try {
-            await logShots({ playerId: player.id, shotType: type, count })
-          } catch (e) {
-            console.error('Log failed', e)
-          }
-        })
-        return []
-      })
-      const s = await getStats(player.id)
-      setStats(s)
-    }, 1500)
-    return () => clearInterval(flushTimer.current)
-  }, [player])
-
-  useEffect(() => {
-    if (!player) return
-    const t = setInterval(() => { refresh() }, 4000)
-    return () => clearInterval(t)
-  }, [player, refresh])
-
-  const logShot = (type, count = 1) => {
-    if (!player) return
+  const handleSave = async (type, count) => {
+    if (!count || count <= 0) return
+    setEntryType(null)
+    // Optimistic update
     setStats((s) => ({
       ...s,
-      todayTotal: Math.max(0, s.todayTotal + count),
-      weekTotal: Math.max(0, s.weekTotal + count),
-      todayByType: { ...s.todayByType, [type]: Math.max(0, (s.todayByType[type] || 0) + count) },
+      todayTotal: s.todayTotal + count,
+      weekTotal: s.weekTotal + count,
+      todayByType: { ...s.todayByType, [type]: (s.todayByType[type] || 0) + count },
     }))
-    setPendingQueue((q) => [...q, { type, count }])
-    if (count > 0) setUndoStack((u) => [...u.slice(-9), { type, count, ts: Date.now() }])
-    setLastTapped(type)
+    setUndoStack((u) => [...u.slice(-9), { type, count, ts: Date.now() }])
+    if (navigator.vibrate) navigator.vibrate(20)
 
-    setPulsing((p) => ({ ...p, [type]: true }))
-    setTimeout(() => setPulsing((p) => ({ ...p, [type]: false })), 250)
-
-    const id = Math.random()
-    setFloatNumbers((fn) => [...fn, { id, type, value: count }])
-    setTimeout(() => setFloatNumbers((fn) => fn.filter((f) => f.id !== id)), 800)
-
-    if (navigator.vibrate) navigator.vibrate(Math.abs(count) >= 5 ? 25 : 10)
+    try {
+      await logShots({ playerId: player.id, shotType: type, count })
+      // Refresh to get server truth
+      setTimeout(refreshStats, 400)
+    } catch (e) {
+      // Roll back on error
+      setStats((s) => ({
+        ...s,
+        todayTotal: Math.max(0, s.todayTotal - count),
+        weekTotal: Math.max(0, s.weekTotal - count),
+        todayByType: { ...s.todayByType, [type]: Math.max(0, (s.todayByType[type] || 0) - count) },
+      }))
+      setUndoStack((u) => u.slice(0, -1))
+      showToast('Save failed, try again')
+    }
   }
 
-  const handlePressStart = (type) => {
-    longPressFired.current = false
-    longPressTimer.current = setTimeout(() => {
-      longPressFired.current = true
-      logShot(type, 5)
-    }, LONG_PRESS_MS)
-  }
-
-  const handlePressEnd = (type) => {
-    clearTimeout(longPressTimer.current)
-    if (!longPressFired.current) logShot(type, 1)
-  }
-
-  const handlePressCancel = () => {
-    clearTimeout(longPressTimer.current)
-    longPressFired.current = false
-  }
-
-  const handleUndo = () => {
+  const handleUndo = async () => {
     const last = undoStack[undoStack.length - 1]
     if (!last) return
-    logShot(last.type, -last.count)
+    setStats((s) => ({
+      ...s,
+      todayTotal: Math.max(0, s.todayTotal - last.count),
+      weekTotal: Math.max(0, s.weekTotal - last.count),
+      todayByType: { ...s.todayByType, [last.type]: Math.max(0, (s.todayByType[last.type] || 0) - last.count) },
+    }))
     setUndoStack((u) => u.slice(0, -1))
+    try {
+      await logShots({ playerId: player.id, shotType: last.type, count: -last.count })
+      setTimeout(refreshStats, 400)
+    } catch (e) {
+      showToast('Undo failed')
+    }
+  }
+
+  const showToast = (msg) => {
+    setToast(msg)
+    setTimeout(() => setToast(''), 2000)
   }
 
   if (!player) return null
+
+  // Chasing strip logic
+  let chasingText = null
+  let chasingSub = null
+  let chasingTag = null
+  let chasingTagClass = ''
+  if (rival) {
+    const rivalToday = rival.today_shots || 0
+    const gap = stats.todayTotal - rivalToday
+    if (rivalToday === 0) {
+      chasingText = `${rival.display_name} hasn't shot today`
+      chasingSub = 'Set the pace'
+      chasingTag = '—'
+      chasingTagClass = 'neutral'
+    } else if (gap > 0) {
+      chasingText = `${rival.display_name} · ${rivalToday} today`
+      chasingSub = 'Leading by'
+      chasingTag = `+${gap}`
+      chasingTagClass = 'lead'
+    } else if (gap < 0) {
+      chasingText = `${rival.display_name} · ${rivalToday} today`
+      chasingSub = 'Catch them'
+      chasingTag = `${gap}` // already has minus
+      chasingTagClass = 'chase'
+    } else {
+      chasingText = `${rival.display_name} · ${rivalToday} today`
+      chasingSub = 'Tied'
+      chasingTag = '='
+      chasingTagClass = 'neutral'
+    }
+  }
 
   return (
     <div className="home fade-in">
@@ -149,41 +159,24 @@ export default function HomeScreen() {
         </div>
       )}
 
+      <div className="tap-hint">Tap a shot type to log it</div>
+
       <div className="shots-grid">
         {shotTypes.map((t) => {
           const todayCount = stats.todayByType[t] || 0
-          const active = lastTapped === t
           return (
-            <button
-              key={t}
-              className={`shot-card ${active ? 'shot-card--active' : ''} ${pulsing[t] ? 'pulse' : ''}`}
-              onTouchStart={(e) => { e.preventDefault(); handlePressStart(t) }}
-              onTouchEnd={(e) => { e.preventDefault(); handlePressEnd(t) }}
-              onTouchCancel={handlePressCancel}
-              onMouseDown={() => handlePressStart(t)}
-              onMouseUp={() => handlePressEnd(t)}
-              onMouseLeave={handlePressCancel}
-              onContextMenu={(e) => e.preventDefault()}
-            >
+            <button key={t} className="shot-card" onClick={() => setEntryType(t)}>
               <div className="shot-name">{t}</div>
               <div className="shot-value tnum">{todayCount}</div>
-              <div className="shot-hint">tap +1 · hold +5</div>
-              {floatNumbers.filter((f) => f.type === t).map((f) => (
-                <div key={f.id} className={`shot-float float-up ${f.value < 0 ? 'shot-float--neg' : ''}`}>
-                  {f.value > 0 ? `+${f.value}` : f.value}
-                </div>
-              ))}
+              <div className="shot-hint">today</div>
             </button>
           )
         })}
       </div>
 
       <div className="action-row">
-        <button className="action-btn" onClick={() => setShowQuickAdd(true)}>
-          Quick add a session
-        </button>
-        <button className="action-btn action-btn--icon" onClick={handleUndo} disabled={undoStack.length === 0}>
-          ↩ Undo
+        <button className="action-btn" onClick={handleUndo} disabled={undoStack.length === 0}>
+          ↩ Undo last
         </button>
       </div>
 
@@ -202,100 +195,99 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      {!rank.isMax && (
-        <div className="rank-strip">
+      {rival && (
+        <div className={`chase chase--${chasingTagClass}`}>
           <div>
-            <div className="label-sm">Next up</div>
-            <div className="rank-strip-name">{rank.nextRankName} · {rank.shotsToNextRank.toLocaleString()} shots</div>
+            <div className="label-sm">Chasing today</div>
+            <div className="chase-name">{chasingText}</div>
+            {chasingSub && <div className="chase-sub">{chasingSub}</div>}
           </div>
-          <div className="rank-bar">
-            <div className="rank-bar-fill" style={{ width: `${Math.round(rank.progress * 100)}%` }} />
-          </div>
+          <div className={`chase-tag chase-tag--${chasingTagClass} tnum`}>{chasingTag}</div>
         </div>
       )}
 
-      {teammate && (
-        <div className="teammate-strip">
-          <div>
-            <div className="label-sm">Teammate pace</div>
-            <div className="teammate-name">{teammate.display_name} · <span className="tnum">{teammate.lifetime_shots.toLocaleString()}</span></div>
-          </div>
-          <div className={`teammate-tag ${player.lifetime_shots > teammate.lifetime_shots ? 'teammate-tag--lead' : 'teammate-tag--chase'}`}>
-            {player.lifetime_shots > teammate.lifetime_shots
-              ? `+${(player.lifetime_shots - teammate.lifetime_shots).toLocaleString()}`
-              : `-${(teammate.lifetime_shots - player.lifetime_shots).toLocaleString()}`}
-          </div>
+      {!rival && (
+        <div className="solo">
+          <div className="label-sm">Solo mode</div>
+          <div className="solo-text">No teammates yet. Share your team code to start competing.</div>
         </div>
       )}
 
-      {showQuickAdd && (
-        <QuickAddSheet
-          shotTypes={shotTypes}
-          onClose={() => setShowQuickAdd(false)}
-          onSubmit={(amounts) => {
-            Object.entries(amounts).forEach(([type, count]) => {
-              if (count > 0) logShot(type, count)
-            })
-            setShowQuickAdd(false)
-          }}
+      {entryType && (
+        <NumberPad
+          type={entryType}
+          onClose={() => setEntryType(null)}
+          onSave={(count) => handleSave(entryType, count)}
         />
       )}
+
+      {toast && <div className="toast">{toast}</div>}
 
       <style>{styles}</style>
     </div>
   )
 }
 
-function QuickAddSheet({ shotTypes, onClose, onSubmit }) {
-  const [amounts, setAmounts] = useState(Object.fromEntries(shotTypes.map((t) => [t, ''])))
+function NumberPad({ type, onSave, onClose }) {
+  const [value, setValue] = useState('')
 
-  const updateAmount = (type, val) => {
-    const clean = val.replace(/[^0-9]/g, '').slice(0, 4)
-    setAmounts((a) => ({ ...a, [type]: clean }))
+  const add = (digit) => {
+    if (value.length >= 4) return
+    setValue((v) => (v === '0' ? String(digit) : v + String(digit)))
   }
 
-  const total = Object.values(amounts).reduce((s, v) => s + (parseInt(v, 10) || 0), 0)
-
-  const submit = () => {
-    const numeric = {}
-    Object.entries(amounts).forEach(([t, v]) => { numeric[t] = parseInt(v, 10) || 0 })
-    onSubmit(numeric)
+  const backspace = () => {
+    setValue((v) => v.slice(0, -1))
   }
+
+  const clear = () => setValue('')
+
+  const num = parseInt(value, 10) || 0
+
+  const save = () => {
+    if (num > 0) onSave(num)
+  }
+
+  const quickAmounts = [10, 25, 50, 100]
 
   return (
-    <div className="qa-overlay" onClick={onClose}>
-      <div className="qa-sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="qa-header">
+    <div className="pad-overlay" onClick={onClose}>
+      <div className="pad-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="pad-header">
           <div>
-            <div className="qa-title">Quick add</div>
-            <div className="qa-sub">Type how many of each, save once</div>
+            <div className="label-sm">How many</div>
+            <div className="pad-title">{type} shots</div>
           </div>
-          <button className="qa-close" onClick={onClose}>✕</button>
+          <button className="pad-close" onClick={onClose} aria-label="Close">✕</button>
         </div>
 
-        <div className="qa-rows">
-          {shotTypes.map((t) => (
-            <div key={t} className="qa-row">
-              <div className="qa-row-name">{t}</div>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={amounts[t]}
-                onChange={(e) => updateAmount(t, e.target.value)}
-                placeholder="0"
-                className="qa-input"
-              />
-            </div>
+        <div className="pad-display">
+          <div className="pad-value tnum">{value || '0'}</div>
+        </div>
+
+        <div className="pad-quick">
+          {quickAmounts.map((n) => (
+            <button
+              key={n}
+              className="pad-quick-btn"
+              onClick={() => setValue(String(n))}
+            >
+              {n}
+            </button>
           ))}
         </div>
 
-        <div className="qa-total">
-          <span className="label-sm">Total</span>
-          <span className="qa-total-num tnum">{total}</span>
+        <div className="pad-grid">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+            <button key={d} className="pad-btn" onClick={() => add(d)}>{d}</button>
+          ))}
+          <button className="pad-btn pad-btn--sm" onClick={clear}>Clear</button>
+          <button className="pad-btn" onClick={() => add(0)}>0</button>
+          <button className="pad-btn pad-btn--sm" onClick={backspace}>⌫</button>
         </div>
 
-        <button className="qa-submit" onClick={submit} disabled={total === 0}>
-          Log {total} shot{total === 1 ? '' : 's'}
+        <button className="pad-save" onClick={save} disabled={num === 0}>
+          Log {num > 0 ? num : ''} {type} shot{num === 1 ? '' : 's'}
         </button>
       </div>
     </div>
@@ -342,7 +334,7 @@ const styles = `
   border-left: 2px solid var(--ice);
   border-radius: var(--radius);
   padding: 11px 14px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   display: flex; gap: 10px; align-items: center;
 }
 .sam-bubble {
@@ -352,6 +344,16 @@ const styles = `
   flex-shrink: 0; font-size: 13px;
 }
 .sam-text { font-size: 14px; line-height: 1.4; }
+
+.tap-hint {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-mute);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
 
 .shots-grid {
   display: grid;
@@ -365,11 +367,9 @@ const styles = `
   border-radius: 18px;
   padding: 18px 16px 14px;
   color: var(--text);
-  position: relative;
-  overflow: hidden;
   text-align: left;
-  min-height: 130px;
-  transition: transform 0.1s, background 0.15s;
+  min-height: 120px;
+  transition: transform 0.1s, background 0.15s, border-color 0.15s;
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
@@ -377,11 +377,7 @@ const styles = `
 .shot-card:active {
   transform: scale(0.97);
   background: var(--surface-raised);
-}
-.shot-card--active {
-  background: var(--accent);
-  border-color: var(--accent-soft);
-  color: white;
+  border-color: var(--accent);
 }
 .shot-name {
   font-family: var(--font-display);
@@ -395,32 +391,22 @@ const styles = `
   margin-top: 6px; line-height: 1;
   color: var(--ice);
 }
-.shot-card--active .shot-value { color: white; }
 .shot-hint {
   font-size: 10px; color: var(--text-mute);
-  letter-spacing: 0.5px; margin-top: 8px; opacity: 0.7;
+  letter-spacing: 1px; margin-top: 6px;
+  text-transform: uppercase; opacity: 0.7;
 }
-.shot-card--active .shot-hint { color: rgba(255,255,255,0.85); opacity: 1; }
-.shot-float {
-  position: absolute; bottom: 14px; right: 16px;
-  font-family: var(--font-display);
-  font-size: 18px; font-weight: 800;
-  color: var(--success); pointer-events: none;
-}
-.shot-float--neg { color: var(--warn-soft); }
 
 .action-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 6px;
-  margin-bottom: 16px;
+  display: flex; justify-content: flex-end;
+  margin-bottom: 14px;
 }
 .action-btn {
   background: transparent;
   color: var(--text-mute);
   border: 0.5px solid var(--border-dim);
   border-radius: var(--radius);
-  padding: 10px;
+  padding: 8px 14px;
   font-size: 12px; font-weight: 500; letter-spacing: 0.3px;
   font-family: inherit;
   transition: all 0.1s;
@@ -429,7 +415,6 @@ const styles = `
   background: var(--surface);
   color: var(--ice);
 }
-.action-btn--icon { padding: 10px 16px; }
 
 .stats-row {
   display: grid;
@@ -449,126 +434,204 @@ const styles = `
   line-height: 1; margin-top: 4px;
 }
 
-.rank-strip {
+.chase {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 10px 14px;
-  margin-bottom: 10px;
-}
-.rank-strip-name {
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 700; margin-top: 2px;
-}
-.rank-bar {
-  height: 4px; background: var(--bg);
-  border-radius: 999px; overflow: hidden;
-  margin-top: 6px;
-}
-.rank-bar-fill {
-  height: 100%; background: var(--ice);
-  border-radius: 999px; transition: width 0.3s;
-}
-
-.teammate-strip {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 10px 14px;
+  padding: 12px 14px;
   display: flex; justify-content: space-between; align-items: center;
+  border-left: 2px solid var(--border);
 }
-.teammate-name {
+.chase--lead { border-left-color: var(--success); }
+.chase--chase { border-left-color: var(--warn); }
+.chase--neutral { border-left-color: var(--ice); }
+.chase-name {
   font-family: var(--font-display);
   font-size: 14px; font-weight: 700; margin-top: 2px;
+  letter-spacing: 0.3px;
 }
-.teammate-tag {
-  padding: 4px 10px;
-  border-radius: 999px;
+.chase-sub {
+  font-size: 11px; color: var(--text-mute); margin-top: 2px;
+}
+.chase-tag {
   font-family: var(--font-display);
-  font-size: 14px; font-weight: 700;
+  font-size: 20px; font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
 }
-.teammate-tag--lead { background: rgba(61, 214, 140, 0.15); color: var(--success); }
-.teammate-tag--chase { background: rgba(255, 122, 41, 0.15); color: var(--warn-soft); }
+.chase-tag--lead {
+  background: rgba(61, 214, 140, 0.15);
+  color: var(--success);
+}
+.chase-tag--chase {
+  background: rgba(255, 122, 41, 0.15);
+  color: var(--warn-soft);
+}
+.chase-tag--neutral {
+  background: var(--bg);
+  color: var(--text-mute);
+}
 
-.qa-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 100;
-  display: flex; align-items: flex-end; justify-content: center;
+.solo {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  border-left: 2px solid var(--border);
 }
-.qa-sheet {
-  width: 100%; max-width: 430px;
+.solo-text {
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Number pad */
+.pad-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fade-in 0.15s ease-out;
+}
+.pad-sheet {
+  width: 100%;
+  max-width: 430px;
   background: var(--surface);
   border-top: 0.5px solid var(--border);
   border-radius: 24px 24px 0 0;
-  padding: 18px 16px max(20px, env(safe-area-inset-bottom, 20px));
+  padding: 18px 16px calc(20px + var(--safe-bottom));
   animation: slide-up 0.25s ease-out;
 }
-@keyframes slide-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-.qa-header {
+.pad-header {
   display: flex; justify-content: space-between; align-items: flex-start;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
-.qa-title {
+.pad-title {
   font-family: var(--font-display);
-  font-size: 20px; font-weight: 700; letter-spacing: 0.4px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+  text-transform: uppercase;
 }
-.qa-sub { font-size: 12px; color: var(--text-mute); margin-top: 2px; }
-.qa-close {
+.pad-close {
   background: var(--bg);
   width: 32px; height: 32px;
   border-radius: 50%;
   color: var(--text-mute);
   font-size: 14px;
   display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
-.qa-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-.qa-row {
-  display: flex; align-items: center;
+
+.pad-display {
   background: var(--bg);
   border-radius: var(--radius);
-  padding: 12px 14px;
-}
-.qa-row-name {
-  flex: 1;
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 700;
-  letter-spacing: 0.5px; text-transform: uppercase;
-}
-.qa-input {
-  width: 80px;
-  background: transparent;
-  border: 0.5px solid var(--border-dim);
-  border-radius: 8px;
-  padding: 8px 10px;
+  padding: 22px 16px;
   text-align: center;
-  font-family: var(--font-display);
-  font-size: 18px; font-weight: 700;
-  color: var(--ice);
-  outline: none;
+  margin-bottom: 10px;
 }
-.qa-input:focus { border-color: var(--accent); }
-.qa-total {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 14px;
-  background: var(--bg);
-  border-radius: var(--radius);
+.pad-value {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 14vw, 64px);
+  font-weight: 800;
+  color: var(--ice);
+  line-height: 1;
+  letter-spacing: 1px;
+}
+
+.pad-quick {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
   margin-bottom: 12px;
 }
-.qa-total-num {
-  font-family: var(--font-display);
-  font-size: 22px; font-weight: 800;
+.pad-quick-btn {
+  background: var(--bg);
+  border: 0.5px solid var(--border-dim);
   color: var(--ice);
+  padding: 10px;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  transition: all 0.1s;
 }
-.qa-submit {
+.pad-quick-btn:active {
+  background: var(--accent);
+  color: white;
+  transform: scale(0.96);
+}
+
+.pad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.pad-btn {
+  background: var(--bg);
+  border: 0.5px solid var(--border-dim);
+  color: var(--text);
+  padding: 18px;
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  min-height: 56px;
+  transition: all 0.08s;
+}
+.pad-btn:active {
+  background: var(--accent);
+  color: white;
+  transform: scale(0.96);
+}
+.pad-btn--sm {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-mute);
+  letter-spacing: 0.3px;
+}
+.pad-btn--sm:active {
+  background: var(--surface);
+  color: var(--text);
+  transform: scale(0.96);
+}
+
+.pad-save {
   width: 100%;
   background: var(--accent);
   color: white;
   border-radius: var(--radius);
-  padding: 14px;
+  padding: 16px;
   font-family: var(--font-display);
-  font-size: 16px; font-weight: 700; letter-spacing: 0.5px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  min-height: 52px;
 }
-.qa-submit:disabled { opacity: 0.4; }
+.pad-save:disabled {
+  opacity: 0.35;
+}
+
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  color: var(--text);
+  font-size: 13px;
+  z-index: 200;
+  animation: fade-in 0.2s ease-out;
+}
 `

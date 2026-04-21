@@ -58,9 +58,7 @@ export default function AuthScreen() {
       await navigator.clipboard.writeText(generatedUsername)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   }
 
   if (mode === 'signin') {
@@ -203,24 +201,22 @@ export default function AuthScreen() {
               <div className="celebration-title">You're in, {displayName}!</div>
             </div>
 
-            <div className="save-warn">
-              <div className="save-warn-icon">⚠️</div>
-              <div>
-                <div className="save-warn-title">Save your username</div>
-                <div className="save-warn-sub">You'll need it to sign in on a different phone or browser.</div>
-              </div>
+            <div className="screenshot-hero">
+              <div className="screenshot-icon">📸</div>
+              <div className="screenshot-title">Screenshot this screen!</div>
+              <div className="screenshot-sub">This is how you sign back in. If you lose it, you lose your shots.</div>
             </div>
 
             <div className="username-big">
               <div className="username-label">YOUR USERNAME</div>
               <div className="username-value-big">@{generatedUsername}</div>
               <button className={`copy-btn ${copied ? 'copy-btn--done' : ''}`} onClick={copyUsername}>
-                {copied ? '✓ Copied to clipboard' : 'Tap to copy'}
+                {copied ? '✓ Copied' : 'Or tap to copy'}
               </button>
             </div>
 
             <div className="save-tips">
-              Screenshot this · text it to a parent · save it in Notes
+              You can also text it to a parent so they have it too.
             </div>
 
             <button className="btn-primary" onClick={() => navigate('/')}>
@@ -361,8 +357,8 @@ const styles = `
   margin-bottom: 12px;
 }
 
-/* Step 3 — celebration + username save */
-.celebration { text-align: center; margin: 4px 0 20px; }
+/* Step 3 */
+.celebration { text-align: center; margin: 4px 0 18px; }
 .celebration-ring {
   width: 64px; height: 64px;
   border-radius: 50%;
@@ -378,24 +374,31 @@ const styles = `
   letter-spacing: 0.4px;
 }
 
-.save-warn {
-  background: rgba(255, 122, 41, 0.08);
-  border: 0.5px solid rgba(255, 122, 41, 0.3);
+.screenshot-hero {
+  background: linear-gradient(135deg, rgba(41, 121, 255, 0.15), rgba(168, 212, 245, 0.08));
+  border: 1px solid rgba(41, 121, 255, 0.4);
   border-radius: var(--radius);
-  padding: 12px 14px;
+  padding: 16px;
+  text-align: center;
   margin-bottom: 14px;
-  display: flex; gap: 10px; align-items: flex-start;
 }
-.save-warn-icon { font-size: 18px; line-height: 1; }
-.save-warn-title {
+.screenshot-icon {
+  font-size: 36px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.screenshot-title {
   font-family: var(--font-display);
-  font-size: 14px; font-weight: 700;
-  letter-spacing: 0.3px;
-  color: var(--warn-soft);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: white;
+  margin-bottom: 4px;
 }
-.save-warn-sub {
-  font-size: 12px; color: var(--text-soft);
-  margin-top: 2px; line-height: 1.4;
+.screenshot-sub {
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.4;
 }
 
 .username-big {
@@ -404,7 +407,7 @@ const styles = `
   border-radius: var(--radius);
   padding: 16px 14px;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 .username-label {
   font-size: 10px; color: var(--text-mute);
@@ -426,6 +429,7 @@ const styles = `
   color: var(--ice);
   font-size: 12px; font-weight: 500;
   letter-spacing: 0.3px;
+  font-family: inherit;
   transition: all 0.15s;
 }
 .copy-btn--done {
@@ -440,5 +444,6 @@ const styles = `
   color: var(--text-mute);
   margin-bottom: 16px;
   letter-spacing: 0.3px;
+  line-height: 1.4;
 }
 `
