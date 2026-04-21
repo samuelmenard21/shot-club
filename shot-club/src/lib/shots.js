@@ -9,7 +9,6 @@ export async function logShots({ playerId, shotType, count = 1 }) {
   if (error) throw error
 }
 
-// Computes Monday-of-this-week as a YYYY-MM-DD string in UTC
 export function getWeekStart() {
   const now = new Date()
   const day = now.getUTCDay()
@@ -40,7 +39,6 @@ export async function getStats(playerId) {
   return { todayTotal, weekTotal, todayByType }
 }
 
-// Lifetime breakdown for the player card
 export async function getLifetimeBreakdown(playerId) {
   const { data, error } = await supabase
     .from('shot_logs')
@@ -52,20 +50,52 @@ export async function getLifetimeBreakdown(playerId) {
   return totals
 }
 
-export async function getRandomTeammate(teamId, excludePlayerId) {
+// Pick a random teammate who shot today (the daily rival)
+// Falls back to a random teammate by lifetime shots if no one shot today
+export async function getTodayRival(teamId, excludePlayerId) {
   if (!teamId) return null
-  const { data } = await supabase
+  const today = new Date().toISOString().slice(0, 10)
+
+  // Get teammates (excluding self)
+  const { data: teammates } = await supabase
     .from('players')
     .select('id, display_name, lifetime_shots')
     .eq('team_id', teamId)
     .neq('id', excludePlayerId)
-    .order('lifetime_shots', { ascending: false })
-    .limit(5)
-  if (!data || data.length === 0) return null
-  return data[Math.floor(Math.random() * data.length)]
+  if (!teammates || teammates.length === 0) return null
+
+  // Get today's shots for all teammates
+  const ids = teammates.map(t => t.id)
+  const { data: todayLogs } = await supabase
+    .from('shot_logs')
+    .select('player_id, count')
+    .in('player_id', ids)
+    .eq('log_date', today)
+
+  const todayByPlayer = {}
+  ;(todayLogs || []).forEach(r => {
+    todayByPlayer[r.player_id] = (todayByPlayer[r.player_id] || 0) + r.count
+  })
+
+  // Players who shot today
+  const activeTeammates = teammates
+    .map(t => ({ ...t, today_shots: todayByPlayer[t.id] || 0 }))
+    .filter(t => t.today_shots > 0)
+
+  if (activeTeammates.length > 0) {
+    return activeTeammates[Math.floor(Math.random() * activeTeammates.length)]
+  }
+
+  // Fallback: random teammate (by lifetime) if no one shot today yet
+  const shuffled = [...teammates].sort(() => Math.random() - 0.5)
+  return { ...shuffled[0], today_shots: 0 }
 }
 
-// Leaderboard: lifetime ranking on a team (or global if teamId is null)
+// Kept for backwards compat (used on other screens)
+export async function getRandomTeammate(teamId, excludePlayerId) {
+  return getTodayRival(teamId, excludePlayerId)
+}
+
 export async function getLeaderboardLifetime({ teamId, limit = 50 }) {
   let query = supabase
     .from('players')
@@ -78,11 +108,8 @@ export async function getLeaderboardLifetime({ teamId, limit = 50 }) {
   return data || []
 }
 
-// Leaderboard: weekly ranking — sums shot_logs since this Monday
 export async function getLeaderboardWeekly({ teamId, limit = 50 }) {
   const weekStart = getWeekStart()
-
-  // Get player IDs to scope to (team if specified)
   let playerIds = null
   if (teamId) {
     const { data: tp } = await supabase
@@ -92,8 +119,6 @@ export async function getLeaderboardWeekly({ teamId, limit = 50 }) {
     playerIds = (tp || []).map(p => p.id)
     if (playerIds.length === 0) return []
   }
-
-  // Sum shot_logs grouped by player
   let q = supabase
     .from('shot_logs')
     .select('player_id, count')
@@ -105,7 +130,6 @@ export async function getLeaderboardWeekly({ teamId, limit = 50 }) {
   const totals = {}
   ;(logs || []).forEach(r => { totals[r.player_id] = (totals[r.player_id] || 0) + r.count })
 
-  // Now fetch player info for all player_ids that have shots this week
   const ids = Object.keys(totals)
   if (ids.length === 0) return []
 
@@ -120,7 +144,6 @@ export async function getLeaderboardWeekly({ teamId, limit = 50 }) {
     .slice(0, limit)
 }
 
-// Get team roster count for showing "you're #X of Y"
 export async function getTeamSize(teamId) {
   if (!teamId) return 0
   const { count } = await supabase
