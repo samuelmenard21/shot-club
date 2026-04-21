@@ -16,7 +16,10 @@
   --warn: #ff7a29;
   --warn-soft: #ffb07a;
   --gold: #ffb94a;
+  --gold-bg: #2a2416;
   --danger: #ff5454;
+  --purple: #7f77dd;
+  --pink: #d4537e;
 
   --radius-sm: 8px;
   --radius: 12px;
@@ -25,6 +28,12 @@
 
   --font-display: 'Barlow Condensed', system-ui, sans-serif;
   --font-body: 'Barlow', system-ui, sans-serif;
+
+  /* Safe area helpers */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -32,7 +41,12 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body, #root {
+html {
+  /* Prevent iOS Safari from auto-scaling text on rotation */
+  -webkit-text-size-adjust: 100%;
+}
+
+html, body {
   margin: 0;
   padding: 0;
   background: var(--bg);
@@ -43,6 +57,13 @@ html, body, #root {
   min-height: 100vh;
   min-height: 100dvh;
   overscroll-behavior-y: contain;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
 }
 
 body {
@@ -61,6 +82,7 @@ button {
   border: none;
   background: none;
   padding: 0;
+  font-family: inherit;
 }
 
 button:disabled {
@@ -75,12 +97,7 @@ h1, h2, h3, h4, h5 {
   margin: 0;
 }
 
-/* Mobile-first container: center and cap width on desktop */
-#root {
-  display: flex;
-  justify-content: center;
-}
-
+/* App shell — mobile-first, capped on tablet/desktop */
 .app-shell {
   width: 100%;
   max-width: 430px;
@@ -88,15 +105,15 @@ h1, h2, h3, h4, h5 {
   min-height: 100dvh;
   background: var(--bg);
   position: relative;
-  padding-bottom: 72px; /* space for bottom nav */
+  /* Bottom nav clearance + safe area */
+  padding-bottom: calc(72px + var(--safe-bottom));
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
 }
 
-/* Utility: tabular numbers for stats */
-.tnum {
-  font-variant-numeric: tabular-nums;
-}
+/* Utilities */
+.tnum { font-variant-numeric: tabular-nums; }
 
-/* Utility: uppercase small labels */
 .label-sm {
   font-size: 10px;
   color: var(--text-mute);
@@ -105,48 +122,67 @@ h1, h2, h3, h4, h5 {
   font-weight: 500;
 }
 
-/* Tap-to-log button press animation */
+/* Animations */
 @keyframes pulse-out {
   0% { transform: scale(1); }
   40% { transform: scale(0.96); }
   100% { transform: scale(1); }
 }
+.pulse { animation: pulse-out 0.3s ease-out; }
 
-.pulse {
-  animation: pulse-out 0.3s ease-out;
-}
-
-/* Shot log ticker */
 @keyframes float-up {
-  0% { opacity: 0; transform: translate(-50%, 0); }
+  0% { opacity: 0; transform: translateY(0); }
   20% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, -44px); }
+  100% { opacity: 0; transform: translateY(-44px); }
 }
+.float-up { animation: float-up 0.9s ease-out forwards; }
 
-.float-up {
-  animation: float-up 0.9s ease-out forwards;
-}
-
-/* Fade-in for screen transitions */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.fade-in { animation: fade-in 0.25s ease-out; }
 
-.fade-in {
-  animation: fade-in 0.25s ease-out;
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
-/* Remove autofill yellow */
+/* Form fields - autofill and number input cleanup */
 input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 30px var(--surface) inset !important;
   -webkit-text-fill-color: var(--text) !important;
 }
-
-/* Number input: hide spinners */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 input[type=number] { -moz-appearance: textfield; }
+
+/* Responsive tweaks for very small screens (older Android, iPhone SE) */
+@media (max-width: 360px) {
+  html, body { font-size: 14px; }
+}
+
+/* Desktop: float the app shell, soft surrounding */
+@media (min-width: 500px) {
+  body {
+    background: #050811;
+  }
+  .app-shell {
+    margin: 20px auto;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 0.5px solid var(--border-dim);
+    min-height: calc(100dvh - 40px);
+  }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

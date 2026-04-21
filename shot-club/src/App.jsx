@@ -2,6 +2,9 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import AuthScreen from './screens/AuthScreen'
 import HomeScreen from './screens/HomeScreen'
+import CardScreen from './screens/CardScreen'
+import TeamsScreen from './screens/TeamsScreen'
+import MoreScreen from './screens/MoreScreen'
 
 function LoadingScreen() {
   return (
@@ -28,28 +31,24 @@ function BottomNav() {
     { path: '/', label: 'Home', icon: <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2 L3 8 V17 H8 V12 H12 V17 H17 V8 Z" fill="currentColor" /></svg> },
     { path: '/card', label: 'Card', icon: <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="2" fill="currentColor" /></svg> },
     { path: '/teams', label: 'Team', icon: <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="10" width="3" height="7" fill="currentColor" /><rect x="8.5" y="6" width="3" height="11" fill="currentColor" /><rect x="14" y="3" width="3" height="14" fill="currentColor" /></svg> },
-    { path: '/more', label: 'More', icon: <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" /><circle cx="10" cy="10" r="2" fill="currentColor" /></svg> },
+    { path: '/more', label: 'More', icon: <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="5" cy="10" r="1.5" fill="currentColor" /><circle cx="10" cy="10" r="1.5" fill="currentColor" /><circle cx="15" cy="10" r="1.5" fill="currentColor" /></svg> },
   ]
   return (
-    <div className="bottom-nav">
+    <nav className="bottom-nav" aria-label="Main navigation">
       {items.map((it) => (
-        <button key={it.path} className={`nav-btn ${loc.pathname === it.path ? 'nav-btn--active' : ''}`} onClick={() => nav(it.path)}>
+        <button
+          key={it.path}
+          className={`nav-btn ${loc.pathname === it.path ? 'nav-btn--active' : ''}`}
+          onClick={() => nav(it.path)}
+          aria-label={it.label}
+          aria-current={loc.pathname === it.path ? 'page' : undefined}
+        >
           {it.icon}
           <span>{it.label}</span>
         </button>
       ))}
       <style>{navStyles}</style>
-    </div>
-  )
-}
-
-function Placeholder({ title }) {
-  return (
-    <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-mute)' }}>
-      <div className="label-sm">Phase 2</div>
-      <h2 style={{ fontFamily: 'var(--font-display)', marginTop: 8 }}>{title}</h2>
-      <p style={{ fontSize: 13, marginTop: 12 }}>This screen comes in the next build phase.</p>
-    </div>
+    </nav>
   )
 }
 
@@ -59,9 +58,9 @@ function Shell() {
       <Routes>
         <Route path="/auth" element={<AuthScreen />} />
         <Route path="/" element={<Protected><HomeScreen /></Protected>} />
-        <Route path="/card" element={<Protected><Placeholder title="Player Card" /></Protected>} />
-        <Route path="/teams" element={<Protected><Placeholder title="Leaderboard" /></Protected>} />
-        <Route path="/more" element={<Protected><Placeholder title="Settings" /></Protected>} />
+        <Route path="/card" element={<Protected><CardScreen /></Protected>} />
+        <Route path="/teams" element={<Protected><TeamsScreen /></Protected>} />
+        <Route path="/more" element={<Protected><MoreScreen /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <BottomNav />
@@ -84,18 +83,29 @@ const navStyles = `
   bottom: 0;
   width: 100%;
   max-width: 430px;
-  background: var(--bg);
+  background: rgba(10, 14, 26, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-top: 0.5px solid var(--border-dim);
   display: flex;
   justify-content: space-around;
-  padding: 8px 0 max(8px, env(safe-area-inset-bottom, 8px));
+  padding: 8px 0 calc(8px + var(--safe-bottom));
   z-index: 10;
+}
+@media (min-width: 500px) {
+  .bottom-nav {
+    border-radius: 0 0 24px 24px;
+    /* Account for the floating shell offset */
+    bottom: 20px;
+  }
 }
 .nav-btn {
   display: flex; flex-direction: column; align-items: center;
   gap: 3px;
   color: var(--text-mute);
-  padding: 4px 12px;
+  padding: 6px 16px;
+  min-width: 60px;
+  min-height: 44px;
   transition: color 0.1s;
 }
 .nav-btn span {
@@ -104,4 +114,5 @@ const navStyles = `
   font-weight: 500;
 }
 .nav-btn--active { color: var(--ice); }
+.nav-btn:active { transform: scale(0.95); }
 `
