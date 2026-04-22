@@ -50,13 +50,10 @@ export async function getLifetimeBreakdown(playerId) {
   return totals
 }
 
-// Pick a random teammate who shot today (the daily rival)
-// Falls back to a random teammate by lifetime shots if no one shot today
 export async function getTodayRival(teamId, excludePlayerId) {
   if (!teamId) return null
   const today = new Date().toISOString().slice(0, 10)
 
-  // Get teammates (excluding self)
   const { data: teammates } = await supabase
     .from('players')
     .select('id, display_name, lifetime_shots')
@@ -64,7 +61,6 @@ export async function getTodayRival(teamId, excludePlayerId) {
     .neq('id', excludePlayerId)
   if (!teammates || teammates.length === 0) return null
 
-  // Get today's shots for all teammates
   const ids = teammates.map(t => t.id)
   const { data: todayLogs } = await supabase
     .from('shot_logs')
@@ -77,7 +73,6 @@ export async function getTodayRival(teamId, excludePlayerId) {
     todayByPlayer[r.player_id] = (todayByPlayer[r.player_id] || 0) + r.count
   })
 
-  // Players who shot today
   const activeTeammates = teammates
     .map(t => ({ ...t, today_shots: todayByPlayer[t.id] || 0 }))
     .filter(t => t.today_shots > 0)
@@ -86,39 +81,41 @@ export async function getTodayRival(teamId, excludePlayerId) {
     return activeTeammates[Math.floor(Math.random() * activeTeammates.length)]
   }
 
-  // Fallback: random teammate (by lifetime) if no one shot today yet
   const shuffled = [...teammates].sort(() => Math.random() - 0.5)
   return { ...shuffled[0], today_shots: 0 }
 }
 
-// Kept for backwards compat (used on other screens)
 export async function getRandomTeammate(teamId, excludePlayerId) {
   return getTodayRival(teamId, excludePlayerId)
 }
 
-export async function getLeaderboardLifetime({ teamId, limit = 50 }) {
+// Scope can be { teamId } or { clubName } or {} for global
+export async function getLeaderboardLifetime({ teamId, clubName, limit = 50 }) {
   let query = supabase
     .from('players')
-    .select('id, display_name, position, lifetime_shots, current_streak')
+    .select('id, display_name, position, lifetime_shots, current_streak, card_number')
     .order('lifetime_shots', { ascending: false })
     .limit(limit)
   if (teamId) query = query.eq('team_id', teamId)
+  if (clubName) query = query.eq('club_name', clubName)
   const { data, error } = await query
   if (error) throw error
   return data || []
 }
 
-export async function getLeaderboardWeekly({ teamId, limit = 50 }) {
+export async function getLeaderboardWeekly({ teamId, clubName, limit = 50 }) {
   const weekStart = getWeekStart()
+
   let playerIds = null
-  if (teamId) {
-    const { data: tp } = await supabase
-      .from('players')
-      .select('id')
-      .eq('team_id', teamId)
-    playerIds = (tp || []).map(p => p.id)
+  if (teamId || clubName) {
+    let scope = supabase.from('players').select('id')
+    if (teamId) scope = scope.eq('team_id', teamId)
+    if (clubName) scope = scope.eq('club_name', clubName)
+    const { data: sp } = await scope
+    playerIds = (sp || []).map(p => p.id)
     if (playerIds.length === 0) return []
   }
+
   let q = supabase
     .from('shot_logs')
     .select('player_id, count')
@@ -135,7 +132,7 @@ export async function getLeaderboardWeekly({ teamId, limit = 50 }) {
 
   const { data: players } = await supabase
     .from('players')
-    .select('id, display_name, position, lifetime_shots, current_streak')
+    .select('id, display_name, position, lifetime_shots, current_streak, card_number')
     .in('id', ids)
 
   return (players || [])
@@ -150,5 +147,14 @@ export async function getTeamSize(teamId) {
     .from('players')
     .select('*', { count: 'exact', head: true })
     .eq('team_id', teamId)
+  return count || 0
+}
+
+export async function getClubSize(clubName) {
+  if (!clubName) return 0
+  const { count } = await supabase
+    .from('players')
+    .select('*', { count: 'exact', head: true })
+    .eq('club_name', clubName)
   return count || 0
 }

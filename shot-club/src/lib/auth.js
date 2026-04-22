@@ -1,9 +1,8 @@
 import { supabase } from './supabase'
 
 const DOMAIN = 'hsc.app'
-const UNIVERSAL_PW = 'shotclub-' + 'pw-' + 'v1' // simple static, never shown to user
+const UNIVERSAL_PW = 'shotclub-' + 'pw-' + 'v1'
 
-// Generate a unique-ish username from the display name
 function makeUsername(displayName) {
   const clean = displayName.toLowerCase().replace(/[^a-z]/g, '').slice(0, 8) || 'player'
   const rand = Math.floor(1000 + Math.random() * 9000)
@@ -14,11 +13,10 @@ function usernameToEmail(username) {
   return `${username.toLowerCase()}@${DOMAIN}`
 }
 
-export async function signUp({ displayName, position, ageBracket, teamCode }) {
+export async function signUp({ displayName, position, ageBracket, teamName, clubName }) {
   const username = makeUsername(displayName)
   const email = usernameToEmail(username)
 
-  // 1) Create the auth user
   const { data: authData, error: authErr } = await supabase.auth.signUp({
     email,
     password: UNIVERSAL_PW,
@@ -27,33 +25,33 @@ export async function signUp({ displayName, position, ageBracket, teamCode }) {
   const userId = authData.user?.id
   if (!userId) throw new Error('Signup failed — no user id returned')
 
-  // 2) Resolve team (create if new code)
+  // Resolve team (create if new name)
   let teamId = null
-  let clubId = null
-  if (teamCode) {
-    const normalizedCode = teamCode.trim().toUpperCase()
+  if (teamName) {
+    const normalized = teamName.trim().toUpperCase()
     const { data: existingTeam } = await supabase
       .from('teams')
-      .select('id, club_id')
-      .eq('code', normalizedCode)
+      .select('id')
+      .eq('code', normalized)
       .maybeSingle()
 
     if (existingTeam) {
       teamId = existingTeam.id
-      clubId = existingTeam.club_id
     } else {
-      // Create the team on-the-fly with the code as the name
       const { data: newTeam, error: teamErr } = await supabase
         .from('teams')
-        .insert({ name: normalizedCode, code: normalizedCode })
-        .select('id, club_id')
+        .insert({ name: normalized, code: normalized })
+        .select('id')
         .single()
       if (teamErr) throw teamErr
       teamId = newTeam.id
     }
   }
 
-  // 3) Create the player row
+  // Normalize club name (if given)
+  const normalizedClub = clubName?.trim() ? clubName.trim() : null
+
+  // Create the player row
   const { error: playerErr } = await supabase.from('players').insert({
     id: userId,
     display_name: displayName,
@@ -61,7 +59,7 @@ export async function signUp({ displayName, position, ageBracket, teamCode }) {
     position,
     age_bracket: ageBracket,
     team_id: teamId,
-    club_id: clubId,
+    club_name: normalizedClub,
   })
   if (playerErr) throw playerErr
 
@@ -87,7 +85,7 @@ export async function getCurrentPlayer() {
 
   const { data } = await supabase
     .from('players')
-    .select('*, team:teams(id, name, code), club:clubs(id, name)')
+    .select('*, team:teams(id, name, code)')
     .eq('id', user.id)
     .maybeSingle()
 
