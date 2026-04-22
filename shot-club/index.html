@@ -3,15 +3,82 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="theme-color" content="#0a0e1a" />
-    <meta name="description" content="Track every shot. Climb the rankings. Off-ice hockey practice for kids." />
-    <title>Hockey Shot Challenge</title>
+
+    <title>Hockey Shot Challenge — Track every shot. Climb the rankings.</title>
+    <meta name="description" content="Off-ice hockey practice tracking for kids ages 6-18. Log your shots, climb team and global leaderboards, earn ranks, and get better every day." />
+    <meta name="keywords" content="hockey training, hockey practice, shot tracker, off-ice training, youth hockey, hockey app, hockey drills, shot counter, hockey leaderboard, minor hockey" />
+    <meta name="author" content="Hockey Shot Challenge" />
+    <meta name="robots" content="index, follow" />
+
+    <link rel="canonical" href="https://hockeyshotchallenge.com/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://hockeyshotchallenge.com/" />
+    <meta property="og:title" content="Hockey Shot Challenge — Track every shot. Climb the rankings." />
+    <meta property="og:description" content="Off-ice hockey practice tracking for kids ages 6-18. Log your shots, climb leaderboards, earn ranks." />
+    <meta property="og:image" content="https://hockeyshotchallenge.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Hockey Shot Challenge" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://hockeyshotchallenge.com/" />
+    <meta name="twitter:title" content="Hockey Shot Challenge — Track every shot. Climb the rankings." />
+    <meta name="twitter:description" content="Off-ice hockey practice tracking for kids ages 6-18. Log your shots, climb leaderboards, earn ranks." />
+    <meta name="twitter:image" content="https://hockeyshotchallenge.com/og-image.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Hockey Shot Challenge" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Hockey Shot Challenge",
+      "url": "https://hockeyshotchallenge.com",
+      "description": "Off-ice hockey practice tracking app for kids ages 6-18. Log shots, climb team and global leaderboards, earn ranks.",
+      "applicationCategory": "SportsApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "audience": {
+        "@type": "PeopleAudience",
+        "suggestedMinAge": "6",
+        "suggestedMaxAge": "18"
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="padding:40px;text-align:center;background:#0a0e1a;color:#e8eef7;font-family:sans-serif;">
+        <h1>Hockey Shot Challenge</h1>
+        <p>This app needs JavaScript to run. Please enable JavaScript in your browser.</p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
