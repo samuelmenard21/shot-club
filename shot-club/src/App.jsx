@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth'
 import AuthScreen from './screens/AuthScreen'
 import HomeScreen from './screens/HomeScreen'
 import CardScreen from './screens/CardScreen'
-import TeamsScreen from './screens/TeamsScreen'
+import RankScreen from './screens/RankScreen'
 import MoreScreen from './screens/MoreScreen'
 
 function LoadingScreen() {
@@ -30,7 +30,7 @@ function BottomNav() {
   const items = [
     { path: '/', label: 'Home', icon: <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2 L3 8 V17 H8 V12 H12 V17 H17 V8 Z" fill="currentColor" /></svg> },
     { path: '/card', label: 'Card', icon: <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="2" fill="currentColor" /></svg> },
-    { path: '/teams', label: 'Team', icon: <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="10" width="3" height="7" fill="currentColor" /><rect x="8.5" y="6" width="3" height="11" fill="currentColor" /><rect x="14" y="3" width="3" height="14" fill="currentColor" /></svg> },
+    { path: '/rank', label: 'Rank', icon: <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="10" width="3" height="7" fill="currentColor" /><rect x="8.5" y="6" width="3" height="11" fill="currentColor" /><rect x="14" y="3" width="3" height="14" fill="currentColor" /></svg> },
     { path: '/more', label: 'More', icon: <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="5" cy="10" r="1.5" fill="currentColor" /><circle cx="10" cy="10" r="1.5" fill="currentColor" /><circle cx="15" cy="10" r="1.5" fill="currentColor" /></svg> },
   ]
   return (
@@ -59,7 +59,9 @@ function Shell() {
         <Route path="/auth" element={<AuthScreen />} />
         <Route path="/" element={<Protected><HomeScreen /></Protected>} />
         <Route path="/card" element={<Protected><CardScreen /></Protected>} />
-        <Route path="/teams" element={<Protected><TeamsScreen /></Protected>} />
+        <Route path="/rank" element={<Protected><RankScreen /></Protected>} />
+        {/* Legacy redirect */}
+        <Route path="/teams" element={<Navigate to="/rank" replace />} />
         <Route path="/more" element={<Protected><MoreScreen /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -95,7 +97,6 @@ const navStyles = `
 @media (min-width: 500px) {
   .bottom-nav {
     border-radius: 0 0 24px 24px;
-    /* Account for the floating shell offset */
     bottom: 20px;
   }
 }
