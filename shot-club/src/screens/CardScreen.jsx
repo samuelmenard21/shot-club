@@ -6,7 +6,7 @@ import { getLifetimeBreakdown } from '../lib/shots'
 export default function CardScreen() {
   const { player } = useAuth()
   const [breakdown, setBreakdown] = useState(null)
-  const [shareState, setShareState] = useState('') // '', 'copying', 'copied'
+  const [shareState, setShareState] = useState('')
   const cardRef = useRef(null)
 
   useEffect(() => {
@@ -22,12 +22,12 @@ export default function CardScreen() {
     ? new Date(player.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '—'
 
-  // Card serial number derived from user id - short, deterministic
-  const serial = player.id ? player.id.replace(/-/g, '').slice(0, 4).toUpperCase() : '0000'
+  // Sequential card number — zero-padded to 3 digits (#001, #042, #1337)
+  const cardNumber = player.card_number || 0
+  const cardNumberDisplay = String(cardNumber).padStart(3, '0')
 
   const positionFull = player.position === 'F' ? 'Forward' : player.position === 'D' ? 'Defense' : 'Goalie'
 
-  // Shot mix percentages for the bar
   const total = breakdown ? Object.values(breakdown).reduce((s, v) => s + v, 0) : 0
   const pct = (n) => total > 0 ? Math.round((n / total) * 100) : 0
   const mix = breakdown ? [
@@ -37,7 +37,6 @@ export default function CardScreen() {
     { name: 'Backhand', val: breakdown.Backhand, pct: pct(breakdown.Backhand), color: '#3dd68c' },
   ].filter(m => m.val > 0) : []
 
-  // Determine "specialty" label
   let specialty = null
   if (mix.length > 0) {
     const top = [...mix].sort((a, b) => b.pct - a.pct)[0]
@@ -52,7 +51,7 @@ export default function CardScreen() {
       const shareUrl = `${window.location.origin}/card/${player.username}`
       if (navigator.share) {
         await navigator.share({
-          title: `${player.display_name} on Shot Club`,
+          title: `${player.display_name} on Hockey Shot Challenge`,
           text: `${rank.fullName} · ${player.lifetime_shots.toLocaleString()} shots`,
           url: shareUrl,
         })
@@ -93,12 +92,12 @@ export default function CardScreen() {
         <div className="player-card-content">
           <div className="card-meta">
             <div>
-              <div className="card-meta-label">Shot Club · {new Date().getFullYear()}</div>
+              <div className="card-meta-label">HOCKEY SHOT CHALLENGE · {new Date().getFullYear()}</div>
               <div className="card-meta-handle">@{player.username}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div className="card-meta-label">CARD #</div>
-              <div className="card-meta-serial tnum">{serial}</div>
+              <div className="card-meta-label">CARD</div>
+              <div className="card-meta-serial tnum">#{cardNumberDisplay}</div>
             </div>
           </div>
 
@@ -117,6 +116,7 @@ export default function CardScreen() {
               <div className="card-pills">
                 <div className="card-pill">{positionFull.toUpperCase()}</div>
                 {player.team?.name && <div className="card-pill">{player.team.name}</div>}
+                {player.club_name && <div className="card-pill card-pill--club">{player.club_name}</div>}
               </div>
             </div>
           </div>
@@ -190,16 +190,15 @@ export default function CardScreen() {
               <div className="card-meta-label">Joined</div>
               <div className="card-footer-text">{joinedDate}</div>
             </div>
-            <div className="card-meta-label">shotclub</div>
+            <div className="card-meta-label">HSC</div>
           </div>
         </div>
       </div>
 
-      {/* Rank ladder mini */}
       <div className="rank-ladder">
         <div className="label-sm" style={{ marginBottom: 8, padding: '0 4px' }}>The ladder</div>
         <div className="rank-ladder-rows">
-          {RANKS.map((r, i) => {
+          {RANKS.map((r) => {
             const reached = player.lifetime_shots >= r.floor
             const current = rank.name === r.name
             return (
@@ -300,6 +299,7 @@ const styles = `
 .card-meta {
   display: flex; justify-content: space-between; align-items: flex-start;
   margin-bottom: 14px;
+  gap: 10px;
 }
 .card-meta-label {
   font-size: 9px; color: var(--text-mute);
@@ -314,7 +314,7 @@ const styles = `
   letter-spacing: 0.5px;
 }
 .card-meta-serial {
-  font-size: 12px; color: var(--text);
+  font-size: 14px; color: var(--text);
   font-family: var(--font-display);
   font-weight: 700;
   margin-top: 2px;
@@ -360,6 +360,11 @@ const styles = `
   font-weight: 600;
   letter-spacing: 0.5px;
   font-family: var(--font-display);
+}
+.card-pill--club {
+  background: transparent;
+  border: 0.5px solid var(--border);
+  color: var(--text-soft);
 }
 
 .card-rank {

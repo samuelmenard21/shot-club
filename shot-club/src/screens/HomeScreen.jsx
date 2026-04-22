@@ -11,7 +11,7 @@ export default function HomeScreen() {
   const { player, refresh } = useAuth()
   const [stats, setStats] = useState({ todayTotal: 0, weekTotal: 0, todayByType: {} })
   const [rival, setRival] = useState(null)
-  const [entryType, setEntryType] = useState(null) // which shot type the pad is open for
+  const [entryType, setEntryType] = useState(null)
   const [undoStack, setUndoStack] = useState([])
   const [toast, setToast] = useState('')
 
@@ -29,7 +29,6 @@ export default function HomeScreen() {
     setStats(s)
   }
 
-  // Periodic refresh for lifetime count (updated by the trigger)
   useEffect(() => {
     if (!player) return
     const t = setInterval(() => { refresh() }, 4000)
@@ -51,7 +50,6 @@ export default function HomeScreen() {
   const handleSave = async (type, count) => {
     if (!count || count <= 0) return
     setEntryType(null)
-    // Optimistic update
     setStats((s) => ({
       ...s,
       todayTotal: s.todayTotal + count,
@@ -63,10 +61,8 @@ export default function HomeScreen() {
 
     try {
       await logShots({ playerId: player.id, shotType: type, count })
-      // Refresh to get server truth
       setTimeout(refreshStats, 400)
     } catch (e) {
-      // Roll back on error
       setStats((s) => ({
         ...s,
         todayTotal: Math.max(0, s.todayTotal - count),
@@ -103,11 +99,14 @@ export default function HomeScreen() {
 
   if (!player) return null
 
+  const lastLog = undoStack[undoStack.length - 1]
+  const hasRecentLog = !!lastLog
+
   // Chasing strip logic
   let chasingText = null
   let chasingSub = null
   let chasingTag = null
-  let chasingTagClass = ''
+  let chasingTagClass = 'neutral'
   if (rival) {
     const rivalToday = rival.today_shots || 0
     const gap = stats.todayTotal - rivalToday
@@ -115,7 +114,6 @@ export default function HomeScreen() {
       chasingText = `${rival.display_name} hasn't shot today`
       chasingSub = 'Set the pace'
       chasingTag = '—'
-      chasingTagClass = 'neutral'
     } else if (gap > 0) {
       chasingText = `${rival.display_name} · ${rivalToday} today`
       chasingSub = 'Leading by'
@@ -124,13 +122,12 @@ export default function HomeScreen() {
     } else if (gap < 0) {
       chasingText = `${rival.display_name} · ${rivalToday} today`
       chasingSub = 'Catch them'
-      chasingTag = `${gap}` // already has minus
+      chasingTag = `${gap}`
       chasingTagClass = 'chase'
     } else {
       chasingText = `${rival.display_name} · ${rivalToday} today`
       chasingSub = 'Tied'
       chasingTag = '='
-      chasingTagClass = 'neutral'
     }
   }
 
@@ -174,11 +171,15 @@ export default function HomeScreen() {
         })}
       </div>
 
-      <div className="action-row">
-        <button className="action-btn" onClick={handleUndo} disabled={undoStack.length === 0}>
-          ↩ Undo last
+      {hasRecentLog && (
+        <button className="undo-btn" onClick={handleUndo}>
+          <span className="undo-icon">↩</span>
+          <span className="undo-text">
+            <span className="undo-label">Undo last entry</span>
+            <span className="undo-detail">+{lastLog.count} {lastLog.type}</span>
+          </span>
         </button>
-      </div>
+      )}
 
       <div className="stats-row">
         <div className="stat">
@@ -209,7 +210,7 @@ export default function HomeScreen() {
       {!rival && (
         <div className="solo">
           <div className="label-sm">Solo mode</div>
-          <div className="solo-text">No teammates yet. Share your team code to start competing.</div>
+          <div className="solo-text">No teammates yet. Share your team name to start competing.</div>
         </div>
       )}
 
@@ -236,17 +237,11 @@ function NumberPad({ type, onSave, onClose }) {
     setValue((v) => (v === '0' ? String(digit) : v + String(digit)))
   }
 
-  const backspace = () => {
-    setValue((v) => v.slice(0, -1))
-  }
-
+  const backspace = () => setValue((v) => v.slice(0, -1))
   const clear = () => setValue('')
 
   const num = parseInt(value, 10) || 0
-
-  const save = () => {
-    if (num > 0) onSave(num)
-  }
+  const save = () => { if (num > 0) onSave(num) }
 
   const quickAmounts = [10, 25, 50, 100]
 
@@ -267,11 +262,7 @@ function NumberPad({ type, onSave, onClose }) {
 
         <div className="pad-quick">
           {quickAmounts.map((n) => (
-            <button
-              key={n}
-              className="pad-quick-btn"
-              onClick={() => setValue(String(n))}
-            >
+            <button key={n} className="pad-quick-btn" onClick={() => setValue(String(n))}>
               {n}
             </button>
           ))}
@@ -397,23 +388,47 @@ const styles = `
   text-transform: uppercase; opacity: 0.7;
 }
 
-.action-row {
-  display: flex; justify-content: flex-end;
-  margin-bottom: 14px;
-}
-.action-btn {
-  background: transparent;
-  color: var(--text-mute);
-  border: 0.5px solid var(--border-dim);
+/* Undo button - now visually prominent */
+.undo-btn {
+  width: 100%;
+  background: rgba(255, 122, 41, 0.12);
+  border: 0.5px solid rgba(255, 122, 41, 0.4);
+  color: var(--warn-soft);
   border-radius: var(--radius);
-  padding: 8px 14px;
-  font-size: 12px; font-weight: 500; letter-spacing: 0.3px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
   font-family: inherit;
-  transition: all 0.1s;
+  transition: all 0.15s;
+  animation: fade-in 0.25s ease-out;
 }
-.action-btn:active:not(:disabled) {
-  background: var(--surface);
-  color: var(--ice);
+.undo-btn:active {
+  background: rgba(255, 122, 41, 0.18);
+  transform: scale(0.99);
+}
+.undo-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.undo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+}
+.undo-label {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.undo-detail {
+  font-size: 11px;
+  color: var(--text-mute);
+  margin-top: 1px;
 }
 
 .stats-row {
