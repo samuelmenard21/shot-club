@@ -1,28 +1,55 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signUp, signIn } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
+import { getClubBySlug } from '../lib/clubs'
+import { setSEO, CANONICAL_URL } from '../lib/seo'
 
 const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
 
 export default function AuthScreen() {
   const [mode, setMode] = useState('signup')
   const [step, setStep] = useState(1)
-  const [path, setPath] = useState(null) // 'join' | 'solo'
+  const [path, setPath] = useState(null) // 'club' | 'join' | 'solo'
   const [teamName, setTeamName] = useState('')
   const [clubName, setClubName] = useState('')
+  const [preClub, setPreClub] = useState(null) // when arriving from /join/<slug>
   const [displayName, setDisplayName] = useState('')
   const [position, setPosition] = useState(null)
   const [ageBracket, setAgeBracket] = useState(null)
   const [username, setUsername] = useState('')
   const [generatedUsername, setGeneratedUsername] = useState('')
   const [generatedTeamName, setGeneratedTeamName] = useState('')
-  const [copiedWhat, setCopiedWhat] = useState('') // 'username' | 'team' | 'link' | ''
+  const [generatedClubName, setGeneratedClubName] = useState('')
+  const [copiedWhat, setCopiedWhat] = useState('')
   const [shared, setShared] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const navigate = useNavigate()
+  const nav = useNavigate()
+  const [searchParams] = useSearchParams()
   const { refresh } = useAuth()
+
+  useEffect(() => {
+    setSEO({
+      title: mode === 'signin' ? 'Sign in' : 'Create your card',
+      description: 'Sign up for Hockey Shot Challenge. Free. 30 seconds. No email needed.',
+      noindex: true, // auth pages shouldn't be indexed
+    })
+  }, [mode])
+
+  // Check for pre-selected club via URL (from /join/:slug redirect)
+  useEffect(() => {
+    const clubSlug = searchParams.get('club')
+    if (!clubSlug) return
+    ;(async () => {
+      const c = await getClubBySlug(clubSlug)
+      if (c) {
+        setPreClub(c)
+        setPath('club')
+        setClubName(c.name)
+      }
+    })()
+  }, [searchParams])
 
   const choosePath = (p) => {
     setPath(p)
@@ -32,6 +59,10 @@ export default function AuthScreen() {
   const continueFromStep1 = () => {
     if (path === 'join' && !teamName.trim()) {
       setError('Type a team name to join.')
+      return
+    }
+    if (path === 'club' && preClub && !teamName.trim()) {
+      setError('Enter your team name within this club.')
       return
     }
     setError('')
@@ -46,15 +77,27 @@ export default function AuthScreen() {
     setLoading(true)
     setError('')
     try {
+      let teamToUse = null
+      let clubToUse = null
+
+      if (path === 'club' && preClub) {
+        teamToUse = teamName.trim() ? teamName.trim().toUpperCase() : null
+        clubToUse = preClub.name
+      } else if (path === 'join') {
+        teamToUse = teamName.trim().toUpperCase()
+        clubToUse = clubName.trim() || null
+      }
+
       const { username } = await signUp({
         displayName: displayName.trim(),
         position,
         ageBracket,
-        teamName: path === 'join' ? teamName : null,
-        clubName: clubName.trim() || null,
+        teamName: teamToUse,
+        clubName: clubToUse,
       })
       setGeneratedUsername(username)
-      setGeneratedTeamName(path === 'join' ? teamName.trim().toUpperCase() : '')
+      setGeneratedTeamName(teamToUse || '')
+      setGeneratedClubName(clubToUse || '')
       await refresh()
       setStep(3)
     } catch (e) {
@@ -70,7 +113,7 @@ export default function AuthScreen() {
     try {
       await signIn({ username })
       await refresh()
-      navigate('/')
+      nav('/home')
     } catch (e) {
       setError('Username not found. Check the spelling.')
     } finally {
@@ -104,7 +147,7 @@ export default function AuthScreen() {
     } catch (e) {}
   }
 
-  // ---------- Sign in ----------
+  // Sign in mode
   if (mode === 'signin') {
     return (
       <div className="auth-wrap fade-in">
@@ -138,13 +181,16 @@ export default function AuthScreen() {
           <button className="btn-text" onClick={() => { setMode('signup'); setError('') }}>
             New here? Create a card
           </button>
+          <button className="btn-text" onClick={() => nav('/')}>
+            ← Back to home
+          </button>
         </div>
         <style>{styles}</style>
       </div>
     )
   }
 
-  // ---------- Signup ----------
+  // Signup mode
   return (
     <div className="auth-wrap fade-in">
       <div className="auth-card">
@@ -154,83 +200,120 @@ export default function AuthScreen() {
               <BrandLogo />
               <div className="brand-name">Hockey Shot<br/>Challenge</div>
             </div>
-            <h2 className="auth-title">Track every shot.<br/>Climb the rankings.</h2>
-            <p className="auth-sub">Let's get you set up in 30 seconds.</p>
 
-            {/* Path 1: Join a team */}
-            <div className={`path-card ${path === 'join' ? 'path-card--active' : ''}`} onClick={() => choosePath('join')}>
-              <div className="path-head">
-                <div className="path-icon">🏒</div>
-                <div>
-                  <div className="path-title">Join a team</div>
-                  <div className="path-sub">Compete with your teammates</div>
+            {preClub ? (
+              <>
+                <div className="club-banner">
+                  <div className="club-banner-label">JOINING</div>
+                  <div className="club-banner-name">{preClub.name}</div>
+                  {preClub.city && <div className="club-banner-city">{preClub.city}</div>}
                 </div>
-                <div className={`path-check ${path === 'join' ? 'path-check--active' : ''}`}>
-                  {path === 'join' ? '✓' : ''}
+                <label className="input-label">
+                  <span>What's your team within this club?</span>
+                  <input
+                    type="text"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value.toUpperCase())}
+                    placeholder="e.g. U14 A, BANTAM-A1, etc."
+                    autoCapitalize="characters"
+                    autoCorrect="off"
+                    spellCheck="false"
+                    className="input-field input-field--code"
+                    autoFocus
+                  />
+                </label>
+                <div className="path-hint">
+                  Ask your coach or a teammate if you're not sure. Use the exact same name they use so you're all on the same team.
                 </div>
-              </div>
-              {path === 'join' && (
-                <div className="path-body">
-                  <label className="input-label">
-                    <span>Team name</span>
-                    <input
-                      type="text"
-                      value={teamName}
-                      onChange={(e) => setTeamName(e.target.value.toUpperCase())}
-                      placeholder="e.g. NORTHSTARS"
-                      autoCapitalize="characters"
-                      autoCorrect="off"
-                      spellCheck="false"
-                      className="input-field input-field--code"
-                      autoFocus
-                    />
-                  </label>
-                  <div className="path-hint">
-                    Same name as your teammates = you're on the same team. Don't know it? Ask your coach or a teammate.
+
+                {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
+
+                <button className="btn-primary" onClick={continueFromStep1} disabled={!teamName.trim()} style={{ marginTop: 16 }}>
+                  Continue →
+                </button>
+                <button className="btn-text" onClick={() => { setPreClub(null); setPath(null); setTeamName(''); setClubName('') }}>
+                  Sign up without the club
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 className="auth-title">Track every shot.<br/>Climb the rankings.</h2>
+                <p className="auth-sub">Let's get you set up in 30 seconds.</p>
+
+                <div className={`path-card ${path === 'join' ? 'path-card--active' : ''}`} onClick={() => choosePath('join')}>
+                  <div className="path-head">
+                    <div className="path-icon">🏒</div>
+                    <div>
+                      <div className="path-title">Join a team</div>
+                      <div className="path-sub">Compete with your teammates</div>
+                    </div>
+                    <div className={`path-check ${path === 'join' ? 'path-check--active' : ''}`}>
+                      {path === 'join' ? '✓' : ''}
+                    </div>
                   </div>
+                  {path === 'join' && (
+                    <div className="path-body">
+                      <label className="input-label">
+                        <span>Team name</span>
+                        <input
+                          type="text"
+                          value={teamName}
+                          onChange={(e) => setTeamName(e.target.value.toUpperCase())}
+                          placeholder="e.g. NORTHSTARS"
+                          autoCapitalize="characters"
+                          autoCorrect="off"
+                          spellCheck="false"
+                          className="input-field input-field--code"
+                          autoFocus
+                        />
+                      </label>
+                      <div className="path-hint">
+                        Same name as your teammates = you're on the same team.
+                      </div>
 
-                  <label className="input-label" style={{ marginTop: 14 }}>
-                    <span>Club name (optional)</span>
-                    <input
-                      type="text"
-                      value={clubName}
-                      onChange={(e) => setClubName(e.target.value)}
-                      placeholder="e.g. Burlington Eagles"
-                      className="input-field"
-                    />
-                  </label>
-                  <div className="path-hint">
-                    If your team is part of a bigger hockey club, add it here. Leave blank if you're not sure.
+                      <label className="input-label" style={{ marginTop: 14 }}>
+                        <span>Club name (optional)</span>
+                        <input
+                          type="text"
+                          value={clubName}
+                          onChange={(e) => setClubName(e.target.value)}
+                          placeholder="e.g. Burlington Eagles"
+                          className="input-field"
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                <div className="or-divider">or</div>
+
+                <div className={`path-card ${path === 'solo' ? 'path-card--active' : ''}`} onClick={() => choosePath('solo')}>
+                  <div className="path-head">
+                    <div className="path-icon">🎯</div>
+                    <div>
+                      <div className="path-title">Start solo</div>
+                      <div className="path-sub">Track on your own, add a team later</div>
+                    </div>
+                    <div className={`path-check ${path === 'solo' ? 'path-check--active' : ''}`}>
+                      {path === 'solo' ? '✓' : ''}
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="or-divider">or</div>
+                {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
 
-            {/* Path 2: Start solo */}
-            <div className={`path-card ${path === 'solo' ? 'path-card--active' : ''}`} onClick={() => choosePath('solo')}>
-              <div className="path-head">
-                <div className="path-icon">🎯</div>
-                <div>
-                  <div className="path-title">Start solo</div>
-                  <div className="path-sub">Track on your own, add a team later</div>
-                </div>
-                <div className={`path-check ${path === 'solo' ? 'path-check--active' : ''}`}>
-                  {path === 'solo' ? '✓' : ''}
-                </div>
-              </div>
-            </div>
+                <button className="btn-primary" onClick={continueFromStep1} disabled={!path} style={{ marginTop: 16 }}>
+                  Continue →
+                </button>
 
-            {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
-
-            <button className="btn-primary" onClick={continueFromStep1} disabled={!path} style={{ marginTop: 16 }}>
-              Continue →
-            </button>
-
-            <button className="btn-text" onClick={() => { setMode('signin'); setError('') }}>
-              Already playing? Sign in
-            </button>
+                <button className="btn-text" onClick={() => { setMode('signin'); setError('') }}>
+                  Already playing? Sign in
+                </button>
+                <button className="btn-text" onClick={() => nav('/')}>
+                  ← Back to home
+                </button>
+              </>
+            )}
           </>
         )}
 
@@ -302,6 +385,9 @@ export default function AuthScreen() {
                 <div className="celebration-inner">🎉</div>
               </div>
               <div className="celebration-title">You're in, {displayName}!</div>
+              {generatedClubName && (
+                <div className="club-joined">Joined {generatedClubName}</div>
+              )}
             </div>
 
             <div className="screenshot-hero">
@@ -318,11 +404,9 @@ export default function AuthScreen() {
               </button>
             </div>
 
-            <div className="save-tips">
-              Text it to a parent so they have it too.
-            </div>
+            <div className="save-tips">Text it to a parent so they have it too.</div>
 
-            {generatedTeamName && (
+            {generatedTeamName && !preClub && (
               <div className="invite-card">
                 <div className="invite-top">
                   <div className="invite-label">YOUR TEAM</div>
@@ -337,7 +421,7 @@ export default function AuthScreen() {
               </div>
             )}
 
-            <button className="btn-primary" onClick={() => navigate('/')}>
+            <button className="btn-primary" onClick={() => nav('/home')}>
               Got it — let's shoot 🏒
             </button>
           </>
@@ -362,6 +446,7 @@ const styles = `
   min-height: 100dvh;
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
+  width: 100%; max-width: none;
 }
 .auth-card {
   width: 100%; max-width: 380px;
@@ -399,6 +484,33 @@ const styles = `
   font-size: 13px; color: var(--text-mute);
   margin: 0 0 18px;
 }
+
+.club-banner {
+  background: var(--surface-raised);
+  border: 0.5px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 18px;
+  text-align: center;
+}
+.club-banner-label {
+  font-size: 10px; color: var(--text-mute);
+  letter-spacing: 2px; text-transform: uppercase;
+  font-weight: 500;
+}
+.club-banner-name {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 800;
+  color: var(--ice);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+.club-banner-city {
+  font-size: 12px; color: var(--text-mute);
+  margin-top: 4px;
+}
+
 .input-label { display: block; margin-bottom: 4px; }
 .input-label > span {
   display: block;
@@ -427,11 +539,8 @@ const styles = `
   font-family: var(--font-display);
   font-weight: 700; color: var(--ice);
 }
-.input-field--code::placeholder {
-  letter-spacing: 2px;
-}
+.input-field--code::placeholder { letter-spacing: 2px; }
 
-/* Path cards */
 .path-card {
   background: var(--bg);
   border: 0.5px solid var(--border-dim);
@@ -439,7 +548,6 @@ const styles = `
   padding: 14px;
   cursor: pointer;
   transition: all 0.15s;
-  margin-bottom: 0;
 }
 .path-card--active {
   background: var(--surface-raised);
@@ -459,12 +567,10 @@ const styles = `
 .path-title {
   font-family: var(--font-display);
   font-size: 16px; font-weight: 800;
-  letter-spacing: 0.4px;
-  line-height: 1.1;
+  letter-spacing: 0.4px; line-height: 1.1;
 }
 .path-sub {
-  font-size: 12px;
-  color: var(--text-mute);
+  font-size: 12px; color: var(--text-mute);
   margin-top: 2px;
 }
 .path-check {
@@ -474,8 +580,7 @@ const styles = `
   border: 1.5px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   color: var(--text);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 13px; font-weight: 700;
   flex-shrink: 0;
 }
 .path-check--active {
@@ -489,12 +594,9 @@ const styles = `
   border-top: 0.5px solid var(--border-dim);
 }
 .path-hint {
-  font-size: 11px;
-  color: var(--text-mute);
-  line-height: 1.4;
-  margin-top: 6px;
+  font-size: 11px; color: var(--text-mute);
+  line-height: 1.4; margin-top: 6px;
 }
-
 .or-divider {
   text-align: center;
   font-size: 11px;
@@ -560,7 +662,6 @@ const styles = `
   margin-bottom: 12px;
 }
 
-/* Step 3 */
 .celebration { text-align: center; margin: 4px 0 18px; }
 .celebration-ring {
   width: 64px; height: 64px;
@@ -576,7 +677,12 @@ const styles = `
   font-size: 22px; font-weight: 700;
   letter-spacing: 0.4px;
 }
-
+.club-joined {
+  font-size: 13px;
+  color: var(--ice);
+  margin-top: 6px;
+  letter-spacing: 0.3px;
+}
 .screenshot-hero {
   background: linear-gradient(135deg, rgba(41, 121, 255, 0.15), rgba(168, 212, 245, 0.08));
   border: 1px solid rgba(41, 121, 255, 0.4);
@@ -585,11 +691,7 @@ const styles = `
   text-align: center;
   margin-bottom: 14px;
 }
-.screenshot-icon {
-  font-size: 36px;
-  line-height: 1;
-  margin-bottom: 6px;
-}
+.screenshot-icon { font-size: 36px; line-height: 1; margin-bottom: 6px; }
 .screenshot-title {
   font-family: var(--font-display);
   font-size: 20px;
@@ -603,7 +705,6 @@ const styles = `
   color: var(--text-soft);
   line-height: 1.4;
 }
-
 .username-big {
   background: var(--bg);
   border: 0.5px dashed var(--border);
@@ -640,7 +741,6 @@ const styles = `
   border-color: rgba(61, 214, 140, 0.4);
   color: var(--success);
 }
-
 .save-tips {
   text-align: center;
   font-size: 11px;
@@ -649,7 +749,6 @@ const styles = `
   letter-spacing: 0.3px;
   line-height: 1.4;
 }
-
 .invite-card {
   background: var(--surface-raised);
   border: 0.5px solid var(--accent);
@@ -686,6 +785,5 @@ const styles = `
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.4px;
-  transition: all 0.15s;
 }
 `
