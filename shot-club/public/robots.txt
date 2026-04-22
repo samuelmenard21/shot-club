@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /join/
+Allow: /card/
+Allow: /coach
+
+Disallow: /start
+Disallow: /home
+Disallow: /rank
+Disallow: /more
+Disallow: /coach/dashboard
+
+Sitemap: https://hockeyshotchallenge.com/sitemap.xml

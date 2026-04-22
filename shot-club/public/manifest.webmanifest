@@ -1,0 +1,19 @@
+{
+  "name": "Hockey Shot Challenge",
+  "short_name": "HSC",
+  "description": "Track every shot. Climb the rankings. Off-ice hockey practice for kids.",
+  "start_url": "/home",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0e1a",
+  "theme_color": "#0a0e1a",
+  "categories": ["sports", "fitness", "lifestyle"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
