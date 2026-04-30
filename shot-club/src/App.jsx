@@ -17,6 +17,7 @@ import HomeScreen from './screens/HomeScreen'
 import CardScreen from './screens/CardScreen'
 import RankScreen from './screens/RankScreen'
 import MoreScreen from './screens/MoreScreen'
+import DrillsScreen from './screens/DrillsScreen'
 
 function LoadingScreen() {
   return (
@@ -35,7 +36,6 @@ function LoadingScreen() {
   )
 }
 
-// Protects a route: redirects to /start if not signed in as a player
 function Protected({ children }) {
   const { player, loading } = useAuth()
   if (loading) return <LoadingScreen />
@@ -43,7 +43,6 @@ function Protected({ children }) {
   return children
 }
 
-// Root redirect — if signed in, go straight to /home. Otherwise show landing.
 function RootRoute() {
   const { player, loading } = useAuth()
   if (loading) return <LoadingScreen />
@@ -56,8 +55,7 @@ function BottomNav() {
   const nav = useNavigate()
   const { player } = useAuth()
 
-  // Only show nav on authenticated player screens
-  const authedPaths = ['/home', '/card', '/rank', '/more']
+  const authedPaths = ['/home', '/card', '/rank', '/more', '/drills']
   if (!authedPaths.includes(loc.pathname) || !player) return null
 
   const items = [
@@ -85,11 +83,9 @@ function BottomNav() {
   )
 }
 
-// Wrapper that decides whether to apply the app-shell styling
-// app-shell = mobile phone frame, only for authenticated player screens
 function ShellWrapper() {
   const loc = useLocation()
-  const useAppShell = ['/home', '/card', '/rank', '/more'].includes(loc.pathname)
+  const useAppShell = ['/home', '/card', '/rank', '/more', '/drills'].includes(loc.pathname)
 
   return (
     <div className={useAppShell ? 'app-shell' : 'full-width'}>
@@ -113,6 +109,7 @@ function ShellWrapper() {
         <Route path="/rank" element={<Protected><RankScreen /></Protected>} />
         <Route path="/teams" element={<Navigate to="/rank" replace />} />
         <Route path="/more" element={<Protected><MoreScreen /></Protected>} />
+        <Route path="/drills" element={<Protected><DrillsScreen /></Protected>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
