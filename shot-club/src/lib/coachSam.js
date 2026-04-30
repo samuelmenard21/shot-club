@@ -46,6 +46,54 @@ export const SAM_LINES = {
     "Welcome, {name}. {teammate}'s been ripping {teammate_shots} a day — let's catch up.",
     "{name}'s in. {teammate}'s the one to chase — {teammate_shots} this week.",
   ],
+
+  // ----- Wave 2B-3 additions -----
+
+  goal_unstarted_today: [
+    "Daily goal's waiting, {name}.",
+    "Ring's empty. Fix that.",
+    "Today's bucket isn't going to fill itself.",
+  ],
+  goal_close: [
+    "Almost there. Finish strong.",
+    "Don't stop short, {name}.",
+    "One more set closes the ring.",
+  ],
+  goal_met: [
+    "Goal closed. Take the win.",
+    "Daily done. That's how it's built.",
+    "Ring's full. See you tomorrow.",
+  ],
+  goal_doubled: [
+    "Double goal. Hungry today.",
+    "Past the line and still going.",
+    "{name}'s on a different level today.",
+  ],
+  streak_at_risk: [
+    "Streak's on the line, {name}. Get one in.",
+    "Don't lose it tonight. Even 10 keeps it alive.",
+    "Day {streak} ends in a few hours. Move.",
+  ],
+  streak_saved_by_freeze: [
+    "Freeze used. Streak's safe — back at it tomorrow.",
+    "Saved you. One freeze left this month.",
+  ],
+  streak_lost: [
+    "Streak's reset. New one starts today.",
+    "Yesterday's gone. Today counts.",
+  ],
+  achievement_first_shot:  ["First shot in the books. Many more coming."],
+  achievement_hundred:     ["100 shots. The grind is real."],
+  achievement_one_k:       ["One thousand. You're not messing around."],
+  achievement_ten_k:       ["10K Club. That's elite air."],
+  achievement_week_streak: ["Week streak unlocked. Few get here."],
+  achievement_month_streak:["Thirty days. You're a different player now."],
+  achievement_specialty:   ["Your shot's showing up. Lean into it."],
+  achievement_card_holder: ["Card's official. Welcome."],
+  drill_watched: [
+    "Watch it. Try it. That's how it sticks.",
+    "Now go put it on the wall.",
+  ],
 }
 
 // Pick a random line and substitute variables
@@ -55,10 +103,27 @@ export function pickLine(trigger, vars = {}) {
   return template.replace(/\{(\w+)\}/g, (_, key) => vars[key] ?? '')
 }
 
-// Deterministic pick — same trigger + day = same line (so it doesn't change mid-session)
+// Deterministic pick — same trigger + seed = same line (so it doesn't change mid-session)
 export function pickLineStable(trigger, seed, vars = {}) {
   const pool = SAM_LINES[trigger] || SAM_LINES.daily_greeting
   const hash = String(seed).split('').reduce((a, c) => a + c.charCodeAt(0), 0)
   const template = pool[hash % pool.length]
   return template.replace(/\{(\w+)\}/g, (_, key) => vars[key] ?? '')
+}
+
+// Map an achievement code to its Coach Sam line
+export function lineForAchievement(code, vars = {}) {
+  const triggerMap = {
+    first_shot:      'achievement_first_shot',
+    hundred_club:    'achievement_hundred',
+    one_k:           'achievement_one_k',
+    ten_k:           'achievement_ten_k',
+    week_streak:     'achievement_week_streak',
+    month_streak:    'achievement_month_streak',
+    specialty_found: 'achievement_specialty',
+    card_holder:     'achievement_card_holder',
+  }
+  const trigger = triggerMap[code]
+  if (!trigger) return 'Unlocked.'
+  return pickLine(trigger, vars)
 }
