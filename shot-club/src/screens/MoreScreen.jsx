@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { signOut } from '../lib/auth'
+import { setDailyGoal } from '../lib/progress'
 import { useNavigate } from 'react-router-dom'
 
 const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
+const GOAL_OPTIONS = [25, 50, 100, 200]
 
 export default function MoreScreen() {
   const { player, refresh } = useAuth()
   const nav = useNavigate()
   const [copiedWhat, setCopiedWhat] = useState('')
   const [shared, setShared] = useState(false)
+  const [goal, setGoal] = useState(player?.daily_goal || 50)
+  const [savingGoal, setSavingGoal] = useState(false)
 
   if (!player) return null
 
@@ -39,11 +43,25 @@ export default function MoreScreen() {
     } catch (e) {}
   }
 
+  const updateGoal = async (newGoal) => {
+    setGoal(newGoal)
+    setSavingGoal(true)
+    try {
+      await setDailyGoal(player.id, newGoal)
+      await refresh()
+    } catch (e) {
+      // revert
+      setGoal(player.daily_goal || 50)
+    } finally {
+      setSavingGoal(false)
+    }
+  }
+
   const doSignOut = async () => {
     if (!window.confirm('Sign out? Make sure you saved your username first.')) return
     await signOut()
     await refresh()
-    nav('/auth')
+    nav('/start')
   }
 
   const cardNumberDisplay = player.card_number ? `#${String(player.card_number).padStart(3, '0')}` : '—'
@@ -54,7 +72,7 @@ export default function MoreScreen() {
         <h1 className="more-title">Settings</h1>
       </header>
 
-      {/* Invite teammates - prominent card, only shown if on a team */}
+      {/* Invite teammates */}
       {player.team?.name && (
         <div className="invite-card">
           <div className="invite-top">
@@ -82,6 +100,45 @@ export default function MoreScreen() {
           </div>
         </div>
       )}
+
+      {/* Drills shortcut - NEW */}
+      <button className="drills-link" onClick={() => nav('/drills')}>
+        <div className="drills-link-icon">🎯</div>
+        <div className="drills-link-text">
+          <div className="drills-link-title">Drills library</div>
+          <div className="drills-link-sub">Pro tutorials by shot type</div>
+        </div>
+        <div className="drills-link-arrow">→</div>
+      </button>
+
+      {/* Daily goal setting - NEW */}
+      <div className="section">
+        <div className="label-sm" style={{ marginBottom: 8 }}>Daily goal</div>
+        <div className="info-card">
+          <div className="goal-current-row">
+            <div>
+              <div className="info-label">Today's target</div>
+              <div className="info-value tnum">{goal} shots</div>
+            </div>
+            {savingGoal && <div style={{ color: 'var(--text-mute)', fontSize: 11 }}>saving…</div>}
+          </div>
+          <div className="goal-options">
+            {GOAL_OPTIONS.map((opt) => (
+              <button
+                key={opt}
+                className={`goal-chip ${goal === opt ? 'goal-chip--active' : ''}`}
+                onClick={() => updateGoal(opt)}
+                disabled={savingGoal}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+          <div className="info-hint">
+            How many shots you're aiming for each day. The ring on Home fills as you log.
+          </div>
+        </div>
+      </div>
 
       {/* Username recovery */}
       <div className="section">
@@ -147,12 +204,11 @@ export default function MoreScreen() {
           </div>
           <div className="kv-row">
             <div className="kv-label">Version</div>
-            <div className="kv-value">1.0</div>
+            <div className="kv-value">1.5</div>
           </div>
         </div>
       </div>
 
-      {/* Sign out */}
       <button className="signout-btn" onClick={doSignOut}>Sign out</button>
 
       <style>{styles}</style>
@@ -169,7 +225,6 @@ const styles = `
   letter-spacing: 0.5px;
 }
 
-/* Invite teammates card */
 .invite-card {
   background: var(--surface-raised);
   border: 0.5px solid var(--accent);
@@ -211,7 +266,6 @@ const styles = `
 }
 .invite-btn:active { transform: scale(0.98); }
 
-/* Solo card */
 .solo-card {
   background: var(--surface);
   border: 0.5px solid var(--border-dim);
@@ -227,6 +281,46 @@ const styles = `
 .solo-card-hint {
   font-size: 12px; color: var(--text-mute);
   margin-top: 4px; line-height: 1.4;
+}
+
+/* Drills shortcut */
+.drills-link {
+  width: 100%;
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 16px;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  transition: transform 0.1s;
+}
+.drills-link:active {
+  transform: scale(0.99);
+  background: var(--surface-raised);
+}
+.drills-link-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.drills-link-text { flex: 1; }
+.drills-link-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--ice);
+}
+.drills-link-sub {
+  font-size: 12px;
+  color: var(--text-mute);
+  margin-top: 2px;
+}
+.drills-link-arrow {
+  font-size: 18px;
+  color: var(--text-mute);
 }
 
 .section { margin-bottom: 16px; }
@@ -272,15 +366,44 @@ const styles = `
   color: var(--success);
 }
 
+/* Daily goal selection */
+.goal-current-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.goal-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.goal-chip {
+  background: var(--bg);
+  border: 0.5px solid var(--border-dim);
+  color: var(--text);
+  padding: 10px;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  transition: all 0.1s;
+}
+.goal-chip:active { transform: scale(0.96); }
+.goal-chip--active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.goal-chip:disabled { opacity: 0.5; }
+
 .kv-row {
   display: flex; justify-content: space-between; align-items: center;
   padding: 8px 0;
   border-bottom: 0.5px solid var(--border-dim);
 }
 .kv-row:last-child { border-bottom: none; }
-.kv-label {
-  font-size: 13px; color: var(--text-mute);
-}
+.kv-label { font-size: 13px; color: var(--text-mute); }
 .kv-value {
   font-size: 13px; color: var(--text);
   font-weight: 500;
@@ -297,7 +420,5 @@ const styles = `
   font-size: 13px; font-weight: 500;
   margin-top: 8px;
 }
-.signout-btn:active {
-  background: rgba(255, 84, 84, 0.08);
-}
+.signout-btn:active { background: rgba(255, 84, 84, 0.08); }
 `

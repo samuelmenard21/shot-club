@@ -3,6 +3,10 @@ import { useAuth } from '../hooks/useAuth'
 import { logShots, getStats, getTodayRival } from '../lib/shots'
 import { pickLineStable } from '../lib/coachSam'
 import { getRank } from '../lib/ranks'
+import { claimAchievements } from '../lib/progress'
+import DailyGoalRing from '../components/DailyGoalRing'
+import StreakRiskBanner from '../components/StreakRiskBanner'
+import AchievementUnlockModal from './AchievementUnlockModal'
 
 const SHOT_TYPES_SHOOTER = ['Wrist', 'Snap', 'Slap', 'Backhand']
 const SHOT_TYPES_GOALIE = ['Saves']
@@ -14,6 +18,8 @@ export default function HomeScreen() {
   const [entryType, setEntryType] = useState(null)
   const [undoStack, setUndoStack] = useState([])
   const [toast, setToast] = useState('')
+  const [unlockedCodes, setUnlockedCodes] = useState([])
+  const [goalRefreshKey, setGoalRefreshKey] = useState(0)
 
   const shotTypes = player?.position === 'G' ? SHOT_TYPES_GOALIE : SHOT_TYPES_SHOOTER
 
@@ -62,6 +68,11 @@ export default function HomeScreen() {
     try {
       await logShots({ playerId: player.id, shotType: type, count })
       setTimeout(refreshStats, 400)
+      setGoalRefreshKey((k) => k + 1)
+
+      // Claim any newly-earned achievements (idempotent server-side)
+      const newCodes = await claimAchievements(player.id)
+      if (newCodes.length > 0) setUnlockedCodes(newCodes)
     } catch (e) {
       setStats((s) => ({
         ...s,
@@ -87,6 +98,7 @@ export default function HomeScreen() {
     try {
       await logShots({ playerId: player.id, shotType: last.type, count: -last.count })
       setTimeout(refreshStats, 400)
+      setGoalRefreshKey((k) => k + 1)
     } catch (e) {
       showToast('Undo failed')
     }
@@ -148,6 +160,14 @@ export default function HomeScreen() {
           </div>
         )}
       </header>
+
+      <StreakRiskBanner player={player} />
+
+      <DailyGoalRing
+        playerId={player.id}
+        dailyGoal={player.daily_goal || 50}
+        refreshKey={goalRefreshKey}
+      />
 
       {samLine && (
         <div className="sam">
@@ -223,6 +243,13 @@ export default function HomeScreen() {
       )}
 
       {toast && <div className="toast">{toast}</div>}
+
+      {unlockedCodes.length > 0 && (
+        <AchievementUnlockModal
+          codes={unlockedCodes}
+          onDismiss={() => setUnlockedCodes([])}
+        />
+      )}
 
       <style>{styles}</style>
     </div>
@@ -388,7 +415,6 @@ const styles = `
   text-transform: uppercase; opacity: 0.7;
 }
 
-/* Undo button - now visually prominent */
 .undo-btn {
   width: 100%;
   background: rgba(255, 122, 41, 0.12);
@@ -500,7 +526,6 @@ const styles = `
   line-height: 1.4;
 }
 
-/* Number pad */
 .pad-overlay {
   position: fixed;
   inset: 0;

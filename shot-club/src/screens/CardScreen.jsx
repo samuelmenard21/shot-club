@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { getRank, RANKS } from '../lib/ranks'
 import { getLifetimeBreakdown } from '../lib/shots'
+import SevenDayChart from '../components/SevenDayChart'
+import AchievementBadgeRow from '../components/AchievementBadgeRow'
 
 export default function CardScreen() {
   const { player } = useAuth()
@@ -22,7 +24,6 @@ export default function CardScreen() {
     ? new Date(player.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '—'
 
-  // Sequential card number — zero-padded to 3 digits (#001, #042, #1337)
   const cardNumber = player.card_number || 0
   const cardNumberDisplay = String(cardNumber).padStart(3, '0')
 
@@ -195,6 +196,9 @@ export default function CardScreen() {
         </div>
       </div>
 
+      <SevenDayChart playerId={player.id} />
+      <AchievementBadgeRow playerId={player.id} />
+
       <div className="rank-ladder">
         <div className="label-sm" style={{ marginBottom: 8, padding: '0 4px' }}>The ladder</div>
         <div className="rank-ladder-rows">
@@ -286,20 +290,12 @@ const styles = `
   overflow: hidden;
   margin-bottom: 18px;
 }
-.player-card-bg {
-  position: absolute; inset: 0;
-  opacity: 0.22;
-  pointer-events: none;
-}
-.player-card-content {
-  position: relative;
-  padding: clamp(14px, 4vw, 18px);
-}
+.player-card-bg { position: absolute; inset: 0; opacity: 0.22; pointer-events: none; }
+.player-card-content { position: relative; padding: clamp(14px, 4vw, 18px); }
 
 .card-meta {
   display: flex; justify-content: space-between; align-items: flex-start;
-  margin-bottom: 14px;
-  gap: 10px;
+  margin-bottom: 14px; gap: 10px;
 }
 .card-meta-label {
   font-size: 9px; color: var(--text-mute);
@@ -310,14 +306,12 @@ const styles = `
   font-size: 11px; color: var(--ice);
   margin-top: 2px;
   font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-weight: 600; letter-spacing: 0.5px;
 }
 .card-meta-serial {
   font-size: 14px; color: var(--text);
   font-family: var(--font-display);
-  font-weight: 700;
-  margin-top: 2px;
+  font-weight: 700; margin-top: 2px;
 }
 
 .card-identity {
@@ -335,29 +329,22 @@ const styles = `
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display);
   font-size: clamp(22px, 6vw, 28px);
-  font-weight: 800;
-  color: white;
-  letter-spacing: 1px;
+  font-weight: 800; color: white; letter-spacing: 1px;
 }
 .card-identity-text { flex: 1; min-width: 0; }
 .card-display-name {
   font-family: var(--font-display);
   font-size: clamp(20px, 6vw, 24px);
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  line-height: 1.05;
-  word-break: break-word;
+  font-weight: 800; letter-spacing: 0.4px;
+  line-height: 1.05; word-break: break-word;
 }
-.card-pills {
-  display: flex; gap: 5px; margin-top: 7px; flex-wrap: wrap;
-}
+.card-pills { display: flex; gap: 5px; margin-top: 7px; flex-wrap: wrap; }
 .card-pill {
   background: var(--accent-bg);
   color: var(--ice);
   padding: 3px 9px;
   border-radius: 999px;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 10px; font-weight: 600;
   letter-spacing: 0.5px;
   font-family: var(--font-display);
 }
@@ -376,8 +363,7 @@ const styles = `
 }
 .card-rank-row {
   display: flex; justify-content: space-between; align-items: flex-end;
-  margin-bottom: 8px;
-  gap: 12px;
+  margin-bottom: 8px; gap: 12px;
 }
 .card-rank-name-row {
   display: flex; align-items: center; gap: 8px;
@@ -386,22 +372,15 @@ const styles = `
 .card-rank-name {
   font-family: var(--font-display);
   font-size: clamp(18px, 5vw, 22px);
-  font-weight: 800;
-  letter-spacing: 0.5px;
+  font-weight: 800; letter-spacing: 0.5px;
 }
-.card-rank-tier {
-  color: var(--gold);
-  font-size: 14px;
-}
+.card-rank-tier { color: var(--gold); font-size: 14px; }
 .card-rank-next {
   font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 13px; font-weight: 700;
   color: var(--ice);
 }
-.card-rank-togo {
-  font-size: 10px; color: var(--text-mute); margin-top: 1px;
-}
+.card-rank-togo { font-size: 10px; color: var(--text-mute); margin-top: 1px; }
 .card-rank-bar {
   height: 5px;
   background: var(--bg);
@@ -414,10 +393,8 @@ const styles = `
 }
 
 .card-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 14px;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 14px;
 }
 .card-stat {
   text-align: center;
@@ -428,13 +405,9 @@ const styles = `
 .card-stat-num {
   font-family: var(--font-display);
   font-size: clamp(18px, 5vw, 22px);
-  font-weight: 800;
-  line-height: 1;
-  color: white;
+  font-weight: 800; line-height: 1; color: white;
 }
-.card-stat-num-row {
-  display: inline-flex; align-items: center; gap: 4px;
-}
+.card-stat-num-row { display: inline-flex; align-items: center; gap: 4px; }
 .card-stat-label {
   font-size: 9px; color: var(--text-mute);
   letter-spacing: 1px; margin-top: 5px;
@@ -469,19 +442,14 @@ const styles = `
   border-top: 0.5px solid var(--border-dim);
   display: flex; justify-content: space-between; align-items: center;
 }
-.card-footer-text {
-  font-size: 11px; color: var(--text);
-  margin-top: 1px;
-}
+.card-footer-text { font-size: 11px; color: var(--text); margin-top: 1px; }
 
 .rank-ladder {
   background: var(--surface);
   border-radius: var(--radius);
   padding: 12px;
 }
-.rank-ladder-rows {
-  display: flex; flex-direction: column; gap: 4px;
-}
+.rank-ladder-rows { display: flex; flex-direction: column; gap: 4px; }
 .ladder-row {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 10px;
@@ -504,15 +472,12 @@ const styles = `
   font-size: 13px; font-weight: 700;
   letter-spacing: 0.4px;
 }
-.ladder-range {
-  font-size: 11px; color: var(--text-mute);
-}
+.ladder-range { font-size: 11px; color: var(--text-mute); }
 .ladder-current-tag {
   background: var(--gold);
   color: var(--gold-bg);
   font-family: var(--font-display);
-  font-size: 9px;
-  font-weight: 800;
+  font-size: 9px; font-weight: 800;
   letter-spacing: 1px;
   padding: 2px 7px;
   border-radius: 999px;
