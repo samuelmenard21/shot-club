@@ -1,4 +1,4 @@
-mport { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getTodayProgress } from '../lib/progress'
 
 export default function DailyGoalRing({ playerId, dailyGoal, refreshKey }) {
