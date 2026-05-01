@@ -14,11 +14,14 @@ function usernameToEmail(username) {
 }
 
 function coachEmailToInternal(email) {
-  // Coaches use real emails; we sign them into Supabase auth with their real email.
   return email.trim().toLowerCase()
 }
 
-export async function signUp({ displayName, position, ageBracket, teamName, clubName, inviteCode }) {
+// ============================================================
+// PLAYER AUTH
+// ============================================================
+
+export async function signUp({ displayName, position, ageBracket, teamName, clubName, inviteCode, teamInviteCode }) {
   const username = makeUsername(displayName)
   const email = usernameToEmail(username)
 
@@ -30,23 +33,22 @@ export async function signUp({ displayName, position, ageBracket, teamName, club
   const userId = authData.user?.id
   if (!userId) throw new Error('Signup failed — no user id returned')
 
-  // If an invite code was provided, resolve the club + (optional) team override from it
+  // Legacy invite code (old club-level invites) — keep for backward compat
   let clubIdFromInvite = null
   let resolvedClubName = clubName?.trim() || null
   if (inviteCode) {
-    const { data: invite, error: inviteErr } = await supabase
+    const { data: invite } = await supabase
       .from('invites')
       .select('club_id, clubs(name)')
       .eq('code', inviteCode)
       .maybeSingle()
-    if (inviteErr) throw inviteErr
     if (invite) {
       clubIdFromInvite = invite.club_id
       if (invite.clubs?.name) resolvedClubName = invite.clubs.name
     }
   }
 
-  // Resolve team (create if new name)
+  // Resolve team via free-text name (legacy "join a team by typing its name" path)
   let teamId = null
   if (teamName) {
     const normalized = teamName.trim().toUpperCase()
@@ -55,7 +57,6 @@ export async function signUp({ displayName, position, ageBracket, teamName, club
       .select('id')
       .eq('code', normalized)
       .maybeSingle()
-
     if (existingTeam) {
       teamId = existingTeam.id
     } else {
@@ -82,7 +83,33 @@ export async function signUp({ displayName, position, ageBracket, teamName, club
   })
   if (playerErr) throw playerErr
 
-  return { username, userId }
+  // NEW: if a team_invites code was provided (from /j/:code), attach player to that team
+  // This runs AFTER the player insert so the RPC has a real player to attach.
+  let attachedTeam = null
+  if (teamInviteCode) {
+    try {
+      const { data, error } = await supabase.rpc('attach_player_to_team', {
+        p_player_id: userId,
+        p_invite_code: teamInviteCode,
+      })
+      if (!error && data) {
+        const row = Array.isArray(data) ? data[0] : data
+        if (row?.attached) {
+          attachedTeam = {
+            teamId: row.team_id,
+            teamName: row.team_name,
+            clubId: row.club_id,
+            clubName: row.club_name,
+          }
+        }
+      }
+    } catch (e) {
+      // Non-blocking: signup succeeded, just couldn't attach. The kid can join later.
+      console.warn('Team invite attach failed:', e)
+    }
+  }
+
+  return { username, userId, attachedTeam }
 }
 
 export async function signIn({ username }) {
@@ -111,13 +138,13 @@ export async function getCurrentPlayer() {
   return data
 }
 
-// ---------------------------------------------------------------------------
+// ============================================================
 // COACH AUTH
-// Coaches use real email + their own password (separate from the player flow).
-// On signup, we also create a row in the `coaches` table linked to a club.
-// ---------------------------------------------------------------------------
+// FIXED: was inserting `full_name` into a `display_name` column.
+// Also no longer auto-creates a club — that's handled by createCoachProfile in clubs.js.
+// ============================================================
 
-export async function signUpCoach({ email, password, fullName, clubName }) {
+export async function signUpCoach({ email, password, displayName }) {
   const cleanEmail = coachEmailToInternal(email)
 
   const { data: authData, error: authErr } = await supabase.auth.signUp({
@@ -128,31 +155,10 @@ export async function signUpCoach({ email, password, fullName, clubName }) {
   const userId = authData.user?.id
   if (!userId) throw new Error('Coach signup failed — no user id returned')
 
-  // Create the club first (if a name was provided)
-  let clubId = null
-  if (clubName?.trim()) {
-    const { data: club, error: clubErr } = await supabase
-      .from('clubs')
-      .insert({
-        name: clubName.trim(),
-        owner_id: userId,
-      })
-      .select('id')
-      .single()
-    if (clubErr) throw clubErr
-    clubId = club.id
-  }
+  // The coach row + club attachment is handled by createCoachProfile in clubs.js
+  // after this function returns. Keeping this function single-purpose: just create the auth user.
 
-  // Create the coach profile
-  const { error: coachErr } = await supabase.from('coaches').insert({
-    id: userId,
-    email: cleanEmail,
-    full_name: fullName,
-    club_id: clubId,
-  })
-  if (coachErr) throw coachErr
-
-  return { userId, clubId }
+  return { userId, displayName }
 }
 
 export async function signInCoach({ email, password }) {
