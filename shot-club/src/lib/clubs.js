@@ -1,13 +1,11 @@
 import { supabase } from './supabase'
 
 // ===== CONSTANTS =====
-// Age divisions: youth hockey naming, U7-U18
 export const AGE_DIVISIONS = [
   'U7', 'U8', 'U9', 'U10', 'U11', 'U12',
   'U13', 'U14', 'U15', 'U16', 'U17', 'U18',
 ]
 
-// Tiers: from least competitive to most
 export const TIERS = [
   'House',
   'Select',
@@ -112,12 +110,9 @@ export async function createClub({ name, city }) {
   return club
 }
 
-// Submit a request for an unlisted club. Goes to pending_clubs for moderation.
-// Used when a coach can't find their club in the seeded directory.
 export async function submitPendingClub({ name, city, governingBody, contactEmail }) {
   const { data: { user } } = await supabase.auth.getUser()
-  // user may be null at this point (pre-signup) — that's OK, we still record it
-  
+
   const { data, error } = await supabase
     .from('pending_clubs')
     .insert({
@@ -179,4 +174,26 @@ export async function createInvite({ clubId, teamId, kind = 'player' }) {
     })
     .select('*')
     .single()
-  if (error
+  if (error) throw error
+  return invite
+}
+
+export async function getClubInvites(clubId) {
+  if (!clubId) return []
+  const { data } = await supabase
+    .from('invites')
+    .select('*, team:teams(name)')
+    .eq('club_id', clubId)
+    .order('created_at', { ascending: false })
+  return data || []
+}
+
+export async function getClubPlayers(clubId) {
+  if (!clubId) return []
+  const { data } = await supabase
+    .from('players')
+    .select('id, display_name, position, lifetime_shots, current_streak, card_number, team:teams(id, name)')
+    .eq('club_id', clubId)
+    .order('lifetime_shots', { ascending: false })
+  return data || []
+}
