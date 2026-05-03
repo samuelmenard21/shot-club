@@ -12,7 +12,6 @@ import PlayerJoinTeamScreen from './screens/PlayerJoinTeamScreen'
 // Coach
 import CoachAuthScreen from './screens/CoachAuthScreen'
 import CoachDashboardScreen from './screens/CoachDashboardScreen'
-import CoachJoinScreen from './screens/CoachJoinScreen'
 
 // Player (authenticated)
 import HomeScreen from './screens/HomeScreen'
@@ -100,15 +99,15 @@ function ShellWrapper() {
         <Route path="/" element={<RootRoute />} />
         <Route path="/start" element={<AuthScreen />} />
         <Route path="/join/:slug" element={<ClubJoinScreen />} />
-        <Route path="/j/:code" element={<PlayerJoinTeamScreen />} />
         <Route path="/card/:username" element={<CardPublicScreen />} />
+        <Route path="/j/:code" element={<PlayerJoinTeamScreen />} />
 
         {/* Legacy auth redirect */}
         <Route path="/auth" element={<Navigate to="/start" replace />} />
 
         {/* Coach */}
         <Route path="/coach" element={<CoachAuthScreen />} />
-        <Route path="/coach/join" element={<CoachJoinScreen />} />
+        <Route path="/coach/join" element={<CoachAuthScreen />} />
         <Route path="/coach/dashboard" element={<CoachDashboardScreen />} />
 
         {/* Authenticated player */}
