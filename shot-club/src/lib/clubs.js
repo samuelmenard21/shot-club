@@ -2,11 +2,29 @@ import { supabase } from './supabase'
 
 // ===== PUBLIC (no auth required) =====
 
+export async function searchClubs(query, limit = 10) {
+  if (!query || query.trim().length < 2) return []
+  const trimmed = query.trim().toLowerCase()
+  const { data, error } = await supabase
+    .from('clubs')
+    .select('id, name, slug, city, province, country, governing_body, gender_type, org_type')
+    .ilike('search_text', `%${trimmed}%`)
+    .eq('is_seeded', true)
+    .eq('is_active', true)
+    .order('name')
+    .limit(limit)
+  if (error) {
+    console.warn('searchClubs error:', error)
+    return []
+  }
+  return data || []
+}
+
 export async function getClubBySlug(slug) {
   if (!slug) return null
   const { data } = await supabase
     .from('clubs')
-    .select('id, name, slug, city, created_at')
+    .select('id, name, slug, city, province, country, governing_body, gender_type, org_type, created_at')
     .eq('slug', slug)
     .maybeSingle()
   return data
@@ -47,7 +65,6 @@ export async function getInviteByCode(code) {
 
 export async function incrementInviteUse(inviteId) {
   if (!inviteId) return
-  // Use rpc to avoid race conditions — but simple approach for now
   const { data: existing } = await supabase
     .from('invites')
     .select('uses_count')
@@ -64,7 +81,6 @@ export async function incrementInviteUse(inviteId) {
 // ===== AUTHENTICATED =====
 
 export async function createClub({ name, city }) {
-  // Generate slug server-side via RPC
   const { data: slugResult } = await supabase.rpc('generate_club_slug', { club_name: name })
   const slug = slugResult
 
