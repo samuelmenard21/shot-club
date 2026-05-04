@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signUp, signIn } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
 import { getClubBySlug } from '../lib/clubs'
+import { getTeamInviteByCode, attachPlayerToTeam } from '../lib/teams'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
 
 const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
@@ -14,6 +15,7 @@ export default function AuthScreen() {
   const [teamName, setTeamName] = useState('')
   const [clubName, setClubName] = useState('')
   const [preClub, setPreClub] = useState(null) // when arriving from /join/<slug>
+  const [pendingInvite, setPendingInvite] = useState(null) // when arriving from /j/<code>
   const [displayName, setDisplayName] = useState('')
   const [position, setPosition] = useState(null)
   const [ageBracket, setAgeBracket] = useState(null)
@@ -36,6 +38,27 @@ export default function AuthScreen() {
       noindex: true, // auth pages shouldn't be indexed
     })
   }, [mode])
+
+  // Check for pending team invite from /j/<code> redirect (sessionStorage)
+  useEffect(() => {
+    let pendingCode = null
+    try {
+      pendingCode = sessionStorage.getItem('pending_team_invite')
+    } catch (e) {}
+    if (!pendingCode) return
+    ;(async () => {
+      try {
+        const inv = await getTeamInviteByCode(pendingCode)
+        if (!inv) return
+        // Validate not expired / not used up
+        if (inv.expires_at && new Date(inv.expires_at) < new Date()) return
+        if (inv.max_uses && inv.uses_count >= inv.max_uses) return
+        setPendingInvite(inv)
+      } catch (e) {
+        // If we can't load the invite, fall back to the regular flow silently
+      }
+    })()
+  }, [])
 
   // Check for pre-selected club via URL (from /join/:slug redirect)
   useEffect(() => {
@@ -69,6 +92,12 @@ export default function AuthScreen() {
     setStep(2)
   }
 
+  // For invite-link flow: skip path picker entirely, jump straight to "Who are you?"
+  const continueFromInviteIntro = () => {
+    setError('')
+    setStep(2)
+  }
+
   const finishSignup = async () => {
     if (!displayName.trim() || !position || !ageBracket) {
       setError('Pick a name, position, and age.')
@@ -77,6 +106,46 @@ export default function AuthScreen() {
     setLoading(true)
     setError('')
     try {
+      // INVITE FLOW: signed up via /j/<code> → attach to the actual team after signup
+      if (pendingInvite) {
+        const club = pendingInvite.team?.club
+        const team = pendingInvite.team
+
+        const { username } = await signUp({
+          displayName: displayName.trim(),
+          position,
+          ageBracket,
+          // Don't pass teamName/clubName here — the attach_player_to_team RPC will handle it
+          teamName: null,
+          clubName: club?.name || null,
+        })
+
+        // Attach the new player to the existing team via RPC
+        try {
+          await attachPlayerToTeam({ inviteCode: pendingInvite.code })
+        } catch (e) {
+          // Player exists but couldn't attach — log it, surface a milder message
+          console.warn('attach_player_to_team failed:', e)
+        }
+
+        // Clear the pending invite from sessionStorage
+        try {
+          sessionStorage.removeItem('pending_team_invite')
+        } catch (e) {}
+
+        const teamLabel = team
+          ? `${team.age_division || ''} ${team.tier || ''}`.trim()
+          : ''
+
+        setGeneratedUsername(username)
+        setGeneratedTeamName(teamLabel)
+        setGeneratedClubName(club?.name || '')
+        await refresh()
+        setStep(3)
+        return
+      }
+
+      // STANDARD FLOW: club banner OR free-text path picker
       let teamToUse = null
       let clubToUse = null
 
@@ -201,7 +270,28 @@ export default function AuthScreen() {
               <div className="brand-name">Hockey Shot<br/>Challenge</div>
             </div>
 
-            {preClub ? (
+            {pendingInvite ? (
+              <>
+                <div className="club-banner">
+                  <div className="club-banner-label">YOU'RE INVITED</div>
+                  <div className="club-banner-name">{pendingInvite.team?.club?.name || 'Your team'}</div>
+                  <div className="club-banner-city">
+                    {[pendingInvite.team?.age_division, pendingInvite.team?.tier].filter(Boolean).join(' ')}
+                    {pendingInvite.team?.club?.city ? ` · ${pendingInvite.team.club.city}` : ''}
+                  </div>
+                </div>
+                <p className="auth-sub" style={{ textAlign: 'center', marginBottom: 16 }}>
+                  Let's set up your card so you can start tracking shots.
+                </p>
+
+                <button className="btn-primary" onClick={continueFromInviteIntro}>
+                  Continue →
+                </button>
+                <button className="btn-text" onClick={() => setMode('signin')}>
+                  Already playing? Sign in
+                </button>
+              </>
+            ) : preClub ? (
               <>
                 <div className="club-banner">
                   <div className="club-banner-label">JOINING</div>
@@ -386,7 +476,9 @@ export default function AuthScreen() {
               </div>
               <div className="celebration-title">You're in, {displayName}!</div>
               {generatedClubName && (
-                <div className="club-joined">Joined {generatedClubName}</div>
+                <div className="club-joined">
+                  On {generatedClubName}{generatedTeamName ? ` · ${generatedTeamName}` : ''}
+                </div>
               )}
             </div>
 
@@ -406,7 +498,7 @@ export default function AuthScreen() {
 
             <div className="save-tips">Text it to a parent so they have it too.</div>
 
-            {generatedTeamName && !preClub && (
+            {generatedTeamName && !preClub && !pendingInvite && (
               <div className="invite-card">
                 <div className="invite-top">
                   <div className="invite-label">YOUR TEAM</div>
