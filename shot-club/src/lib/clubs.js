@@ -135,14 +135,19 @@ export async function createCoachProfile({ displayName, email, clubId, isDirecto
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Must be signed in')
 
-  const { error } = await supabase.from('coaches').insert({
-    id: user.id,
-    display_name: displayName,
-    email: email || user.email,
-    club_id: clubId,
-    is_director: isDirector,
-  })
+  const { data, error } = await supabase
+    .from('coaches')
+    .insert({
+      id: user.id,
+      display_name: displayName,
+      email: email || user.email,
+      club_id: clubId,
+      is_director: isDirector,
+    })
+    .select('*')
+    .single()
   if (error) throw error
+  return data
 }
 
 export async function getMyCoachProfile() {
