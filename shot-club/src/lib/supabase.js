@@ -13,5 +13,6 @@ export const supabase = createClient(url, key, {
     autoRefreshToken: true,
     // kids never sign out on their own — session persists forever on this device
     storage: localStorage,
+    storageKey: 'hsc-auth',
   },
 })
