@@ -122,25 +122,18 @@ export default function CoachAuthScreen() {
       // 1) Create the auth user
       await signUpCoach({ displayName: displayName.trim(), email: email.trim(), password })
 
-      // 2) Create the coach profile (the auth session is now active)
-      await createCoachProfile({
+      // 2) Create the coach profile and capture the returned row
+      const me = await createCoachProfile({
         displayName: displayName.trim(),
         email: email.trim(),
         clubId: selectedClub.id,
         isDirector: false,
       })
-
-      // 3) Read back the coach profile (with retry — sometimes session lags briefly)
-      let me = await getMyCoachProfile()
       if (!me) {
-        await new Promise((r) => setTimeout(r, 400))
-        me = await getMyCoachProfile()
-      }
-      if (!me) {
-        throw new Error("We created your account but couldn't load your profile. Try signing in.")
+        throw new Error("We created your account but couldn't set up your profile. Try signing in.")
       }
 
-      // 4) Find or create the team for this club + age + tier
+      // 3) Find or create the team for this club + age + tier
       const result = await findOrCreateTeam({
         clubId: selectedClub.id,
         coachId: me.id,
@@ -148,7 +141,7 @@ export default function CoachAuthScreen() {
         tier,
       })
 
-      // 5) Done — go to the dashboard
+      // 4) Done — go to the dashboard
       nav('/coach/dashboard')
     } catch (e) {
       const msg = (e?.message || '').toLowerCase()
