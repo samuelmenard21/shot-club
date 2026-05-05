@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signUp, signIn } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
 import { getClubBySlug } from '../lib/clubs'
-import { getTeamInviteByCode, attachPlayerToTeam } from '../lib/teams'
+import { getTeamInviteByCode } from '../lib/teams'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
 
 const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
@@ -35,7 +35,7 @@ export default function AuthScreen() {
     setSEO({
       title: mode === 'signin' ? 'Sign in' : 'Create your card',
       description: 'Sign up for Hockey Shot Challenge. Free. 30 seconds. No email needed.',
-      noindex: true, // auth pages shouldn't be indexed
+      noindex: true,
     })
   }, [mode])
 
@@ -50,12 +50,11 @@ export default function AuthScreen() {
       try {
         const inv = await getTeamInviteByCode(pendingCode)
         if (!inv) return
-        // Validate not expired / not used up
         if (inv.expires_at && new Date(inv.expires_at) < new Date()) return
         if (inv.max_uses && inv.uses_count >= inv.max_uses) return
         setPendingInvite(inv)
       } catch (e) {
-        // If we can't load the invite, fall back to the regular flow silently
+        // Fall back silently to the regular flow
       }
     })()
   }, [])
@@ -92,7 +91,7 @@ export default function AuthScreen() {
     setStep(2)
   }
 
-  // For invite-link flow: skip path picker entirely, jump straight to "Who are you?"
+  // For invite-link flow: skip path picker entirely
   const continueFromInviteIntro = () => {
     setError('')
     setStep(2)
@@ -106,50 +105,15 @@ export default function AuthScreen() {
     setLoading(true)
     setError('')
     try {
-      // INVITE FLOW: signed up via /j/<code> → attach to the actual team after signup
-      if (pendingInvite) {
-        const club = pendingInvite.team?.club
-        const team = pendingInvite.team
-
-        const { username } = await signUp({
-          displayName: displayName.trim(),
-          position,
-          ageBracket,
-          // Don't pass teamName/clubName here — the attach_player_to_team RPC will handle it
-          teamName: null,
-          clubName: club?.name || null,
-        })
-
-        // Attach the new player to the existing team via RPC
-        try {
-          await attachPlayerToTeam({ inviteCode: pendingInvite.code })
-        } catch (e) {
-          // Player exists but couldn't attach — log it, surface a milder message
-          console.warn('attach_player_to_team failed:', e)
-        }
-
-        // Clear the pending invite from sessionStorage
-        try {
-          sessionStorage.removeItem('pending_team_invite')
-        } catch (e) {}
-
-        const teamLabel = team
-          ? `${team.age_division || ''} ${team.tier || ''}`.trim()
-          : ''
-
-        setGeneratedUsername(username)
-        setGeneratedTeamName(teamLabel)
-        setGeneratedClubName(club?.name || '')
-        await refresh()
-        setStep(3)
-        return
-      }
-
-      // STANDARD FLOW: club banner OR free-text path picker
       let teamToUse = null
       let clubToUse = null
+      let teamInviteCode = null
 
-      if (path === 'club' && preClub) {
+      if (pendingInvite) {
+        // /j/<code> flow — pass the invite code to signUp, which calls attach_player_to_team internally
+        teamInviteCode = pendingInvite.code
+        clubToUse = pendingInvite.team?.club?.name || null
+      } else if (path === 'club' && preClub) {
         teamToUse = teamName.trim() ? teamName.trim().toUpperCase() : null
         clubToUse = preClub.name
       } else if (path === 'join') {
@@ -157,16 +121,44 @@ export default function AuthScreen() {
         clubToUse = clubName.trim() || null
       }
 
-      const { username } = await signUp({
+      const { username, attachedTeam } = await signUp({
         displayName: displayName.trim(),
         position,
         ageBracket,
         teamName: teamToUse,
         clubName: clubToUse,
+        teamInviteCode,
       })
+
+      // Clear the pending invite from sessionStorage now that signup is done
+      if (pendingInvite) {
+        try {
+          sessionStorage.removeItem('pending_team_invite')
+        } catch (e) {}
+      }
+
       setGeneratedUsername(username)
-      setGeneratedTeamName(teamToUse || '')
-      setGeneratedClubName(clubToUse || '')
+
+      // Build the celebration text
+      if (attachedTeam) {
+        const team = pendingInvite?.team
+        const teamLabel = team
+          ? `${team.age_division || ''} ${team.tier || ''}`.trim()
+          : (attachedTeam.teamName || '')
+        setGeneratedTeamName(teamLabel)
+        setGeneratedClubName(attachedTeam.clubName || pendingInvite?.team?.club?.name || '')
+      } else if (pendingInvite) {
+        const team = pendingInvite.team
+        const teamLabel = team
+          ? `${team.age_division || ''} ${team.tier || ''}`.trim()
+          : ''
+        setGeneratedTeamName(teamLabel)
+        setGeneratedClubName(pendingInvite.team?.club?.name || '')
+      } else {
+        setGeneratedTeamName(teamToUse || '')
+        setGeneratedClubName(clubToUse || '')
+      }
+
       await refresh()
       setStep(3)
     } catch (e) {
