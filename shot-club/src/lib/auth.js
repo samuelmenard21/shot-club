@@ -20,8 +20,25 @@ function coachEmailToInternal(email) {
 // ============================================================
 // PLAYER AUTH
 // ============================================================
-
-export async function signUp({ displayName, position, ageBracket, teamName, clubName, inviteCode, teamInviteCode }) {
+//
+// signUp({ displayName, position, ageBracket, teamName?, clubName?, clubId?, inviteCode?, teamInviteCode? })
+//
+// Resolution priority for club:
+//   1) teamInviteCode  → attach_player_to_team RPC fills club_id + club_name
+//   2) clubId          → look up the club row, use both id + name (NEW: search-by-club path)
+//   3) inviteCode      → legacy club-level invite (older invites table)
+//   4) clubName        → legacy free-text path (coach signup, old AuthScreen)
+//
+export async function signUp({
+  displayName,
+  position,
+  ageBracket,
+  teamName,
+  clubName,
+  clubId,           // NEW: pre-resolved club id from search-by-club flow
+  inviteCode,
+  teamInviteCode,
+}) {
   const username = makeUsername(displayName)
   const email = usernameToEmail(username)
 
@@ -33,22 +50,40 @@ export async function signUp({ displayName, position, ageBracket, teamName, club
   const userId = authData.user?.id
   if (!userId) throw new Error('Signup failed — no user id returned')
 
-  // Legacy invite code (old club-level invites) — keep for backward compat
-  let clubIdFromInvite = null
+  // Resolve initial club_id and club_name. Order matters.
+  let resolvedClubId = null
   let resolvedClubName = clubName?.trim() || null
-  if (inviteCode) {
+
+  // Path 2: clubId (NEW search-by-club path)
+  // We trust the id but always re-fetch the name from DB so the player row
+  // gets the canonical club name (not whatever the client cached).
+  if (clubId) {
+    const { data: club } = await supabase
+      .from('clubs')
+      .select('id, name')
+      .eq('id', clubId)
+      .maybeSingle()
+    if (club) {
+      resolvedClubId = club.id
+      resolvedClubName = club.name
+    }
+  }
+
+  // Path 3: legacy invite code (older invites table — keep for backward compat)
+  if (inviteCode && !resolvedClubId) {
     const { data: invite } = await supabase
       .from('invites')
       .select('club_id, clubs(name)')
       .eq('code', inviteCode)
       .maybeSingle()
     if (invite) {
-      clubIdFromInvite = invite.club_id
+      resolvedClubId = invite.club_id
       if (invite.clubs?.name) resolvedClubName = invite.clubs.name
     }
   }
 
   // Resolve team via free-text name (legacy "join a team by typing its name" path)
+  // This stays untouched for backward compat. The new flow doesn't pass teamName.
   let teamId = null
   if (teamName) {
     const normalized = teamName.trim().toUpperCase()
@@ -78,13 +113,14 @@ export async function signUp({ displayName, position, ageBracket, teamName, club
     position,
     age_bracket: ageBracket,
     team_id: teamId,
-    club_id: clubIdFromInvite,
+    club_id: resolvedClubId,
     club_name: resolvedClubName,
   })
   if (playerErr) throw playerErr
 
-  // NEW: if a team_invites code was provided (from /j/:code), attach player to that team
-  // This runs AFTER the player insert so the RPC has a real player to attach.
+  // Path 1: team_invites code (from /j/:code)
+  // Runs AFTER the player insert so the RPC has a real player to attach.
+  // The RPC will overwrite team_id and club_id on the player row.
   let attachedTeam = null
   if (teamInviteCode) {
     try {
