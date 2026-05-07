@@ -71,6 +71,66 @@ export async function getClubTeams(clubId) {
   return data || []
 }
 
+// NEW for the player flow: returns teams in a club, sorted by player count
+// (busiest first) then by age_division/tier. Each team includes its current
+// member count so the picker can show social proof.
+export async function getTeamsInClub(clubId) {
+  if (!clubId) return []
+  // Pull the team rows + a count of attached players per team in one round-trip
+  const { data: teams } = await supabase
+    .from('teams')
+    .select('id, name, age_division, tier, season, team_code, club_id')
+    .eq('club_id', clubId)
+    .eq('is_active', true)
+    .order('age_division', { ascending: true })
+    .order('tier', { ascending: true })
+  if (!teams || teams.length === 0) return []
+
+  // Get player counts in parallel. We could do this in SQL with a view, but
+  // the direct count query is simple and the team count per club is small.
+  const teamIds = teams.map((t) => t.id)
+  const { data: counts } = await supabase
+    .from('players')
+    .select('team_id')
+    .in('team_id', teamIds)
+
+  const countMap = {}
+  for (const row of counts || []) {
+    countMap[row.team_id] = (countMap[row.team_id] || 0) + 1
+  }
+
+  // Attach counts and re-sort: busiest first, then alphabetical by display label
+  return teams
+    .map((t) => ({ ...t, player_count: countMap[t.id] || 0 }))
+    .sort((a, b) => {
+      if (b.player_count !== a.player_count) return b.player_count - a.player_count
+      const aLabel = `${a.age_division} ${a.tier}`
+      const bLabel = `${b.age_division} ${b.tier}`
+      return aLabel.localeCompare(bLabel)
+    })
+}
+
+// Player-callable RPC: get the team if it exists in (club, age, tier, season),
+// otherwise create it. Returns { teamId, teamExisted }.
+export async function findOrCreateTeamForPlayer({ clubId, ageDivision, tier, season = '2025-26' }) {
+  if (!clubId) throw new Error('Missing clubId')
+  if (!ageDivision) throw new Error('Missing ageDivision')
+  if (!tier) throw new Error('Missing tier')
+  const { data, error } = await supabase.rpc('find_or_create_team_for_player', {
+    p_club_id: clubId,
+    p_age_division: ageDivision,
+    p_tier: tier,
+    p_season: season,
+  })
+  if (error) throw error
+  const row = Array.isArray(data) ? data[0] : data
+  if (!row) throw new Error('No team result returned')
+  return {
+    teamId: row.team_id,
+    teamExisted: row.team_existed,
+  }
+}
+
 export async function getInviteByCode(code) {
   if (!code) return null
   const { data } = await supabase
