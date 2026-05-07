@@ -16,15 +16,19 @@ export const TIERS = [
 
 // ===== PUBLIC (no auth required) =====
 
+// Search seeded clubs with social proof (player_count) for the new search-from-home flow.
+// Order: most active clubs first, then alphabetical. The index
+// idx_clubs_player_count_name (added in migration 008) makes this fast.
 export async function searchClubs(query, limit = 10) {
   if (!query || query.trim().length < 2) return []
   const trimmed = query.trim().toLowerCase()
   const { data, error } = await supabase
     .from('clubs')
-    .select('id, name, slug, city, province, country, governing_body, gender_type, org_type')
+    .select('id, name, slug, city, province, country, governing_body, gender_type, org_type, player_count')
     .ilike('search_text', `%${trimmed}%`)
     .eq('is_seeded', true)
     .eq('is_active', true)
+    .order('player_count', { ascending: false })
     .order('name')
     .limit(limit)
   if (error) {
@@ -38,7 +42,7 @@ export async function getClubBySlug(slug) {
   if (!slug) return null
   const { data } = await supabase
     .from('clubs')
-    .select('id, name, slug, city, province, country, governing_body, gender_type, org_type, created_at')
+    .select('id, name, slug, city, province, country, governing_body, gender_type, org_type, player_count, created_at')
     .eq('slug', slug)
     .maybeSingle()
   return data
@@ -135,19 +139,14 @@ export async function createCoachProfile({ displayName, email, clubId, isDirecto
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Must be signed in')
 
-  const { data, error } = await supabase
-    .from('coaches')
-    .insert({
-      id: user.id,
-      display_name: displayName,
-      email: email || user.email,
-      club_id: clubId,
-      is_director: isDirector,
-    })
-    .select('*')
-    .single()
+  const { error } = await supabase.from('coaches').insert({
+    id: user.id,
+    display_name: displayName,
+    email: email || user.email,
+    club_id: clubId,
+    is_director: isDirector,
+  })
   if (error) throw error
-  return data
 }
 
 export async function getMyCoachProfile() {
