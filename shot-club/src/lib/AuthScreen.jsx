@@ -1,37 +1,48 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signUp, signIn } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
-import { getClubBySlug } from '../lib/clubs'
+import { getClubBySlug, searchClubs } from '../lib/clubs'
 import { getTeamInviteByCode } from '../lib/teams'
-import { setSEO, CANONICAL_URL } from '../lib/seo'
+import { setSEO } from '../lib/seo'
 
 const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
+const SEARCH_DEBOUNCE_MS = 220
 
 export default function AuthScreen() {
-  const [mode, setMode] = useState('signup')
+  const [mode, setMode] = useState('signup') // 'signup' | 'signin'
   const [step, setStep] = useState(1)
-  const [path, setPath] = useState(null)
-  const [teamName, setTeamName] = useState('')
-  const [clubName, setClubName] = useState('')
-  const [preClub, setPreClub] = useState(null)
-  const [preTeamInvite, setPreTeamInvite] = useState(null)
-  const [preTeamInviteCode, setPreTeamInviteCode] = useState(null)
+
+  // Step-1 state
+  const [pendingInvite, setPendingInvite] = useState(null)   // /j/<code>
+  const [preClub, setPreClub] = useState(null)                // /start?club=<slug>
+  const [teamName, setTeamName] = useState('')                // only used by preClub flow
+  const [searchQuery, setSearchQuery] = useState('')          // search-from-home flow
+  const [searchResults, setSearchResults] = useState([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
+  const [pickedClub, setPickedClub] = useState(null)          // search → pick OR Independent
+
+  // Step-2 state
   const [displayName, setDisplayName] = useState('')
   const [position, setPosition] = useState(null)
   const [ageBracket, setAgeBracket] = useState(null)
+
+  // Step-3 / sign-in
   const [username, setUsername] = useState('')
   const [generatedUsername, setGeneratedUsername] = useState('')
   const [generatedTeamName, setGeneratedTeamName] = useState('')
   const [generatedClubName, setGeneratedClubName] = useState('')
-  const [attachedTeamLabel, setAttachedTeamLabel] = useState('')
   const [copiedWhat, setCopiedWhat] = useState('')
   const [shared, setShared] = useState(false)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
   const nav = useNavigate()
   const [searchParams] = useSearchParams()
   const { refresh } = useAuth()
+  const debounceRef = useRef(null)
 
   useEffect(() => {
     setSEO({
@@ -41,24 +52,27 @@ export default function AuthScreen() {
     })
   }, [mode])
 
+  // /j/<code> redirect — read sessionStorage
   useEffect(() => {
-    let stashed = null
+    let pendingCode = null
     try {
-      stashed = sessionStorage.getItem('pending_team_invite')
+      pendingCode = sessionStorage.getItem('pending_team_invite')
     } catch (e) {}
-    if (!stashed) return
+    if (!pendingCode) return
     ;(async () => {
-      const inv = await getTeamInviteByCode(stashed)
-      if (!inv) {
-        try { sessionStorage.removeItem('pending_team_invite') } catch (e) {}
-        return
+      try {
+        const inv = await getTeamInviteByCode(pendingCode)
+        if (!inv) return
+        if (inv.expires_at && new Date(inv.expires_at) < new Date()) return
+        if (inv.max_uses && inv.uses_count >= inv.max_uses) return
+        setPendingInvite(inv)
+      } catch (e) {
+        // Fall back silently
       }
-      setPreTeamInvite(inv)
-      setPreTeamInviteCode(stashed)
-      setPath('team-invite')
     })()
   }, [])
 
+  // /start?club=<slug> deep link
   useEffect(() => {
     const clubSlug = searchParams.get('club')
     if (!clubSlug) return
@@ -66,29 +80,70 @@ export default function AuthScreen() {
       const c = await getClubBySlug(clubSlug)
       if (c) {
         setPreClub(c)
-        setPath('club')
-        setClubName(c.name)
       }
     })()
   }, [searchParams])
 
-  const choosePath = (p) => {
-    setPath(p)
-    setError('')
-  }
-
-  const continueFromStep1 = () => {
-    if (path === 'join' && !teamName.trim()) {
-      setError('Type a team name to join.')
+  // Debounced search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!searchQuery || searchQuery.trim().length < 2) {
+      setSearchResults([])
+      setSearchLoading(false)
+      setHasSearched(false)
       return
     }
-    if (path === 'club' && preClub && !teamName.trim()) {
+    setSearchLoading(true)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const results = await searchClubs(searchQuery, 8)
+        setSearchResults(results)
+        setHasSearched(true)
+      } catch (e) {
+        setSearchResults([])
+      } finally {
+        setSearchLoading(false)
+      }
+    }, SEARCH_DEBOUNCE_MS)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [searchQuery])
+
+  // ---- Step transitions ----
+
+  const continueFromInviteIntro = () => {
+    setError('')
+    setStep(2)
+  }
+
+  const continueFromPreClub = () => {
+    if (!teamName.trim()) {
       setError('Enter your team name within this club.')
       return
     }
     setError('')
     setStep(2)
   }
+
+  const continueFromSearch = () => {
+    if (!pickedClub) {
+      setError("Pick your club, or tap \"My club isn't listed\".")
+      return
+    }
+    setError('')
+    setStep(2)
+  }
+
+  const pickIndependent = () => {
+    // Special-case sentinel — we'll resolve to the seeded Independent club server-side
+    setPickedClub({ id: null, slug: 'independent', name: 'Independent', isIndependent: true })
+    // Skip waiting on a continue — go straight to step 2
+    setError('')
+    setStep(2)
+  }
+
+  // ---- Submit ----
 
   const finishSignup = async () => {
     if (!displayName.trim() || !position || !ageBracket) {
@@ -99,39 +154,68 @@ export default function AuthScreen() {
     setError('')
     try {
       let teamToUse = null
-      let clubToUse = null
+      let clubNameToUse = null
+      let clubIdToUse = null
+      let teamInviteCode = null
 
-      if (path === 'team-invite' && preTeamInviteCode) {
-        teamToUse = null
-        clubToUse = null
-      } else if (path === 'club' && preClub) {
-        teamToUse = teamName.trim() ? teamName.trim().toUpperCase() : null
-        clubToUse = preClub.name
-      } else if (path === 'join') {
+      if (pendingInvite) {
+        // Mode 1: /j/<code> — RPC handles team + club attachment
+        teamInviteCode = pendingInvite.code
+        clubNameToUse = pendingInvite.team?.club?.name || null
+      } else if (preClub) {
+        // Mode 2: /start?club=<slug> — club + free-text team name
         teamToUse = teamName.trim().toUpperCase()
-        clubToUse = clubName.trim() || null
+        clubIdToUse = preClub.id
+        clubNameToUse = preClub.name
+      } else if (pickedClub?.isIndependent) {
+        // Mode 3a: Independent fallback — look up by slug, no team
+        const indep = await getClubBySlug('independent')
+        clubIdToUse = indep?.id || null
+        clubNameToUse = 'Independent'
+      } else if (pickedClub) {
+        // Mode 3b: Search → real club, no team yet
+        clubIdToUse = pickedClub.id
+        clubNameToUse = pickedClub.name
       }
 
-      const result = await signUp({
+      const { username, attachedTeam } = await signUp({
         displayName: displayName.trim(),
         position,
         ageBracket,
         teamName: teamToUse,
-        clubName: clubToUse,
-        teamInviteCode: path === 'team-invite' ? preTeamInviteCode : null,
+        clubName: clubNameToUse,
+        clubId: clubIdToUse,
+        teamInviteCode,
       })
 
-      setGeneratedUsername(result.username)
-      setGeneratedTeamName(teamToUse || '')
-      setGeneratedClubName(clubToUse || '')
-
-      if (result.attachedTeam) {
-        const team = result.attachedTeam
-        setAttachedTeamLabel(`${team.clubName}${team.teamName ? ' · ' + team.teamName : ''}`)
-        setGeneratedClubName(team.clubName || '')
+      if (pendingInvite) {
+        try { sessionStorage.removeItem('pending_team_invite') } catch (e) {}
       }
 
-      try { sessionStorage.removeItem('pending_team_invite') } catch (e) {}
+      setGeneratedUsername(username)
+
+      // Build the celebration text
+      if (attachedTeam) {
+        const team = pendingInvite?.team
+        const teamLabel = team
+          ? `${team.age_division || ''} ${team.tier || ''}`.trim()
+          : (attachedTeam.teamName || '')
+        setGeneratedTeamName(teamLabel)
+        setGeneratedClubName(attachedTeam.clubName || pendingInvite?.team?.club?.name || '')
+      } else if (pendingInvite) {
+        const team = pendingInvite.team
+        const teamLabel = team
+          ? `${team.age_division || ''} ${team.tier || ''}`.trim()
+          : ''
+        setGeneratedTeamName(teamLabel)
+        setGeneratedClubName(pendingInvite.team?.club?.name || '')
+      } else if (preClub) {
+        setGeneratedTeamName(teamToUse || '')
+        setGeneratedClubName(preClub.name)
+      } else if (pickedClub) {
+        setGeneratedTeamName('')
+        setGeneratedClubName(pickedClub.isIndependent ? '' : pickedClub.name)
+      }
 
       await refresh()
       setStep(3)
@@ -182,6 +266,9 @@ export default function AuthScreen() {
     } catch (e) {}
   }
 
+  // ============================================================
+  // Sign-in mode
+  // ============================================================
   if (mode === 'signin') {
     return (
       <div className="auth-wrap fade-in">
@@ -224,9 +311,13 @@ export default function AuthScreen() {
     )
   }
 
+  // ============================================================
+  // Signup mode — three sub-modes in step 1
+  // ============================================================
   return (
     <div className="auth-wrap fade-in">
       <div className="auth-card">
+
         {step === 1 && (
           <>
             <div className="brand">
@@ -234,37 +325,30 @@ export default function AuthScreen() {
               <div className="brand-name">Hockey Shot<br/>Challenge</div>
             </div>
 
-            {preTeamInvite && (
+            {/* MODE 1: Invite link from a coach (/j/<code>) */}
+            {pendingInvite ? (
               <>
                 <div className="club-banner">
-                  <div className="club-banner-label">JOINING TEAM</div>
-                  <div className="club-banner-name">{preTeamInvite.team?.club?.name}</div>
-                  <div className="club-banner-team">
-                    {preTeamInvite.team?.age_division} {preTeamInvite.team?.tier}
+                  <div className="club-banner-label">YOU'RE INVITED</div>
+                  <div className="club-banner-name">{pendingInvite.team?.club?.name || 'Your team'}</div>
+                  <div className="club-banner-city">
+                    {[pendingInvite.team?.age_division, pendingInvite.team?.tier].filter(Boolean).join(' ')}
+                    {pendingInvite.team?.club?.city ? ` · ${pendingInvite.team.club.city}` : ''}
                   </div>
-                  {preTeamInvite.team?.club?.city && (
-                    <div className="club-banner-city">{preTeamInvite.team.club.city}</div>
-                  )}
                 </div>
-                <p className="auth-sub" style={{ textAlign: 'center' }}>
-                  Just need a few quick details and you're on the team.
+                <p className="auth-sub" style={{ textAlign: 'center', marginBottom: 16 }}>
+                  Let's set up your card so you can start tracking shots.
                 </p>
 
-                <button className="btn-primary" onClick={() => setStep(2)} style={{ marginTop: 16 }}>
+                <button className="btn-primary" onClick={continueFromInviteIntro}>
                   Continue →
                 </button>
-                <button className="btn-text" onClick={() => {
-                  setPreTeamInvite(null)
-                  setPreTeamInviteCode(null)
-                  setPath(null)
-                  try { sessionStorage.removeItem('pending_team_invite') } catch (e) {}
-                }}>
-                  Sign up without joining the team
+                <button className="btn-text" onClick={() => setMode('signin')}>
+                  Already playing? Sign in
                 </button>
               </>
-            )}
-
-            {!preTeamInvite && preClub && (
+            ) : preClub ? (
+              /* MODE 2: Club deep link (/start?club=<slug>) */
               <>
                 <div className="club-banner">
                   <div className="club-banner-label">JOINING</div>
@@ -291,83 +375,94 @@ export default function AuthScreen() {
 
                 {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
 
-                <button className="btn-primary" onClick={continueFromStep1} disabled={!teamName.trim()} style={{ marginTop: 16 }}>
+                <button className="btn-primary" onClick={continueFromPreClub} disabled={!teamName.trim()} style={{ marginTop: 16 }}>
                   Continue →
                 </button>
-                <button className="btn-text" onClick={() => { setPreClub(null); setPath(null); setTeamName(''); setClubName('') }}>
+                <button className="btn-text" onClick={() => setPreClub(null)}>
                   Sign up without the club
                 </button>
               </>
-            )}
-
-            {!preTeamInvite && !preClub && (
+            ) : (
+              /* MODE 3: Search-from-home (default /start) — NEW */
               <>
                 <h2 className="auth-title">Track every shot.<br/>Climb the rankings.</h2>
-                <p className="auth-sub">Let's get you set up in 30 seconds.</p>
+                <p className="auth-sub">Find your club to get started.</p>
 
-                <div className={`path-card ${path === 'join' ? 'path-card--active' : ''}`} onClick={() => choosePath('join')}>
-                  <div className="path-head">
-                    <div className="path-icon">🏒</div>
-                    <div>
-                      <div className="path-title">Join a team</div>
-                      <div className="path-sub">Compete with your teammates</div>
-                    </div>
-                    <div className={`path-check ${path === 'join' ? 'path-check--active' : ''}`}>
-                      {path === 'join' ? '✓' : ''}
-                    </div>
-                  </div>
-                  {path === 'join' && (
-                    <div className="path-body">
-                      <label className="input-label">
-                        <span>Team name</span>
-                        <input
-                          type="text"
-                          value={teamName}
-                          onChange={(e) => setTeamName(e.target.value.toUpperCase())}
-                          placeholder="e.g. NORTHSTARS"
-                          autoCapitalize="characters"
-                          autoCorrect="off"
-                          spellCheck="false"
-                          className="input-field input-field--code"
-                          autoFocus
-                        />
-                      </label>
-                      <div className="path-hint">
-                        Same name as your teammates = you're on the same team.
+                <div className="search-wrap">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value)
+                      setPickedClub(null)
+                      setError('')
+                    }}
+                    placeholder="Search for your hockey club…"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck="false"
+                    className="input-field search-field"
+                    autoFocus
+                  />
+                  <SearchIcon />
+                </div>
+
+                {/* Results */}
+                {searchQuery.trim().length >= 2 && (
+                  <div className="results">
+                    {searchLoading && (
+                      <div className="results-empty">Searching…</div>
+                    )}
+                    {!searchLoading && hasSearched && searchResults.length === 0 && (
+                      <div className="results-empty">
+                        No clubs found for "{searchQuery.trim()}".
                       </div>
-
-                      <label className="input-label" style={{ marginTop: 14 }}>
-                        <span>Club name (optional)</span>
-                        <input
-                          type="text"
-                          value={clubName}
-                          onChange={(e) => setClubName(e.target.value)}
-                          placeholder="e.g. Burlington Eagles"
-                          className="input-field"
-                        />
-                      </label>
-                    </div>
-                  )}
-                </div>
-
-                <div className="or-divider">or</div>
-
-                <div className={`path-card ${path === 'solo' ? 'path-card--active' : ''}`} onClick={() => choosePath('solo')}>
-                  <div className="path-head">
-                    <div className="path-icon">🎯</div>
-                    <div>
-                      <div className="path-title">Start solo</div>
-                      <div className="path-sub">Track on your own, add a team later</div>
-                    </div>
-                    <div className={`path-check ${path === 'solo' ? 'path-check--active' : ''}`}>
-                      {path === 'solo' ? '✓' : ''}
-                    </div>
+                    )}
+                    {!searchLoading && searchResults.map((club) => {
+                      const isPicked = pickedClub?.id === club.id
+                      return (
+                        <button
+                          key={club.id}
+                          className={`result-card ${isPicked ? 'result-card--picked' : ''}`}
+                          onClick={() => { setPickedClub(club); setError('') }}
+                        >
+                          <div className="result-main">
+                            <div className="result-name">{club.name}</div>
+                            <div className="result-sub">
+                              {club.city ? club.city : ''}
+                              {club.governing_body ? ` · ${club.governing_body}` : ''}
+                            </div>
+                          </div>
+                          {club.player_count > 0 && (
+                            <div className="result-count">
+                              <span className="result-count-num">{club.player_count}</span>
+                              <span className="result-count-label">{club.player_count === 1 ? 'player' : 'players'}</span>
+                            </div>
+                          )}
+                          {isPicked && <div className="result-check">✓</div>}
+                        </button>
+                      )
+                    })}
                   </div>
-                </div>
+                )}
+
+                {/* Independent fallback — always available */}
+                <button className="independent-btn" onClick={pickIndependent}>
+                  <div className="independent-icon">🎯</div>
+                  <div>
+                    <div className="independent-title">My club isn't listed</div>
+                    <div className="independent-sub">Sign up as Independent — you can join a team later.</div>
+                  </div>
+                </button>
 
                 {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
 
-                <button className="btn-primary" onClick={continueFromStep1} disabled={!path} style={{ marginTop: 16 }}>
+                <button
+                  className="btn-primary"
+                  onClick={continueFromSearch}
+                  disabled={!pickedClub || pickedClub?.isIndependent}
+                  style={{ marginTop: 12 }}
+                >
                   Continue →
                 </button>
 
@@ -450,11 +545,10 @@ export default function AuthScreen() {
                 <div className="celebration-inner">🎉</div>
               </div>
               <div className="celebration-title">You're in, {displayName}!</div>
-              {attachedTeamLabel && (
-                <div className="club-joined">On {attachedTeamLabel}</div>
-              )}
-              {!attachedTeamLabel && generatedClubName && (
-                <div className="club-joined">Joined {generatedClubName}</div>
+              {generatedClubName && (
+                <div className="club-joined">
+                  On {generatedClubName}{generatedTeamName ? ` · ${generatedTeamName}` : ''}
+                </div>
               )}
             </div>
 
@@ -474,7 +568,7 @@ export default function AuthScreen() {
 
             <div className="save-tips">Text it to a parent so they have it too.</div>
 
-            {generatedTeamName && !preClub && !attachedTeamLabel && (
+            {generatedTeamName && !preClub && !pendingInvite && (
               <div className="invite-card">
                 <div className="invite-top">
                   <div className="invite-label">YOUR TEAM</div>
@@ -505,6 +599,15 @@ function BrandLogo() {
     <svg width="40" height="40" viewBox="0 0 40 40" style={{ display: 'block', flexShrink: 0 }}>
       <circle cx="20" cy="20" r="17" fill="#1a2847" stroke="#2979ff" strokeWidth="1" />
       <path d="M 12 22 L 17.5 27 L 28 15" stroke="#a8d4f5" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg className="search-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M12 12 L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }
@@ -574,14 +677,6 @@ const styles = `
   letter-spacing: 0.5px;
   line-height: 1;
 }
-.club-banner-team {
-  font-family: var(--font-display);
-  font-size: 14px;
-  color: white;
-  margin-top: 6px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
 .club-banner-city {
   font-size: 12px; color: var(--text-mute);
   margin-top: 4px;
@@ -617,70 +712,159 @@ const styles = `
 }
 .input-field--code::placeholder { letter-spacing: 2px; }
 
-.path-card {
+/* Search */
+.search-wrap {
+  position: relative;
+  margin-bottom: 12px;
+}
+.search-field {
+  padding-right: 40px;
+}
+.search-icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-mute);
+  pointer-events: none;
+}
+
+.results {
+  display: flex; flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.results-empty {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-mute);
+  padding: 14px 0;
+}
+.result-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   background: var(--bg);
   border: 0.5px solid var(--border-dim);
   border-radius: var(--radius);
-  padding: 14px;
-  cursor: pointer;
+  padding: 12px 14px;
+  text-align: left;
   transition: all 0.15s;
+  font-family: inherit;
+  width: 100%;
 }
-.path-card--active {
+.result-card:hover, .result-card:active {
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+.result-card--picked {
   background: var(--surface-raised);
   border-color: var(--accent);
 }
-.path-head {
-  display: flex; align-items: center; gap: 12px;
+.result-main {
+  flex: 1;
+  min-width: 0;
 }
-.path-icon {
+.result-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ice);
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.result-sub {
+  font-size: 11px;
+  color: var(--text-mute);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.result-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--accent-bg);
+  padding: 4px 10px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.result-count-num {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ice);
+  line-height: 1;
+}
+.result-count-label {
+  font-size: 9px;
+  color: var(--text-mute);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.result-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.independent-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: var(--bg);
+  border: 0.5px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  text-align: left;
+  margin-top: 4px;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.independent-btn:hover, .independent-btn:active {
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+.independent-icon {
   width: 36px; height: 36px;
-  font-size: 20px;
+  font-size: 18px;
   background: var(--accent-bg);
   border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.path-title {
+.independent-title {
   font-family: var(--font-display);
-  font-size: 16px; font-weight: 800;
-  letter-spacing: 0.4px; line-height: 1.1;
+  font-size: 14px; font-weight: 800;
+  letter-spacing: 0.3px;
+  color: var(--ice);
 }
-.path-sub {
-  font-size: 12px; color: var(--text-mute);
+.independent-sub {
+  font-size: 11px;
+  color: var(--text-mute);
   margin-top: 2px;
+  line-height: 1.3;
 }
-.path-check {
-  margin-left: auto;
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  border: 1.5px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text);
-  font-size: 13px; font-weight: 700;
-  flex-shrink: 0;
-}
-.path-check--active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-.path-body {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 0.5px solid var(--border-dim);
-}
+
 .path-hint {
   font-size: 11px; color: var(--text-mute);
   line-height: 1.4; margin-top: 6px;
-}
-.or-divider {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-mute);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin: 12px 0;
-  font-weight: 500;
 }
 
 .chip-row { display: grid; gap: 6px; margin-bottom: 16px; }
@@ -720,6 +904,7 @@ const styles = `
   transition: transform 0.1s;
 }
 .btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; }
 .btn-text {
   width: 100%;
   color: var(--text-mute);
