@@ -21,13 +21,15 @@ function coachEmailToInternal(email) {
 // PLAYER AUTH
 // ============================================================
 //
-// signUp({ displayName, position, ageBracket, teamName?, clubName?, clubId?, inviteCode?, teamInviteCode? })
+// signUp({ displayName, position, ageBracket, ...attachment options })
 //
-// Resolution priority for club:
-//   1) teamInviteCode  → attach_player_to_team RPC fills club_id + club_name
-//   2) clubId          → look up the club row, use both id + name (NEW: search-by-club path)
-//   3) inviteCode      → legacy club-level invite (older invites table)
-//   4) clubName        → legacy free-text path (coach signup, old AuthScreen)
+// Resolution priority for team and club:
+//   1) teamInviteCode  → attach_player_to_team RPC fills team_id + club_id
+//   2) teamId          → use directly (kid picked or created via team picker)
+//   3) clubId          → club only, no team yet
+//   4) inviteCode      → legacy club-level invite (older invites table)
+//   5) clubName        → legacy free-text path (coach signup, old AuthScreen)
+//   6) teamName (free-text) → legacy "join a team by name" path (coach flow)
 //
 export async function signUp({
   displayName,
@@ -35,7 +37,8 @@ export async function signUp({
   ageBracket,
   teamName,
   clubName,
-  clubId,           // NEW: pre-resolved club id from search-by-club flow
+  clubId,
+  teamId,           // NEW: pre-resolved team id (from new player flow)
   inviteCode,
   teamInviteCode,
 }) {
@@ -53,10 +56,9 @@ export async function signUp({
   // Resolve initial club_id and club_name. Order matters.
   let resolvedClubId = null
   let resolvedClubName = clubName?.trim() || null
+  let resolvedTeamId = teamId || null
 
-  // Path 2: clubId (NEW search-by-club path)
-  // We trust the id but always re-fetch the name from DB so the player row
-  // gets the canonical club name (not whatever the client cached).
+  // Path 2: clubId (search-by-club path or pre-resolved from team pick)
   if (clubId) {
     const { data: club } = await supabase
       .from('clubs')
@@ -69,7 +71,20 @@ export async function signUp({
     }
   }
 
-  // Path 3: legacy invite code (older invites table — keep for backward compat)
+  // If a teamId was provided but no clubId, look up the team's club_id from the team row
+  if (resolvedTeamId && !resolvedClubId) {
+    const { data: team } = await supabase
+      .from('teams')
+      .select('id, club_id, club:clubs(name)')
+      .eq('id', resolvedTeamId)
+      .maybeSingle()
+    if (team) {
+      resolvedClubId = team.club_id
+      if (team.club?.name) resolvedClubName = team.club.name
+    }
+  }
+
+  // Path 4: legacy invite code (older invites table — keep for backward compat)
   if (inviteCode && !resolvedClubId) {
     const { data: invite } = await supabase
       .from('invites')
@@ -82,10 +97,9 @@ export async function signUp({
     }
   }
 
-  // Resolve team via free-text name (legacy "join a team by typing its name" path)
-  // This stays untouched for backward compat. The new flow doesn't pass teamName.
-  let teamId = null
-  if (teamName) {
+  // Path 6: free-text team name (legacy coach flow). Only runs if no teamId
+  // already chosen via the new flow.
+  if (teamName && !resolvedTeamId) {
     const normalized = teamName.trim().toUpperCase()
     const { data: existingTeam } = await supabase
       .from('teams')
@@ -93,7 +107,7 @@ export async function signUp({
       .eq('code', normalized)
       .maybeSingle()
     if (existingTeam) {
-      teamId = existingTeam.id
+      resolvedTeamId = existingTeam.id
     } else {
       const { data: newTeam, error: teamErr } = await supabase
         .from('teams')
@@ -101,7 +115,7 @@ export async function signUp({
         .select('id')
         .single()
       if (teamErr) throw teamErr
-      teamId = newTeam.id
+      resolvedTeamId = newTeam.id
     }
   }
 
@@ -112,7 +126,7 @@ export async function signUp({
     username,
     position,
     age_bracket: ageBracket,
-    team_id: teamId,
+    team_id: resolvedTeamId,
     club_id: resolvedClubId,
     club_name: resolvedClubName,
   })
@@ -140,7 +154,6 @@ export async function signUp({
         }
       }
     } catch (e) {
-      // Non-blocking: signup succeeded, just couldn't attach. The kid can join later.
       console.warn('Team invite attach failed:', e)
     }
   }
@@ -176,8 +189,6 @@ export async function getCurrentPlayer() {
 
 // ============================================================
 // COACH AUTH
-// FIXED: was inserting `full_name` into a `display_name` column.
-// Also no longer auto-creates a club — that's handled by createCoachProfile in clubs.js.
 // ============================================================
 
 export async function signUpCoach({ email, password, displayName }) {
@@ -190,9 +201,6 @@ export async function signUpCoach({ email, password, displayName }) {
   if (authErr) throw authErr
   const userId = authData.user?.id
   if (!userId) throw new Error('Coach signup failed — no user id returned')
-
-  // The coach row + club attachment is handled by createCoachProfile in clubs.js
-  // after this function returns. Keeping this function single-purpose: just create the auth user.
 
   return { userId, displayName }
 }
