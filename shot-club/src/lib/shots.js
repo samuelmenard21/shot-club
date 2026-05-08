@@ -93,7 +93,7 @@ export async function getRandomTeammate(teamId, excludePlayerId) {
 export async function getLeaderboardLifetime({ teamId, clubName, limit = 50 }) {
   let query = supabase
     .from('players')
-    .select('id, display_name, position, lifetime_shots, current_streak, card_number')
+    .select('id, username, display_name, position, lifetime_shots, current_streak, card_number, club_name, team:teams(id, name)')
     .order('lifetime_shots', { ascending: false })
     .limit(limit)
   if (teamId) query = query.eq('team_id', teamId)
@@ -132,7 +132,7 @@ export async function getLeaderboardWeekly({ teamId, clubName, limit = 50 }) {
 
   const { data: players } = await supabase
     .from('players')
-    .select('id, display_name, position, lifetime_shots, current_streak, card_number')
+    .select('id, username, display_name, position, lifetime_shots, current_streak, card_number, team:teams(id, name)')
     .in('id', ids)
 
   return (players || [])
