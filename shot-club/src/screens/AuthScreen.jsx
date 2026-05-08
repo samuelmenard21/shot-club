@@ -2,7 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signUp, signIn } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
-import { getClubBySlug, searchClubs } from '../lib/clubs'
+import {
+  getClubBySlug,
+  searchClubs,
+  getTeamsInClub,
+  findOrCreateTeamForPlayer,
+  AGE_DIVISIONS,
+  TIERS,
+} from '../lib/clubs'
 import { getTeamInviteByCode } from '../lib/teams'
 import { setSEO } from '../lib/seo'
 
@@ -10,18 +17,26 @@ const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
 const SEARCH_DEBOUNCE_MS = 220
 
 export default function AuthScreen() {
-  const [mode, setMode] = useState('signup') // 'signup' | 'signin'
+  const [mode, setMode] = useState('signup')
   const [step, setStep] = useState(1)
 
   // Step-1 state
-  const [pendingInvite, setPendingInvite] = useState(null)   // /j/<code>
-  const [preClub, setPreClub] = useState(null)                // /start?club=<slug>
-  const [teamName, setTeamName] = useState('')                // only used by preClub flow
-  const [searchQuery, setSearchQuery] = useState('')          // search-from-home flow
+  const [pendingInvite, setPendingInvite] = useState(null)
+  const [preClub, setPreClub] = useState(null)
+  const [teamName, setTeamName] = useState('')                // preClub flow only
+  const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [searchLoading, setSearchLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
-  const [pickedClub, setPickedClub] = useState(null)          // search → pick OR Independent
+  const [pickedClub, setPickedClub] = useState(null)
+
+  // Step-1.5 (team picker) state — used after a club is picked from search
+  const [teamsLoading, setTeamsLoading] = useState(false)
+  const [teamsList, setTeamsList] = useState([])
+  const [pickedTeam, setPickedTeam] = useState(null)
+  const [showCreateTeam, setShowCreateTeam] = useState(false)
+  const [newTeamAge, setNewTeamAge] = useState('')
+  const [newTeamTier, setNewTeamTier] = useState('')
 
   // Step-2 state
   const [displayName, setDisplayName] = useState('')
@@ -66,9 +81,7 @@ export default function AuthScreen() {
         if (inv.expires_at && new Date(inv.expires_at) < new Date()) return
         if (inv.max_uses && inv.uses_count >= inv.max_uses) return
         setPendingInvite(inv)
-      } catch (e) {
-        // Fall back silently
-      }
+      } catch (e) {}
     })()
   }, [])
 
@@ -78,9 +91,7 @@ export default function AuthScreen() {
     if (!clubSlug) return
     ;(async () => {
       const c = await getClubBySlug(clubSlug)
-      if (c) {
-        setPreClub(c)
-      }
+      if (c) setPreClub(c)
     })()
   }, [searchParams])
 
@@ -110,6 +121,23 @@ export default function AuthScreen() {
     }
   }, [searchQuery])
 
+  // Load teams when entering the team picker (step 1.5)
+  useEffect(() => {
+    if (step !== 1 || !pickedClub || pickedClub.isIndependent) return
+    if (teamsList.length > 0) return // already loaded
+    ;(async () => {
+      setTeamsLoading(true)
+      try {
+        const teams = await getTeamsInClub(pickedClub.id)
+        setTeamsList(teams)
+      } catch (e) {
+        setTeamsList([])
+      } finally {
+        setTeamsLoading(false)
+      }
+    })()
+  }, [step, pickedClub])
+
   // ---- Step transitions ----
 
   const continueFromInviteIntro = () => {
@@ -126,21 +154,63 @@ export default function AuthScreen() {
     setStep(2)
   }
 
-  const continueFromSearch = () => {
+  const continueFromClubPick = () => {
     if (!pickedClub) {
       setError("Pick your club, or tap \"My club isn't listed\".")
+      return
+    }
+    setError('')
+    // The team picker becomes visible because pickedClub is now set.
+  }
+
+  const pickIndependent = () => {
+    setPickedClub({ id: null, slug: 'independent', name: 'Independent', isIndependent: true })
+    setError('')
+    setStep(2) // Independent skips the team picker
+  }
+
+  const pickExistingTeam = (team) => {
+    setPickedTeam(team)
+    setShowCreateTeam(false)
+    setError('')
+  }
+
+  const continueFromTeamPick = () => {
+    if (!pickedTeam) {
+      setError('Pick a team or create one.')
       return
     }
     setError('')
     setStep(2)
   }
 
-  const pickIndependent = () => {
-    // Special-case sentinel — we'll resolve to the seeded Independent club server-side
-    setPickedClub({ id: null, slug: 'independent', name: 'Independent', isIndependent: true })
-    // Skip waiting on a continue — go straight to step 2
+  const skipTeam = () => {
+    setPickedTeam(null)
     setError('')
     setStep(2)
+  }
+
+  const openCreateTeam = () => {
+    setShowCreateTeam(true)
+    setPickedTeam(null)
+    setError('')
+  }
+
+  const cancelCreateTeam = () => {
+    setShowCreateTeam(false)
+    setNewTeamAge('')
+    setNewTeamTier('')
+    setError('')
+  }
+
+  const backToClubPick = () => {
+    setPickedClub(null)
+    setPickedTeam(null)
+    setShowCreateTeam(false)
+    setNewTeamAge('')
+    setNewTeamTier('')
+    setTeamsList([])
+    setError('')
   }
 
   // ---- Submit ----
@@ -156,26 +226,34 @@ export default function AuthScreen() {
       let teamToUse = null
       let clubNameToUse = null
       let clubIdToUse = null
+      let teamIdToUse = null
       let teamInviteCode = null
 
       if (pendingInvite) {
-        // Mode 1: /j/<code> — RPC handles team + club attachment
         teamInviteCode = pendingInvite.code
         clubNameToUse = pendingInvite.team?.club?.name || null
       } else if (preClub) {
-        // Mode 2: /start?club=<slug> — club + free-text team name
         teamToUse = teamName.trim().toUpperCase()
         clubIdToUse = preClub.id
         clubNameToUse = preClub.name
       } else if (pickedClub?.isIndependent) {
-        // Mode 3a: Independent fallback — look up by slug, no team
         const indep = await getClubBySlug('independent')
         clubIdToUse = indep?.id || null
         clubNameToUse = 'Independent'
       } else if (pickedClub) {
-        // Mode 3b: Search → real club, no team yet
         clubIdToUse = pickedClub.id
         clubNameToUse = pickedClub.name
+
+        if (showCreateTeam && newTeamAge && newTeamTier) {
+          const result = await findOrCreateTeamForPlayer({
+            clubId: pickedClub.id,
+            ageDivision: newTeamAge,
+            tier: newTeamTier,
+          })
+          teamIdToUse = result.teamId
+        } else if (pickedTeam) {
+          teamIdToUse = pickedTeam.id
+        }
       }
 
       const { username, attachedTeam } = await signUp({
@@ -185,6 +263,7 @@ export default function AuthScreen() {
         teamName: teamToUse,
         clubName: clubNameToUse,
         clubId: clubIdToUse,
+        teamId: teamIdToUse,
         teamInviteCode,
       })
 
@@ -194,7 +273,6 @@ export default function AuthScreen() {
 
       setGeneratedUsername(username)
 
-      // Build the celebration text
       if (attachedTeam) {
         const team = pendingInvite?.team
         const teamLabel = team
@@ -213,7 +291,13 @@ export default function AuthScreen() {
         setGeneratedTeamName(teamToUse || '')
         setGeneratedClubName(preClub.name)
       } else if (pickedClub) {
-        setGeneratedTeamName('')
+        let teamLabel = ''
+        if (showCreateTeam && newTeamAge && newTeamTier) {
+          teamLabel = `${newTeamAge} ${newTeamTier}`
+        } else if (pickedTeam) {
+          teamLabel = `${pickedTeam.age_division || ''} ${pickedTeam.tier || ''}`.trim()
+        }
+        setGeneratedTeamName(teamLabel)
         setGeneratedClubName(pickedClub.isIndependent ? '' : pickedClub.name)
       }
 
@@ -312,8 +396,11 @@ export default function AuthScreen() {
   }
 
   // ============================================================
-  // Signup mode — three sub-modes in step 1
+  // Signup mode
   // ============================================================
+
+  const showTeamPicker = step === 1 && pickedClub && !pickedClub.isIndependent && !pendingInvite && !preClub
+
   return (
     <div className="auth-wrap fade-in">
       <div className="auth-card">
@@ -325,8 +412,8 @@ export default function AuthScreen() {
               <div className="brand-name">Hockey Shot<br/>Challenge</div>
             </div>
 
-            {/* MODE 1: Invite link from a coach (/j/<code>) */}
             {pendingInvite ? (
+              /* MODE 1: Invite link from a coach */
               <>
                 <div className="club-banner">
                   <div className="club-banner-label">YOU'RE INVITED</div>
@@ -339,7 +426,6 @@ export default function AuthScreen() {
                 <p className="auth-sub" style={{ textAlign: 'center', marginBottom: 16 }}>
                   Let's set up your card so you can start tracking shots.
                 </p>
-
                 <button className="btn-primary" onClick={continueFromInviteIntro}>
                   Continue →
                 </button>
@@ -348,7 +434,7 @@ export default function AuthScreen() {
                 </button>
               </>
             ) : preClub ? (
-              /* MODE 2: Club deep link (/start?club=<slug>) */
+              /* MODE 2: Club deep link */
               <>
                 <div className="club-banner">
                   <div className="club-banner-label">JOINING</div>
@@ -361,7 +447,7 @@ export default function AuthScreen() {
                     type="text"
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value.toUpperCase())}
-                    placeholder="e.g. U14 A, BANTAM-A1, etc."
+                    placeholder="e.g. U14 A, BANTAM-A1"
                     autoCapitalize="characters"
                     autoCorrect="off"
                     spellCheck="false"
@@ -370,11 +456,9 @@ export default function AuthScreen() {
                   />
                 </label>
                 <div className="path-hint">
-                  Ask your coach or a teammate if you're not sure. Use the exact same name they use so you're all on the same team.
+                  Ask your coach or a teammate if you're not sure.
                 </div>
-
                 {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
-
                 <button className="btn-primary" onClick={continueFromPreClub} disabled={!teamName.trim()} style={{ marginTop: 16 }}>
                   Continue →
                 </button>
@@ -382,8 +466,36 @@ export default function AuthScreen() {
                   Sign up without the club
                 </button>
               </>
+            ) : showTeamPicker ? (
+              /* MODE 3.5: Team picker — after picking a club from search */
+              <TeamPicker
+                club={pickedClub}
+                teamsList={teamsList}
+                teamsLoading={teamsLoading}
+                pickedTeam={pickedTeam}
+                showCreateTeam={showCreateTeam}
+                newTeamAge={newTeamAge}
+                newTeamTier={newTeamTier}
+                error={error}
+                onPickTeam={pickExistingTeam}
+                onOpenCreate={openCreateTeam}
+                onCancelCreate={cancelCreateTeam}
+                setNewTeamAge={setNewTeamAge}
+                setNewTeamTier={setNewTeamTier}
+                onContinueExisting={continueFromTeamPick}
+                onSkip={skipTeam}
+                onCreateAndContinue={() => {
+                  if (!newTeamAge || !newTeamTier) {
+                    setError('Pick an age and a tier.')
+                    return
+                  }
+                  setError('')
+                  setStep(2)
+                }}
+                onBack={backToClubPick}
+              />
             ) : (
-              /* MODE 3: Search-from-home (default /start) — NEW */
+              /* MODE 3: Search-from-home */
               <>
                 <h2 className="auth-title">Track every shot.<br/>Climb the rankings.</h2>
                 <p className="auth-sub">Find your club to get started.</p>
@@ -407,16 +519,11 @@ export default function AuthScreen() {
                   <SearchIcon />
                 </div>
 
-                {/* Results */}
                 {searchQuery.trim().length >= 2 && (
                   <div className="results">
-                    {searchLoading && (
-                      <div className="results-empty">Searching…</div>
-                    )}
+                    {searchLoading && <div className="results-empty">Searching…</div>}
                     {!searchLoading && hasSearched && searchResults.length === 0 && (
-                      <div className="results-empty">
-                        No clubs found for "{searchQuery.trim()}".
-                      </div>
+                      <div className="results-empty">No clubs found for "{searchQuery.trim()}".</div>
                     )}
                     {!searchLoading && searchResults.map((club) => {
                       const isPicked = pickedClub?.id === club.id
@@ -446,7 +553,6 @@ export default function AuthScreen() {
                   </div>
                 )}
 
-                {/* Independent fallback — always available */}
                 <button className="independent-btn" onClick={pickIndependent}>
                   <div className="independent-icon">🎯</div>
                   <div>
@@ -459,7 +565,7 @@ export default function AuthScreen() {
 
                 <button
                   className="btn-primary"
-                  onClick={continueFromSearch}
+                  onClick={continueFromClubPick}
                   disabled={!pickedClub || pickedClub?.isIndependent}
                   style={{ marginTop: 12 }}
                 >
@@ -594,6 +700,151 @@ export default function AuthScreen() {
   )
 }
 
+function TeamPicker({
+  club,
+  teamsList,
+  teamsLoading,
+  pickedTeam,
+  showCreateTeam,
+  newTeamAge,
+  newTeamTier,
+  error,
+  onPickTeam,
+  onOpenCreate,
+  onCancelCreate,
+  setNewTeamAge,
+  setNewTeamTier,
+  onContinueExisting,
+  onSkip,
+  onCreateAndContinue,
+  onBack,
+}) {
+  return (
+    <>
+      <div className="club-banner">
+        <div className="club-banner-label">YOUR CLUB</div>
+        <div className="club-banner-name">{club.name}</div>
+        {club.city && <div className="club-banner-city">{club.city}</div>}
+      </div>
+      <h3 className="picker-title">Pick your team</h3>
+      <p className="auth-sub" style={{ marginBottom: 12 }}>
+        So your stats line up on the team leaderboard.
+      </p>
+
+      {showCreateTeam ? (
+        <>
+          <div className="create-team-form">
+            <div className="label-sm">Age</div>
+            <div className="dropdown-grid">
+              {AGE_DIVISIONS.map((a) => (
+                <button
+                  key={a}
+                  className={`mini-chip ${newTeamAge === a ? 'mini-chip--active' : ''}`}
+                  onClick={() => setNewTeamAge(a)}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+
+            <div className="label-sm">Tier</div>
+            <div className="chip-row chip-row--5">
+              {TIERS.map((t) => (
+                <button
+                  key={t}
+                  className={`chip ${newTeamTier === t ? 'chip--active' : ''}`}
+                  onClick={() => setNewTeamTier(t)}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {error && <div className="error">{error}</div>}
+
+          <button
+            className="btn-primary"
+            onClick={onCreateAndContinue}
+            disabled={!newTeamAge || !newTeamTier}
+          >
+            Create team →
+          </button>
+          <button className="btn-text" onClick={onCancelCreate}>
+            ← Pick from list instead
+          </button>
+        </>
+      ) : (
+        <>
+          {teamsLoading && (
+            <div className="results-empty">Loading teams…</div>
+          )}
+          {!teamsLoading && teamsList.length === 0 && (
+            <div className="empty-teams-hint">
+              No teams yet at {club.name}. Create yours below — your teammates can join after.
+            </div>
+          )}
+          {!teamsLoading && teamsList.length > 0 && (
+            <div className="results">
+              {teamsList.map((team) => {
+                const isPicked = pickedTeam?.id === team.id
+                const label = `${team.age_division || ''} ${team.tier || ''}`.trim() || team.name
+                return (
+                  <button
+                    key={team.id}
+                    className={`result-card ${isPicked ? 'result-card--picked' : ''}`}
+                    onClick={() => onPickTeam(team)}
+                  >
+                    <div className="result-main">
+                      <div className="result-name">{label}</div>
+                      <div className="result-sub">
+                        {team.season ? `${team.season}` : ''}
+                      </div>
+                    </div>
+                    {team.player_count > 0 && (
+                      <div className="result-count">
+                        <span className="result-count-num">{team.player_count}</span>
+                        <span className="result-count-label">{team.player_count === 1 ? 'player' : 'players'}</span>
+                      </div>
+                    )}
+                    {isPicked && <div className="result-check">✓</div>}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          <button className="independent-btn" onClick={onOpenCreate}>
+            <div className="independent-icon">➕</div>
+            <div>
+              <div className="independent-title">Create a new team</div>
+              <div className="independent-sub">Pick your age + tier — first kid creates it.</div>
+            </div>
+          </button>
+
+          {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
+
+          <button
+            className="btn-primary"
+            onClick={onContinueExisting}
+            disabled={!pickedTeam}
+            style={{ marginTop: 12 }}
+          >
+            Continue →
+          </button>
+
+          <button className="btn-text" onClick={onSkip}>
+            I'll join my team later
+          </button>
+          <button className="btn-text" onClick={onBack}>
+            ← Pick a different club
+          </button>
+        </>
+      )}
+    </>
+  )
+}
+
 function BrandLogo() {
   return (
     <svg width="40" height="40" viewBox="0 0 40 40" style={{ display: 'block', flexShrink: 0 }}>
@@ -650,6 +901,13 @@ const styles = `
   font-size: 22px; line-height: 1.1;
   margin-bottom: 4px; font-weight: 700;
   letter-spacing: 0.3px;
+}
+.picker-title {
+  font-family: var(--font-display);
+  font-size: 20px; line-height: 1.1;
+  margin: 0 0 4px; font-weight: 700;
+  letter-spacing: 0.3px;
+  color: white;
 }
 .auth-sub {
   font-size: 13px; color: var(--text-mute);
@@ -712,14 +970,11 @@ const styles = `
 }
 .input-field--code::placeholder { letter-spacing: 2px; }
 
-/* Search */
 .search-wrap {
   position: relative;
   margin-bottom: 12px;
 }
-.search-field {
-  padding-right: 40px;
-}
+.search-field { padding-right: 40px; }
 .search-icon {
   position: absolute;
   right: 14px;
@@ -742,6 +997,17 @@ const styles = `
   color: var(--text-mute);
   padding: 14px 0;
 }
+.empty-teams-hint {
+  background: var(--bg);
+  border: 0.5px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--text-soft);
+  line-height: 1.4;
+  margin-bottom: 12px;
+  text-align: center;
+}
 .result-card {
   display: flex;
   align-items: center;
@@ -763,10 +1029,7 @@ const styles = `
   background: var(--surface-raised);
   border-color: var(--accent);
 }
-.result-main {
-  flex: 1;
-  min-width: 0;
-}
+.result-main { flex: 1; min-width: 0; }
 .result-name {
   font-family: var(--font-display);
   font-size: 14px;
@@ -867,17 +1130,47 @@ const styles = `
   line-height: 1.4; margin-top: 6px;
 }
 
+.create-team-form { margin-bottom: 12px; }
+.dropdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-bottom: 14px;
+}
+.mini-chip {
+  background: var(--bg);
+  border: 0.5px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 8px 4px;
+  color: var(--ice);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-display);
+  letter-spacing: 0.4px;
+  transition: all 0.15s;
+  text-align: center;
+}
+.mini-chip:hover, .mini-chip:active { border-color: var(--accent); }
+.mini-chip--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
 .chip-row { display: grid; gap: 6px; margin-bottom: 16px; }
 .chip-row--3 { grid-template-columns: repeat(3, 1fr); }
 .chip-row--4 { grid-template-columns: repeat(2, 1fr); }
+.chip-row--5 { grid-template-columns: repeat(5, 1fr); }
 .chip {
   background: var(--bg);
   border: 0.5px solid var(--border-dim);
   border-radius: var(--radius);
-  padding: 10px 8px;
+  padding: 10px 6px;
   color: var(--ice);
-  font-size: 13px; text-align: center;
+  font-size: 12px; text-align: center;
   transition: all 0.15s;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 .chip--big { padding: 14px 6px; }
 .chip--active {
