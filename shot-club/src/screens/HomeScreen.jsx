@@ -4,6 +4,7 @@ import { logShots, getStats, getTodayRival } from '../lib/shots'
 import { pickLineStable } from '../lib/coachSam'
 import { getRank } from '../lib/ranks'
 import { claimAchievements } from '../lib/progress'
+import { attachPlayerToTeam } from '../lib/teams'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
 import AchievementUnlockModal from './AchievementUnlockModal'
@@ -227,7 +228,9 @@ export default function HomeScreen() {
         </div>
       )}
 
-      {!rival && (
+      {!player.team_id && <JoinTeamPanel playerId={player.id} onJoined={refresh} />}
+
+      {player.team_id && !rival && (
         <div className="solo">
           <div className="label-sm">Solo mode</div>
           <div className="solo-text">No teammates yet. Share your team name to start competing.</div>
@@ -308,6 +311,67 @@ function NumberPad({ type, onSave, onClose }) {
           Log {num > 0 ? num : ''} {type} shot{num === 1 ? '' : 's'}
         </button>
       </div>
+    </div>
+  )
+}
+
+function JoinTeamPanel({ playerId, onJoined }) {
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  const submit = async (e) => {
+    e?.preventDefault?.()
+    const trimmed = code.trim()
+    if (!trimmed || busy) return
+    setBusy(true)
+    setError('')
+    try {
+      const result = await attachPlayerToTeam({ playerId, inviteCode: trimmed })
+      if (!result.attached) {
+        setError("That code didn't work. Double-check with your coach.")
+        setBusy(false)
+        return
+      }
+      // Success — refresh player so home re-renders with team_id set.
+      // Panel unmounts automatically when team_id flips.
+      await onJoined?.()
+    } catch (err) {
+      console.warn('Join team failed:', err)
+      setError('Something went wrong. Try again in a sec.')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="join-panel">
+      <div className="label-sm">Got a coach code?</div>
+      <div className="join-text">
+        Your coach can give you a 6-letter code to join your team.
+      </div>
+      <form className="join-form" onSubmit={submit}>
+        <input
+          className="join-input"
+          type="text"
+          inputMode="text"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck="false"
+          placeholder="e.g. huv72k"
+          value={code}
+          onChange={(e) => { setCode(e.target.value); setError('') }}
+          maxLength={12}
+          disabled={busy}
+        />
+        <button
+          type="submit"
+          className="join-btn"
+          disabled={busy || !code.trim()}
+        >
+          {busy ? '...' : 'Join'}
+        </button>
+      </form>
+      {error && <div className="join-error">{error}</div>}
     </div>
   )
 }
@@ -511,6 +575,73 @@ const styles = `
 .chase-tag--neutral {
   background: var(--bg);
   color: var(--text-mute);
+}
+
+.join-panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px;
+  border-left: 2px solid var(--ice);
+  margin-bottom: 12px;
+}
+.join-text {
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-top: 4px;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+.join-form {
+  display: flex;
+  gap: 8px;
+}
+.join-input {
+  flex: 1;
+  background: var(--bg);
+  border: 0.5px solid var(--border-dim);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  min-height: 44px;
+  -webkit-appearance: none;
+}
+.join-input:focus {
+  outline: none;
+  border-color: var(--ice);
+}
+.join-input::placeholder {
+  color: var(--text-mute);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+.join-btn {
+  background: var(--accent);
+  color: white;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  min-height: 44px;
+  transition: transform 0.1s;
+}
+.join-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.join-btn:disabled {
+  opacity: 0.4;
+}
+.join-error {
+  font-size: 12px;
+  color: var(--warn-soft);
+  margin-top: 8px;
+  line-height: 1.4;
 }
 
 .solo {
