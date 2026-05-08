@@ -166,6 +166,32 @@ export async function getOrCreateTeamInvite({ teamId, coachId }) {
 }
 
 // ============================================================
+// Player actions (require auth as the player)
+// ============================================================
+
+// Attach a logged-in player to a team via a short invite code.
+// Calls the SECURITY DEFINER attach_player_to_team RPC.
+// Returns: { attached: true, teamId, teamName, clubId, clubName } on success,
+//          { attached: false } if the code is invalid/expired/exhausted.
+// Throws on RPC error (network, auth, etc.).
+export async function attachPlayerToTeam({ playerId, inviteCode }) {
+  const { data, error } = await supabase.rpc('attach_player_to_team', {
+    p_player_id: playerId,
+    p_invite_code: inviteCode.trim().toLowerCase(),
+  })
+  if (error) throw error
+  const row = Array.isArray(data) ? data[0] : data
+  if (!row || !row.attached) return { attached: false }
+  return {
+    attached: true,
+    teamId: row.team_id,
+    teamName: row.team_name,
+    clubId: row.club_id,
+    clubName: row.club_name,
+  }
+}
+
+// ============================================================
 // Submit a club that's not in the seed list (Tier 3)
 // ============================================================
 export async function submitPendingClub({ name, city, province, governingBody, genderType, submitterEmail, notes, coachId }) {
