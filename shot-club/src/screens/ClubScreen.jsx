@@ -26,6 +26,8 @@ export default function ClubScreen() {
     getClubBySlug(slug).then((c) => {
       if (cancelled) return
       setClub(c || null)
+    }).catch(() => {
+      if (!cancelled) setClub(null)
     })
     return () => { cancelled = true }
   }, [slug])
@@ -35,9 +37,9 @@ export default function ClubScreen() {
     let cancelled = false
 
     Promise.all([
-      getClubStats(club.id),
-      getClubTeams(club.id),
-      getLeaderboardLifetime({ clubName: club.name, limit: 25 }),
+      getClubStats(club.id).catch(() => ({ playerCount: 0, teamCount: 0, totalShots: 0 })),
+      getClubTeams(club.id).catch(() => []),
+      getLeaderboardLifetime({ clubName: club.name, limit: 25 }).catch(() => []),
     ]).then(([s, t, l]) => {
       if (cancelled) return
       setStats(s)
