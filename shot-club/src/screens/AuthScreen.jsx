@@ -1,63 +1,43 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signUp, signIn } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
 import {
   getClubBySlug,
-  searchClubs,
-  getTeamsInClub,
   findOrCreateTeamForPlayer,
   AGE_DIVISIONS,
   TIERS,
 } from '../lib/clubs'
-import { getTeamInviteByCode } from '../lib/teams'
-import { setSEO } from '../lib/seo'
+import { setSEO, CANONICAL_URL } from '../lib/seo'
 
 const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
-const SEARCH_DEBOUNCE_MS = 220
 
 export default function AuthScreen() {
   const [mode, setMode] = useState('signup')
   const [step, setStep] = useState(1)
+  const [path, setPath] = useState(null) // 'club' | 'join' | 'solo'
+  const [teamName, setTeamName] = useState('')
+  const [clubName, setClubName] = useState('')
+  const [preClub, setPreClub] = useState(null) // when arriving from /join/<slug>
 
-  // Step-1 state
-  const [pendingInvite, setPendingInvite] = useState(null)
-  const [preClub, setPreClub] = useState(null)
-  const [teamName, setTeamName] = useState('')                // preClub flow only
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState([])
-  const [searchLoading, setSearchLoading] = useState(false)
-  const [hasSearched, setHasSearched] = useState(false)
-  const [pickedClub, setPickedClub] = useState(null)
+  // NEW: pre-keyed team picker state
+  const [ageDivision, setAgeDivision] = useState('')
+  const [tier, setTier] = useState('')
 
-  // Step-1.5 (team picker) state — used after a club is picked from search
-  const [teamsLoading, setTeamsLoading] = useState(false)
-  const [teamsList, setTeamsList] = useState([])
-  const [pickedTeam, setPickedTeam] = useState(null)
-  const [showCreateTeam, setShowCreateTeam] = useState(false)
-  const [newTeamAge, setNewTeamAge] = useState('')
-  const [newTeamTier, setNewTeamTier] = useState('')
-
-  // Step-2 state
   const [displayName, setDisplayName] = useState('')
   const [position, setPosition] = useState(null)
   const [ageBracket, setAgeBracket] = useState(null)
-
-  // Step-3 / sign-in
   const [username, setUsername] = useState('')
   const [generatedUsername, setGeneratedUsername] = useState('')
   const [generatedTeamName, setGeneratedTeamName] = useState('')
   const [generatedClubName, setGeneratedClubName] = useState('')
   const [copiedWhat, setCopiedWhat] = useState('')
   const [shared, setShared] = useState(false)
-
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
   const nav = useNavigate()
   const [searchParams] = useSearchParams()
   const { refresh } = useAuth()
-  const debounceRef = useRef(null)
 
   useEffect(() => {
     setSEO({
@@ -67,153 +47,50 @@ export default function AuthScreen() {
     })
   }, [mode])
 
-  // /j/<code> redirect — read sessionStorage
-  useEffect(() => {
-    let pendingCode = null
-    try {
-      pendingCode = sessionStorage.getItem('pending_team_invite')
-    } catch (e) {}
-    if (!pendingCode) return
-    ;(async () => {
-      try {
-        const inv = await getTeamInviteByCode(pendingCode)
-        if (!inv) return
-        if (inv.expires_at && new Date(inv.expires_at) < new Date()) return
-        if (inv.max_uses && inv.uses_count >= inv.max_uses) return
-        setPendingInvite(inv)
-      } catch (e) {}
-    })()
-  }, [])
-
-  // /start?club=<slug> deep link
+  // Check for pre-selected club via URL (from /join/:slug redirect)
   useEffect(() => {
     const clubSlug = searchParams.get('club')
     if (!clubSlug) return
     ;(async () => {
       const c = await getClubBySlug(clubSlug)
-      if (c) setPreClub(c)
+      if (c) {
+        setPreClub(c)
+        setPath('club')
+        setClubName(c.name)
+      }
     })()
   }, [searchParams])
 
-  // Debounced search
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (!searchQuery || searchQuery.trim().length < 2) {
-      setSearchResults([])
-      setSearchLoading(false)
-      setHasSearched(false)
-      return
-    }
-    setSearchLoading(true)
-    debounceRef.current = setTimeout(async () => {
-      try {
-        const results = await searchClubs(searchQuery, 8)
-        setSearchResults(results)
-        setHasSearched(true)
-      } catch (e) {
-        setSearchResults([])
-      } finally {
-        setSearchLoading(false)
+  const choosePath = (p) => {
+    setPath(p)
+    setError('')
+  }
+
+  const continueFromStep1 = () => {
+    // Pre-keyed flow: validate the two-dropdown picker
+    if (path === 'club' && preClub) {
+      if (!ageDivision) {
+        setError('Pick your age division.')
+        return
       }
-    }, SEARCH_DEBOUNCE_MS)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [searchQuery])
-
-  // Load teams when entering the team picker (step 1.5)
-  useEffect(() => {
-    if (step !== 1 || !pickedClub || pickedClub.isIndependent) return
-    if (teamsList.length > 0) return // already loaded
-    ;(async () => {
-      setTeamsLoading(true)
-      try {
-        const teams = await getTeamsInClub(pickedClub.id)
-        setTeamsList(teams)
-      } catch (e) {
-        setTeamsList([])
-      } finally {
-        setTeamsLoading(false)
+      if (!tier) {
+        setError('Pick your tier.')
+        return
       }
-    })()
-  }, [step, pickedClub])
-
-  // ---- Step transitions ----
-
-  const continueFromInviteIntro = () => {
-    setError('')
-    setStep(2)
-  }
-
-  const continueFromPreClub = () => {
-    if (!teamName.trim()) {
-      setError('Enter your team name within this club.')
+      setError('')
+      setStep(2)
       return
     }
-    setError('')
-    setStep(2)
-  }
 
-  const continueFromClubPick = () => {
-    if (!pickedClub) {
-      setError("Pick your club, or tap \"My club isn't listed\".")
+    // Legacy free-text Join path
+    if (path === 'join' && !teamName.trim()) {
+      setError('Type a team name to join.')
       return
     }
-    setError('')
-    // The team picker becomes visible because pickedClub is now set.
-  }
 
-  const pickIndependent = () => {
-    setPickedClub({ id: null, slug: 'independent', name: 'Independent', isIndependent: true })
-    setError('')
-    setStep(2) // Independent skips the team picker
-  }
-
-  const pickExistingTeam = (team) => {
-    setPickedTeam(team)
-    setShowCreateTeam(false)
-    setError('')
-  }
-
-  const continueFromTeamPick = () => {
-    if (!pickedTeam) {
-      setError('Pick a team or create one.')
-      return
-    }
     setError('')
     setStep(2)
   }
-
-  const skipTeam = () => {
-    setPickedTeam(null)
-    setError('')
-    setStep(2)
-  }
-
-  const openCreateTeam = () => {
-    setShowCreateTeam(true)
-    setPickedTeam(null)
-    setError('')
-  }
-
-  const cancelCreateTeam = () => {
-    setShowCreateTeam(false)
-    setNewTeamAge('')
-    setNewTeamTier('')
-    setError('')
-  }
-
-  const backToClubPick = () => {
-    setPickedClub(null)
-    setPickedTeam(null)
-    setShowCreateTeam(false)
-    setNewTeamAge('')
-    setNewTeamTier('')
-    setTeamsList([])
-    setError('')
-  }
-
-  // ---- Submit ----
 
   const finishSignup = async () => {
     if (!displayName.trim() || !position || !ageBracket) {
@@ -223,84 +100,42 @@ export default function AuthScreen() {
     setLoading(true)
     setError('')
     try {
-      let teamToUse = null
-      let clubNameToUse = null
-      let clubIdToUse = null
       let teamIdToUse = null
-      let teamInviteCode = null
+      let teamNameToUse = null
+      let clubIdToUse = null
+      let clubNameToUse = null
+      let displayTeamLabel = ''
 
-      if (pendingInvite) {
-        teamInviteCode = pendingInvite.code
-        clubNameToUse = pendingInvite.team?.club?.name || null
-      } else if (preClub) {
-        teamToUse = teamName.trim().toUpperCase()
+      if (path === 'club' && preClub) {
+        // NEW: resolve team via RPC before signup
+        const teamResult = await findOrCreateTeamForPlayer({
+          clubId: preClub.id,
+          ageDivision,
+          tier,
+        })
+        teamIdToUse = teamResult.teamId
         clubIdToUse = preClub.id
         clubNameToUse = preClub.name
-      } else if (pickedClub?.isIndependent) {
-        const indep = await getClubBySlug('independent')
-        clubIdToUse = indep?.id || null
-        clubNameToUse = 'Independent'
-      } else if (pickedClub) {
-        clubIdToUse = pickedClub.id
-        clubNameToUse = pickedClub.name
-
-        if (showCreateTeam && newTeamAge && newTeamTier) {
-          const result = await findOrCreateTeamForPlayer({
-            clubId: pickedClub.id,
-            ageDivision: newTeamAge,
-            tier: newTeamTier,
-          })
-          teamIdToUse = result.teamId
-        } else if (pickedTeam) {
-          teamIdToUse = pickedTeam.id
-        }
+        displayTeamLabel = `${ageDivision} ${tier}`
+      } else if (path === 'join') {
+        teamNameToUse = teamName.trim().toUpperCase()
+        clubNameToUse = clubName.trim() || null
+        displayTeamLabel = teamNameToUse
       }
+      // path === 'solo' falls through — no team, no club
 
-      const { username, attachedTeam } = await signUp({
+      const { username } = await signUp({
         displayName: displayName.trim(),
         position,
         ageBracket,
-        teamName: teamToUse,
-        clubName: clubNameToUse,
-        clubId: clubIdToUse,
         teamId: teamIdToUse,
-        teamInviteCode,
+        teamName: teamNameToUse,
+        clubId: clubIdToUse,
+        clubName: clubNameToUse,
       })
-
-      if (pendingInvite) {
-        try { sessionStorage.removeItem('pending_team_invite') } catch (e) {}
-      }
-
       setGeneratedUsername(username)
-
-      if (attachedTeam) {
-        const team = pendingInvite?.team
-        const teamLabel = team
-          ? `${team.age_division || ''} ${team.tier || ''}`.trim()
-          : (attachedTeam.teamName || '')
-        setGeneratedTeamName(teamLabel)
-        setGeneratedClubName(attachedTeam.clubName || pendingInvite?.team?.club?.name || '')
-      } else if (pendingInvite) {
-        const team = pendingInvite.team
-        const teamLabel = team
-          ? `${team.age_division || ''} ${team.tier || ''}`.trim()
-          : ''
-        setGeneratedTeamName(teamLabel)
-        setGeneratedClubName(pendingInvite.team?.club?.name || '')
-      } else if (preClub) {
-        setGeneratedTeamName(teamToUse || '')
-        setGeneratedClubName(preClub.name)
-      } else if (pickedClub) {
-        let teamLabel = ''
-        if (showCreateTeam && newTeamAge && newTeamTier) {
-          teamLabel = `${newTeamAge} ${newTeamTier}`
-        } else if (pickedTeam) {
-          teamLabel = `${pickedTeam.age_division || ''} ${pickedTeam.tier || ''}`.trim()
-        }
-        setGeneratedTeamName(teamLabel)
-        setGeneratedClubName(pickedClub.isIndependent ? '' : pickedClub.name)
-      }
-
+      setGeneratedTeamName(displayTeamLabel)
+      setGeneratedClubName(clubNameToUse || '')
       await refresh()
       setStep(3)
     } catch (e) {
@@ -350,9 +185,7 @@ export default function AuthScreen() {
     } catch (e) {}
   }
 
-  // ============================================================
-  // Sign-in mode
-  // ============================================================
+  // Sign in mode
   if (mode === 'signin') {
     return (
       <div className="auth-wrap fade-in">
@@ -395,16 +228,10 @@ export default function AuthScreen() {
     )
   }
 
-  // ============================================================
   // Signup mode
-  // ============================================================
-
-  const showTeamPicker = step === 1 && pickedClub && !pickedClub.isIndependent && !pendingInvite && !preClub
-
   return (
     <div className="auth-wrap fade-in">
       <div className="auth-card">
-
         {step === 1 && (
           <>
             <div className="brand">
@@ -412,163 +239,141 @@ export default function AuthScreen() {
               <div className="brand-name">Hockey Shot<br/>Challenge</div>
             </div>
 
-            {pendingInvite ? (
-              /* MODE 1: Invite link from a coach */
-              <>
-                <div className="club-banner">
-                  <div className="club-banner-label">YOU'RE INVITED</div>
-                  <div className="club-banner-name">{pendingInvite.team?.club?.name || 'Your team'}</div>
-                  <div className="club-banner-city">
-                    {[pendingInvite.team?.age_division, pendingInvite.team?.tier].filter(Boolean).join(' ')}
-                    {pendingInvite.team?.club?.city ? ` · ${pendingInvite.team.club.city}` : ''}
-                  </div>
-                </div>
-                <p className="auth-sub" style={{ textAlign: 'center', marginBottom: 16 }}>
-                  Let's set up your card so you can start tracking shots.
-                </p>
-                <button className="btn-primary" onClick={continueFromInviteIntro}>
-                  Continue →
-                </button>
-                <button className="btn-text" onClick={() => setMode('signin')}>
-                  Already playing? Sign in
-                </button>
-              </>
-            ) : preClub ? (
-              /* MODE 2: Club deep link */
+            {preClub ? (
               <>
                 <div className="club-banner">
                   <div className="club-banner-label">JOINING</div>
                   <div className="club-banner-name">{preClub.name}</div>
                   {preClub.city && <div className="club-banner-city">{preClub.city}</div>}
                 </div>
+
+                <div className="picker-label">PICK YOUR TEAM</div>
+
                 <label className="input-label">
-                  <span>What's your team within this club?</span>
-                  <input
-                    type="text"
-                    value={teamName}
-                    onChange={(e) => setTeamName(e.target.value.toUpperCase())}
-                    placeholder="e.g. U14 A, BANTAM-A1"
-                    autoCapitalize="characters"
-                    autoCorrect="off"
-                    spellCheck="false"
-                    className="input-field input-field--code"
+                  <span>Age division</span>
+                  <select
+                    value={ageDivision}
+                    onChange={(e) => setAgeDivision(e.target.value)}
+                    className="input-field"
                     autoFocus
-                  />
+                  >
+                    <option value="">Pick one</option>
+                    {AGE_DIVISIONS.map((a) => (
+                      <option key={a} value={a}>{a}</option>
+                    ))}
+                  </select>
                 </label>
-                <div className="path-hint">
-                  Ask your coach or a teammate if you're not sure.
+
+                <label className="input-label" style={{ marginTop: 12 }}>
+                  <span>Tier</span>
+                  <select
+                    value={tier}
+                    onChange={(e) => setTier(e.target.value)}
+                    className="input-field"
+                  >
+                    <option value="">Pick one</option>
+                    {TIERS.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="path-hint" style={{ marginTop: 10 }}>
+                  Not sure? Ask your coach or pick the closest match.
                 </div>
-                {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
-                <button className="btn-primary" onClick={continueFromPreClub} disabled={!teamName.trim()} style={{ marginTop: 16 }}>
-                  Continue →
-                </button>
-                <button className="btn-text" onClick={() => setPreClub(null)}>
-                  Sign up without the club
-                </button>
-              </>
-            ) : showTeamPicker ? (
-              /* MODE 3.5: Team picker — after picking a club from search */
-              <TeamPicker
-                club={pickedClub}
-                teamsList={teamsList}
-                teamsLoading={teamsLoading}
-                pickedTeam={pickedTeam}
-                showCreateTeam={showCreateTeam}
-                newTeamAge={newTeamAge}
-                newTeamTier={newTeamTier}
-                error={error}
-                onPickTeam={pickExistingTeam}
-                onOpenCreate={openCreateTeam}
-                onCancelCreate={cancelCreateTeam}
-                setNewTeamAge={setNewTeamAge}
-                setNewTeamTier={setNewTeamTier}
-                onContinueExisting={continueFromTeamPick}
-                onSkip={skipTeam}
-                onCreateAndContinue={() => {
-                  if (!newTeamAge || !newTeamTier) {
-                    setError('Pick an age and a tier.')
-                    return
-                  }
-                  setError('')
-                  setStep(2)
-                }}
-                onBack={backToClubPick}
-              />
-            ) : (
-              /* MODE 3: Search-from-home */
-              <>
-                <h2 className="auth-title">Track every shot.<br/>Climb the rankings.</h2>
-                <p className="auth-sub">Find your club to get started.</p>
-
-                <div className="search-wrap">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value)
-                      setPickedClub(null)
-                      setError('')
-                    }}
-                    placeholder="Search for your hockey club…"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck="false"
-                    className="input-field search-field"
-                    autoFocus
-                  />
-                  <SearchIcon />
-                </div>
-
-                {searchQuery.trim().length >= 2 && (
-                  <div className="results">
-                    {searchLoading && <div className="results-empty">Searching…</div>}
-                    {!searchLoading && hasSearched && searchResults.length === 0 && (
-                      <div className="results-empty">No clubs found for "{searchQuery.trim()}".</div>
-                    )}
-                    {!searchLoading && searchResults.map((club) => {
-                      const isPicked = pickedClub?.id === club.id
-                      return (
-                        <button
-                          key={club.id}
-                          className={`result-card ${isPicked ? 'result-card--picked' : ''}`}
-                          onClick={() => { setPickedClub(club); setError('') }}
-                        >
-                          <div className="result-main">
-                            <div className="result-name">{club.name}</div>
-                            <div className="result-sub">
-                              {club.city ? club.city : ''}
-                              {club.governing_body ? ` · ${club.governing_body}` : ''}
-                            </div>
-                          </div>
-                          {club.player_count > 0 && (
-                            <div className="result-count">
-                              <span className="result-count-num">{club.player_count}</span>
-                              <span className="result-count-label">{club.player_count === 1 ? 'player' : 'players'}</span>
-                            </div>
-                          )}
-                          {isPicked && <div className="result-check">✓</div>}
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
-
-                <button className="independent-btn" onClick={pickIndependent}>
-                  <div className="independent-icon">🎯</div>
-                  <div>
-                    <div className="independent-title">My club isn't listed</div>
-                    <div className="independent-sub">Sign up as Independent — you can join a team later.</div>
-                  </div>
-                </button>
 
                 {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
 
                 <button
                   className="btn-primary"
-                  onClick={continueFromClubPick}
-                  disabled={!pickedClub || pickedClub?.isIndependent}
-                  style={{ marginTop: 12 }}
+                  onClick={continueFromStep1}
+                  disabled={!ageDivision || !tier}
+                  style={{ marginTop: 16 }}
                 >
+                  Continue →
+                </button>
+                <button
+                  className="btn-text"
+                  onClick={() => {
+                    setPreClub(null)
+                    setPath(null)
+                    setTeamName('')
+                    setClubName('')
+                    setAgeDivision('')
+                    setTier('')
+                  }}
+                >
+                  Sign up without the club
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 className="auth-title">Track every shot.<br/>Climb the rankings.</h2>
+                <p className="auth-sub">Let's get you set up in 30 seconds.</p>
+
+                <div className={`path-card ${path === 'join' ? 'path-card--active' : ''}`} onClick={() => choosePath('join')}>
+                  <div className="path-head">
+                    <div className="path-icon">🏒</div>
+                    <div>
+                      <div className="path-title">Join a team</div>
+                      <div className="path-sub">Compete with your teammates</div>
+                    </div>
+                    <div className={`path-check ${path === 'join' ? 'path-check--active' : ''}`}>
+                      {path === 'join' ? '✓' : ''}
+                    </div>
+                  </div>
+                  {path === 'join' && (
+                    <div className="path-body">
+                      <label className="input-label">
+                        <span>Team name</span>
+                        <input
+                          type="text"
+                          value={teamName}
+                          onChange={(e) => setTeamName(e.target.value.toUpperCase())}
+                          placeholder="e.g. NORTHSTARS"
+                          autoCapitalize="characters"
+                          autoCorrect="off"
+                          spellCheck="false"
+                          className="input-field input-field--code"
+                          autoFocus
+                        />
+                      </label>
+                      <div className="path-hint">
+                        Same name as your teammates = you're on the same team.
+                      </div>
+
+                      <label className="input-label" style={{ marginTop: 14 }}>
+                        <span>Club name (optional)</span>
+                        <input
+                          type="text"
+                          value={clubName}
+                          onChange={(e) => setClubName(e.target.value)}
+                          placeholder="e.g. Burlington Eagles"
+                          className="input-field"
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                <div className="or-divider">or</div>
+
+                <div className={`path-card ${path === 'solo' ? 'path-card--active' : ''}`} onClick={() => choosePath('solo')}>
+                  <div className="path-head">
+                    <div className="path-icon">🎯</div>
+                    <div>
+                      <div className="path-title">Start solo</div>
+                      <div className="path-sub">Track on your own, add a team later</div>
+                    </div>
+                    <div className={`path-check ${path === 'solo' ? 'path-check--active' : ''}`}>
+                      {path === 'solo' ? '✓' : ''}
+                    </div>
+                  </div>
+                </div>
+
+                {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
+
+                <button className="btn-primary" onClick={continueFromStep1} disabled={!path} style={{ marginTop: 16 }}>
                   Continue →
                 </button>
 
@@ -674,7 +479,7 @@ export default function AuthScreen() {
 
             <div className="save-tips">Text it to a parent so they have it too.</div>
 
-            {generatedTeamName && !preClub && !pendingInvite && (
+            {generatedTeamName && !preClub && (
               <div className="invite-card">
                 <div className="invite-top">
                   <div className="invite-label">YOUR TEAM</div>
@@ -689,6 +494,18 @@ export default function AuthScreen() {
               </div>
             )}
 
+            {preClub && generatedTeamName && (
+              <div className="invite-card">
+                <div className="invite-top">
+                  <div className="invite-label">YOUR TEAM</div>
+                  <div className="invite-team-name">{generatedTeamName}</div>
+                </div>
+                <div className="invite-hint">
+                  Tell your teammates the age & tier so they can join you.
+                </div>
+              </div>
+            )}
+
             <button className="btn-primary" onClick={() => nav('/home')}>
               Got it — let's shoot 🏒
             </button>
@@ -700,165 +517,11 @@ export default function AuthScreen() {
   )
 }
 
-function TeamPicker({
-  club,
-  teamsList,
-  teamsLoading,
-  pickedTeam,
-  showCreateTeam,
-  newTeamAge,
-  newTeamTier,
-  error,
-  onPickTeam,
-  onOpenCreate,
-  onCancelCreate,
-  setNewTeamAge,
-  setNewTeamTier,
-  onContinueExisting,
-  onSkip,
-  onCreateAndContinue,
-  onBack,
-}) {
-  return (
-    <>
-      <div className="club-banner">
-        <div className="club-banner-label">YOUR CLUB</div>
-        <div className="club-banner-name">{club.name}</div>
-        {club.city && <div className="club-banner-city">{club.city}</div>}
-      </div>
-      <h3 className="picker-title">Pick your team</h3>
-      <p className="auth-sub" style={{ marginBottom: 12 }}>
-        So your stats line up on the team leaderboard.
-      </p>
-
-      {showCreateTeam ? (
-        <>
-          <div className="create-team-form">
-            <div className="label-sm">Age</div>
-            <div className="dropdown-grid">
-              {AGE_DIVISIONS.map((a) => (
-                <button
-                  key={a}
-                  className={`mini-chip ${newTeamAge === a ? 'mini-chip--active' : ''}`}
-                  onClick={() => setNewTeamAge(a)}
-                >
-                  {a}
-                </button>
-              ))}
-            </div>
-
-            <div className="label-sm">Tier</div>
-            <div className="chip-row chip-row--5">
-              {TIERS.map((t) => (
-                <button
-                  key={t}
-                  className={`chip ${newTeamTier === t ? 'chip--active' : ''}`}
-                  onClick={() => setNewTeamTier(t)}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {error && <div className="error">{error}</div>}
-
-          <button
-            className="btn-primary"
-            onClick={onCreateAndContinue}
-            disabled={!newTeamAge || !newTeamTier}
-          >
-            Create team →
-          </button>
-          <button className="btn-text" onClick={onCancelCreate}>
-            ← Pick from list instead
-          </button>
-        </>
-      ) : (
-        <>
-          {teamsLoading && (
-            <div className="results-empty">Loading teams…</div>
-          )}
-          {!teamsLoading && teamsList.length === 0 && (
-            <div className="empty-teams-hint">
-              No teams yet at {club.name}. Create yours below — your teammates can join after.
-            </div>
-          )}
-          {!teamsLoading && teamsList.length > 0 && (
-            <div className="results">
-              {teamsList.map((team) => {
-                const isPicked = pickedTeam?.id === team.id
-                const label = `${team.age_division || ''} ${team.tier || ''}`.trim() || team.name
-                return (
-                  <button
-                    key={team.id}
-                    className={`result-card ${isPicked ? 'result-card--picked' : ''}`}
-                    onClick={() => onPickTeam(team)}
-                  >
-                    <div className="result-main">
-                      <div className="result-name">{label}</div>
-                      <div className="result-sub">
-                        {team.season ? `${team.season}` : ''}
-                      </div>
-                    </div>
-                    {team.player_count > 0 && (
-                      <div className="result-count">
-                        <span className="result-count-num">{team.player_count}</span>
-                        <span className="result-count-label">{team.player_count === 1 ? 'player' : 'players'}</span>
-                      </div>
-                    )}
-                    {isPicked && <div className="result-check">✓</div>}
-                  </button>
-                )
-              })}
-            </div>
-          )}
-
-          <button className="independent-btn" onClick={onOpenCreate}>
-            <div className="independent-icon">➕</div>
-            <div>
-              <div className="independent-title">Create a new team</div>
-              <div className="independent-sub">Pick your age + tier — first kid creates it.</div>
-            </div>
-          </button>
-
-          {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
-
-          <button
-            className="btn-primary"
-            onClick={onContinueExisting}
-            disabled={!pickedTeam}
-            style={{ marginTop: 12 }}
-          >
-            Continue →
-          </button>
-
-          <button className="btn-text" onClick={onSkip}>
-            I'll join my team later
-          </button>
-          <button className="btn-text" onClick={onBack}>
-            ← Pick a different club
-          </button>
-        </>
-      )}
-    </>
-  )
-}
-
 function BrandLogo() {
   return (
     <svg width="40" height="40" viewBox="0 0 40 40" style={{ display: 'block', flexShrink: 0 }}>
       <circle cx="20" cy="20" r="17" fill="#1a2847" stroke="#2979ff" strokeWidth="1" />
       <path d="M 12 22 L 17.5 27 L 28 15" stroke="#a8d4f5" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function SearchIcon() {
-  return (
-    <svg className="search-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M12 12 L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }
@@ -902,13 +565,6 @@ const styles = `
   margin-bottom: 4px; font-weight: 700;
   letter-spacing: 0.3px;
 }
-.picker-title {
-  font-family: var(--font-display);
-  font-size: 20px; line-height: 1.1;
-  margin: 0 0 4px; font-weight: 700;
-  letter-spacing: 0.3px;
-  color: white;
-}
 .auth-sub {
   font-size: 13px; color: var(--text-mute);
   margin: 0 0 18px;
@@ -940,6 +596,13 @@ const styles = `
   margin-top: 4px;
 }
 
+.picker-label {
+  font-size: 11px; color: var(--text-mute);
+  letter-spacing: 2px; text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
 .input-label { display: block; margin-bottom: 4px; }
 .input-label > span {
   display: block;
@@ -957,6 +620,7 @@ const styles = `
   font-size: 16px;
   outline: none;
   transition: border-color 0.15s;
+  font-family: inherit;
 }
 .input-field:focus { border-color: var(--accent); }
 .input-field::placeholder {
@@ -970,207 +634,83 @@ const styles = `
 }
 .input-field--code::placeholder { letter-spacing: 2px; }
 
-.search-wrap {
-  position: relative;
-  margin-bottom: 12px;
-}
-.search-field { padding-right: 40px; }
-.search-icon {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-mute);
-  pointer-events: none;
-}
-
-.results {
-  display: flex; flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
-  max-height: 320px;
-  overflow-y: auto;
-}
-.results-empty {
-  text-align: center;
-  font-size: 13px;
-  color: var(--text-mute);
-  padding: 14px 0;
-}
-.empty-teams-hint {
+.path-card {
   background: var(--bg);
   border: 0.5px solid var(--border-dim);
   border-radius: var(--radius);
-  padding: 12px 14px;
-  font-size: 12px;
-  color: var(--text-soft);
-  line-height: 1.4;
-  margin-bottom: 12px;
-  text-align: center;
-}
-.result-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--bg);
-  border: 0.5px solid var(--border-dim);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  text-align: left;
+  padding: 14px;
+  cursor: pointer;
   transition: all 0.15s;
-  font-family: inherit;
-  width: 100%;
 }
-.result-card:hover, .result-card:active {
-  border-color: var(--accent);
-  background: var(--surface-raised);
-}
-.result-card--picked {
+.path-card--active {
   background: var(--surface-raised);
   border-color: var(--accent);
 }
-.result-main { flex: 1; min-width: 0; }
-.result-name {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--ice);
-  letter-spacing: 0.3px;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.path-head {
+  display: flex; align-items: center; gap: 12px;
 }
-.result-sub {
-  font-size: 11px;
-  color: var(--text-mute);
-  margin-top: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.result-count {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: var(--accent-bg);
-  padding: 4px 10px;
-  border-radius: 10px;
-  flex-shrink: 0;
-}
-.result-count-num {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--ice);
-  line-height: 1;
-}
-.result-count-label {
-  font-size: 9px;
-  color: var(--text-mute);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-.result-check {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: white;
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.independent-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  background: var(--bg);
-  border: 0.5px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  text-align: left;
-  margin-top: 4px;
-  transition: all 0.15s;
-  font-family: inherit;
-}
-.independent-btn:hover, .independent-btn:active {
-  border-color: var(--accent);
-  background: var(--surface-raised);
-}
-.independent-icon {
+.path-icon {
   width: 36px; height: 36px;
-  font-size: 18px;
+  font-size: 20px;
   background: var(--accent-bg);
   border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.independent-title {
+.path-title {
   font-family: var(--font-display);
-  font-size: 14px; font-weight: 800;
-  letter-spacing: 0.3px;
-  color: var(--ice);
+  font-size: 16px; font-weight: 800;
+  letter-spacing: 0.4px; line-height: 1.1;
 }
-.independent-sub {
-  font-size: 11px;
-  color: var(--text-mute);
+.path-sub {
+  font-size: 12px; color: var(--text-mute);
   margin-top: 2px;
-  line-height: 1.3;
 }
-
+.path-check {
+  margin-left: auto;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text);
+  font-size: 13px; font-weight: 700;
+  flex-shrink: 0;
+}
+.path-check--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.path-body {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--border-dim);
+}
 .path-hint {
   font-size: 11px; color: var(--text-mute);
   line-height: 1.4; margin-top: 6px;
 }
-
-.create-team-form { margin-bottom: 12px; }
-.dropdown-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-  margin-bottom: 14px;
-}
-.mini-chip {
-  background: var(--bg);
-  border: 0.5px solid var(--border-dim);
-  border-radius: 8px;
-  padding: 8px 4px;
-  color: var(--ice);
-  font-size: 12px;
-  font-weight: 600;
-  font-family: var(--font-display);
-  letter-spacing: 0.4px;
-  transition: all 0.15s;
+.or-divider {
   text-align: center;
-}
-.mini-chip:hover, .mini-chip:active { border-color: var(--accent); }
-.mini-chip--active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
+  font-size: 11px;
+  color: var(--text-mute);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 12px 0;
+  font-weight: 500;
 }
 
 .chip-row { display: grid; gap: 6px; margin-bottom: 16px; }
 .chip-row--3 { grid-template-columns: repeat(3, 1fr); }
 .chip-row--4 { grid-template-columns: repeat(2, 1fr); }
-.chip-row--5 { grid-template-columns: repeat(5, 1fr); }
 .chip {
   background: var(--bg);
   border: 0.5px solid var(--border-dim);
   border-radius: var(--radius);
-  padding: 10px 6px;
+  padding: 10px 8px;
   color: var(--ice);
-  font-size: 12px; text-align: center;
+  font-size: 13px; text-align: center;
   transition: all 0.15s;
-  font-weight: 600;
-  letter-spacing: 0.3px;
 }
 .chip--big { padding: 14px 6px; }
 .chip--active {
@@ -1197,7 +737,7 @@ const styles = `
   transition: transform 0.1s;
 }
 .btn-primary:active:not(:disabled) { transform: scale(0.98); }
-.btn-primary:disabled { opacity: 0.5; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-text {
   width: 100%;
   color: var(--text-mute);
@@ -1339,5 +879,14 @@ const styles = `
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.4px;
+}
+
+.label-sm {
+  font-size: 10px;
+  color: var(--text-mute);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin: 14px 0 6px;
 }
 `
