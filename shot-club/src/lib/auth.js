@@ -21,7 +21,17 @@ function coachEmailToInternal(email) {
 // PLAYER AUTH
 // ============================================================
 
-export async function signUp({ displayName, position, ageBracket, teamName, clubName, inviteCode, teamInviteCode }) {
+export async function signUp({
+  displayName,
+  position,
+  ageBracket,
+  teamName,       // legacy free-text path: resolves/creates team by uppercase code
+  teamId,         // preferred: pre-resolved team_id from find_or_create_team_for_player RPC
+  clubId,         // optional: pre-resolved club_id
+  clubName,
+  inviteCode,
+  teamInviteCode,
+}) {
   const username = makeUsername(displayName)
   const email = usernameToEmail(username)
 
@@ -48,9 +58,11 @@ export async function signUp({ displayName, position, ageBracket, teamName, club
     }
   }
 
-  // Resolve team via free-text name (legacy "join a team by typing its name" path)
-  let teamId = null
-  if (teamName) {
+  // Resolve team: PREFERRED path is a pre-resolved teamId (from the picker via
+  // find_or_create_team_for_player RPC). Legacy path is free-text teamName which
+  // gets uppercased and matched on the `code` column, creating a new row if missing.
+  let resolvedTeamId = teamId || null
+  if (!resolvedTeamId && teamName) {
     const normalized = teamName.trim().toUpperCase()
     const { data: existingTeam } = await supabase
       .from('teams')
@@ -58,7 +70,7 @@ export async function signUp({ displayName, position, ageBracket, teamName, club
       .eq('code', normalized)
       .maybeSingle()
     if (existingTeam) {
-      teamId = existingTeam.id
+      resolvedTeamId = existingTeam.id
     } else {
       const { data: newTeam, error: teamErr } = await supabase
         .from('teams')
@@ -66,7 +78,7 @@ export async function signUp({ displayName, position, ageBracket, teamName, club
         .select('id')
         .single()
       if (teamErr) throw teamErr
-      teamId = newTeam.id
+      resolvedTeamId = newTeam.id
     }
   }
 
@@ -77,8 +89,8 @@ export async function signUp({ displayName, position, ageBracket, teamName, club
     username,
     position,
     age_bracket: ageBracket,
-    team_id: teamId,
-    club_id: clubIdFromInvite,
+    team_id: resolvedTeamId,
+    club_id: clubId || clubIdFromInvite || null,
     club_name: resolvedClubName,
   })
   if (playerErr) throw playerErr
@@ -144,9 +156,6 @@ export async function getCurrentPlayer() {
  * Sign up a coach. After Supabase creates the auth user, this function
  * EXPLICITLY signs them in with the same credentials to guarantee an
  * active session before any subsequent profile-creation calls.
- *
- * Without this, Supabase's signUp can return before the session is fully
- * established, causing the next `auth.uid()`-gated INSERT to fail under RLS.
  */
 export async function signUpCoach({ email, password, displayName }) {
   const cleanEmail = coachEmailToInternal(email)
@@ -159,17 +168,11 @@ export async function signUpCoach({ email, password, displayName }) {
   const userId = authData.user?.id
   if (!userId) throw new Error('Coach signup failed — no user id returned')
 
-  // Explicitly sign in with the credentials we just registered.
-  // This guarantees an active session before any subsequent inserts.
-  // If the session was already established by signUp, this is a no-op
-  // (signInWithPassword on an existing session returns success).
   const { error: signInErr } = await supabase.auth.signInWithPassword({
     email: cleanEmail,
     password,
   })
   if (signInErr) {
-    // The auth user got created, but we can't sign in with the credentials.
-    // Surface a clear error so the UI can guide them to the sign-in flow.
     throw new Error('Account created but sign-in failed. Try signing in instead.')
   }
 
