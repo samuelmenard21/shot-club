@@ -1,36 +1,47 @@
 import { supabase } from './supabase'
 
-// Age divisions and tiers for pre-keyed team picker
-export const AGE_DIVISIONS = ['U7', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18']
-export const TIERS = ['House', 'Select', 'A', 'AA', 'AAA']
+// ===== CONSTANTS =====
+export const AGE_DIVISIONS = [
+  'U7', 'U8', 'U9', 'U10', 'U11', 'U12',
+  'U13', 'U14', 'U15', 'U16', 'U17', 'U18',
+]
+
+export const TIERS = [
+  'House',
+  'Select',
+  'A',
+  'AA',
+  'AAA',
+]
 
 // ===== PUBLIC (no auth required) =====
+
+export async function searchClubs(query, limit = 10) {
+  if (!query || query.trim().length < 2) return []
+  const trimmed = query.trim().toLowerCase()
+  const { data, error } = await supabase
+    .from('clubs')
+    .select('id, name, slug, city, province, country, governing_body, gender_type, org_type, player_count')
+    .ilike('search_text', `%${trimmed}%`)
+    .eq('is_seeded', true)
+    .eq('is_active', true)
+    .order('name')
+    .limit(limit)
+  if (error) {
+    console.warn('searchClubs error:', error)
+    return []
+  }
+  return data || []
+}
 
 export async function getClubBySlug(slug) {
   if (!slug) return null
   const { data } = await supabase
     .from('clubs')
-    .select('id, name, slug, city, created_at')
+    .select('id, name, slug, city, province, country, governing_body, gender_type, org_type, created_at')
     .eq('slug', slug)
     .maybeSingle()
   return data
-}
-
-export async function searchClubs(query) {
-  if (!query || query.trim().length < 2) return []
-  const term = query.trim()
-  const { data, error } = await supabase
-    .from('clubs')
-    .select('id, name, slug, city, governing_body, player_count')
-    .or(`name.ilike.%${term}%,city.ilike.%${term}%`)
-    .eq('is_active', true)
-    .order('player_count', { ascending: false })
-    .limit(10)
-  if (error) {
-    console.error('searchClubs error:', error)
-    return []
-  }
-  return data || []
 }
 
 export async function getClubStats(clubId) {
@@ -56,21 +67,46 @@ export async function getClubTeams(clubId) {
   return data || []
 }
 
-export async function findOrCreateTeamForPlayer({ clubId, ageDivision, tier }) {
-  if (!clubId || !ageDivision || !tier) {
-    throw new Error('clubId, ageDivision, and tier are required')
-  }
-  // Calls the RPC defined in your Supabase DB (per Slice 3 in handoff doc)
+// Returns teams in a club along with player counts (for the AuthScreen team picker)
+export async function getTeamsInClub(clubId) {
+  if (!clubId) return []
+  const { data } = await supabase
+    .from('teams')
+    .select('id, name, age_division, tier, season, team_code, club_id')
+    .eq('club_id', clubId)
+    .eq('is_active', true)
+    .order('age_division')
+  if (!data) return []
+
+  // Add player counts in parallel
+  const withCounts = await Promise.all(
+    data.map(async (t) => {
+      const { count } = await supabase
+        .from('players')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', t.id)
+      return { ...t, player_count: count || 0 }
+    })
+  )
+  return withCounts
+}
+
+// Wraps the find_or_create_team_for_player RPC for the search-from-home flow
+export async function findOrCreateTeamForPlayer({ clubId, ageDivision, tier, season = '2025-26' }) {
   const { data, error } = await supabase.rpc('find_or_create_team_for_player', {
     p_club_id: clubId,
     p_age_division: ageDivision,
     p_tier: tier,
+    p_season: season,
   })
-  if (error) {
-    console.error('findOrCreateTeamForPlayer error:', error)
-    throw error
+  if (error) throw error
+  const row = Array.isArray(data) ? data[0] : data
+  if (!row) throw new Error('No team result')
+  return {
+    teamId: row.team_id,
+    teamName: row.team_name,
+    teamExisted: row.team_existed,
   }
-  return data // expected: team ID (uuid)
 }
 
 export async function getInviteByCode(code) {
@@ -114,6 +150,27 @@ export async function createClub({ name, city }) {
     .single()
   if (error) throw error
   return club
+}
+
+export async function submitPendingClub({ name, city, governingBody, contactEmail }) {
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data, error } = await supabase
+    .from('pending_clubs')
+    .insert({
+      name: name.trim(),
+      city: city?.trim() || null,
+      governing_body: governingBody?.trim() || null,
+      contact_email: contactEmail?.trim() || null,
+      submitted_by: user?.id || null,
+    })
+    .select('*')
+    .single()
+  if (error) {
+    console.warn('submitPendingClub error:', error)
+    throw error
+  }
+  return data
 }
 
 export async function createCoachProfile({ displayName, email, clubId, isDirector = false }) {
