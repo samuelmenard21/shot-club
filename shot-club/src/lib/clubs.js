@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 
 // ===== CONSTANTS =====
+
 export const AGE_DIVISIONS = [
   'U7', 'U8', 'U9', 'U10', 'U11', 'U12',
   'U13', 'U14', 'U15', 'U16', 'U17', 'U18',
@@ -27,6 +28,7 @@ export async function searchClubs(query, limit = 10) {
     .eq('is_active', true)
     .order('name')
     .limit(limit)
+
   if (error) {
     console.warn('searchClubs error:', error)
     return []
@@ -76,6 +78,7 @@ export async function getTeamsInClub(clubId) {
     .eq('club_id', clubId)
     .eq('is_active', true)
     .order('age_division')
+
   if (!data) return []
 
   // Add player counts in parallel
@@ -154,7 +157,6 @@ export async function createClub({ name, city }) {
 
 export async function submitPendingClub({ name, city, governingBody, contactEmail }) {
   const { data: { user } } = await supabase.auth.getUser()
-
   const { data, error } = await supabase
     .from('pending_clubs')
     .insert({
