@@ -1,5 +1,9 @@
 import { supabase } from './supabase'
 
+// Age divisions and tiers for pre-keyed team picker
+export const AGE_DIVISIONS = ['U7', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18']
+export const TIERS = ['House', 'Select', 'A', 'AA', 'AAA']
+
 // ===== PUBLIC (no auth required) =====
 
 export async function getClubBySlug(slug) {
@@ -52,6 +56,23 @@ export async function getClubTeams(clubId) {
   return data || []
 }
 
+export async function findOrCreateTeamForPlayer({ clubId, ageDivision, tier }) {
+  if (!clubId || !ageDivision || !tier) {
+    throw new Error('clubId, ageDivision, and tier are required')
+  }
+  // Calls the RPC defined in your Supabase DB (per Slice 3 in handoff doc)
+  const { data, error } = await supabase.rpc('find_or_create_team_for_player', {
+    p_club_id: clubId,
+    p_age_division: ageDivision,
+    p_tier: tier,
+  })
+  if (error) {
+    console.error('findOrCreateTeamForPlayer error:', error)
+    throw error
+  }
+  return data // expected: team ID (uuid)
+}
+
 export async function getInviteByCode(code) {
   if (!code) return null
   const { data } = await supabase
@@ -64,7 +85,6 @@ export async function getInviteByCode(code) {
 
 export async function incrementInviteUse(inviteId) {
   if (!inviteId) return
-  // Use rpc to avoid race conditions — but simple approach for now
   const { data: existing } = await supabase
     .from('invites')
     .select('uses_count')
@@ -81,7 +101,6 @@ export async function incrementInviteUse(inviteId) {
 // ===== AUTHENTICATED =====
 
 export async function createClub({ name, city }) {
-  // Generate slug server-side via RPC
   const { data: slugResult } = await supabase.rpc('generate_club_slug', { club_name: name })
   const slug = slugResult
 
