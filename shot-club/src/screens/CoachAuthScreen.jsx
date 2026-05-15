@@ -403,7 +403,7 @@ export default function CoachAuthScreen() {
       <div className="c-card">
         <div className="c-card-brand">
           <BrandMark />
-          <span>Coach setup · Step {step} of {prekeyedClub ? 2 : 3}</span>
+          <span>Coach setup · Step {prekeyedClub && step === 3 ? 2 : step} of {prekeyedClub ? 2 : 3}</span>
         </div>
 
         {/* Step 1 — account */}
