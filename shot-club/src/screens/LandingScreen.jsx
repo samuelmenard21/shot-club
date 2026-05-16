@@ -7,27 +7,115 @@ export default function LandingScreen() {
 
   useEffect(() => {
     setSEO({
-      title: null, // use default (already optimized)
-      description: 'Off-ice hockey practice tracking for kids ages 6-18. Log your shots, climb team and global leaderboards, earn ranks, and get better every day.',
+      title: null, // use default — already homepage-optimized in seo.js
+      description: 'The off-ice training platform built for the whole hockey family. Players log shots, learn a new skill every day, and challenge teammates, rival teams, and rival clubs.',
       url: CANONICAL_URL,
     })
+
+    // Single @graph payload — seo.js only allows one JSON-LD block at a time.
+    // Combining Organization + SoftwareApplication + FAQPage keeps all three
+    // visible to AEO/SEO crawlers (ChatGPT, Perplexity, Claude, Google).
     addStructuredData({
       '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      name: 'Hockey Shot Challenge',
-      description: 'Off-ice hockey shot tracker for kids. Track practice shots, climb leaderboards, earn ranks.',
-      applicationCategory: 'SportsApplication',
-      operatingSystem: 'Web',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD',
-      },
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: '4.9',
-        ratingCount: '50',
-      },
+      '@graph': [
+        {
+          '@type': 'Organization',
+          '@id': `${CANONICAL_URL}/#org`,
+          name: 'Hockey Shot Challenge',
+          url: CANONICAL_URL,
+          logo: `${CANONICAL_URL}/logo.png`,
+          description: 'Off-ice training platform for youth hockey clubs, teams, and players ages 6-18.',
+        },
+        {
+          '@type': 'SoftwareApplication',
+          '@id': `${CANONICAL_URL}/#app`,
+          name: 'Hockey Shot Challenge',
+          applicationCategory: 'SportsApplication',
+          operatingSystem: 'Web',
+          url: CANONICAL_URL,
+          description: 'Off-ice training web app for minor hockey clubs, coaches, and players ages 6-18. Players log shots, watch a daily skill video, and compete in player, team, and club challenges. Browser-based, no download required.',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'CAD' },
+          audience: { '@type': 'Audience', audienceType: 'Youth Hockey Players, Coaches, Clubs' },
+        },
+        {
+          '@type': 'FAQPage',
+          '@id': `${CANONICAL_URL}/#faq`,
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'What is Hockey Shot Challenge?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Hockey Shot Challenge is an off-ice training platform built for youth hockey clubs and teams. Players ages 6 to 18 log their off-ice shooting practice, watch a new skill video every day, and compete in challenges against teammates, rival teams, and rival clubs. Coaches see weekly team progress on a dashboard, and clubs can run head-to-head challenges across whole associations.',
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'What does Hockey Shot Challenge do that other hockey apps don\'t?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Most hockey stats apps track in-game performance. A few track team scheduling. None of them track off-ice training, deliver daily skill development, and connect entire clubs around the work kids do at home. Hockey Shot Challenge combines all three: log your shots, learn something new every day, and compete with teammates, rival teams, and rival clubs.',
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'How do the daily skill videos work?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Every day, players see a new short skill video — a stickhandling drill, a shooting tip, an edge work technique — they can try at home that same day. Content is curated from hockey coaches and skill creators, every video reviewed before it appears in the app. Videos are matched to the player\'s age, so a U8 sees different content than a U16.',
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'What are the three types of challenges?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Player vs. player happens inside a team — teammates competing on weekly shot totals or streaks. Team vs. team happens across a club — coaches put their teams head-to-head. Club vs. club happens across associations — two clubs opt in to a monthly matchup like "first to 10,000 shots wins."',
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'Do I need to download an app?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'No. Hockey Shot Challenge runs in any web browser on phones, tablets, and computers. There is nothing to install from the App Store or Google Play.',
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'How does a hockey club get started?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'A coach or club director signs up through their club\'s dedicated link, sets up their team in under three minutes, and shares a player invite link with parents. Players then log their off-ice shots from home, watch the daily skill video, and see their progress on the team leaderboard.',
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'Is Hockey Shot Challenge safe for kids?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Yes. Players use a screen name, not a real name. There is no chat between players, no public profiles, and no data sold to third parties. Coaches see only their own team. All skill video content is reviewed before it appears in the app.',
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'How much does Hockey Shot Challenge cost?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Hockey Shot Challenge is free for all clubs, coaches, players, and parents. There is no subscription and no paid tier.',
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'What ages is Hockey Shot Challenge designed for?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Built for youth hockey players ages 6 to 18, covering U7 through U18 divisions, plus House League, Select, A, AA, and AAA tiers.',
+              },
+            },
+          ],
+        },
+      ],
     })
   }, [])
 
@@ -41,28 +129,31 @@ export default function LandingScreen() {
         </div>
         <div className="land-nav-actions">
           <button className="land-nav-link" onClick={() => nav('/start')}>Sign in</button>
-          <button className="land-nav-cta" onClick={() => nav('/start')}>Join free</button>
+          <button className="land-nav-cta" onClick={() => nav('/coach')}>Sign up your club</button>
         </div>
       </nav>
 
       {/* Hero */}
       <section className="hero">
         <div className="hero-inner">
-          <div className="hero-eyebrow">FREE · OFF-ICE TRAINING · AGES 6–18</div>
-          <h1 className="hero-title">Track every shot.<br/>Climb the rankings.</h1>
+          <div className="hero-eyebrow">OFF-ICE TRAINING · AGES 6–18 · BUILT FOR CLUBS</div>
+          <h1 className="hero-title">
+            Log your shots. Learn a skill every day.<br/>
+            <span className="hero-title-em">Challenge anybody in the rink.</span>
+          </h1>
           <p className="hero-sub">
-            The simplest way for young hockey players to log off-ice practice, earn ranks, and beat their teammates.
+            The off-ice training platform built for youth hockey. Players log their reps and watch a daily skill drop. Coaches see what their team is putting in. Whole clubs go head-to-head with their biggest rivals.
           </p>
           <div className="hero-ctas">
-            <button className="btn-primary-land" onClick={() => nav('/start')}>
-              Start shooting →
+            <button className="btn-primary-land" onClick={() => nav('/coach')}>
+              Get your club's link →
             </button>
-            <button className="btn-ghost-land" onClick={() => nav('/coach')}>
-              I'm a coach
+            <button className="btn-ghost-land" onClick={() => nav('/start')}>
+              I'm a player
             </button>
           </div>
           <div className="hero-trust">
-            No credit card · Set up in 30 seconds · Works on any phone
+            Runs in any browser · No app to install · No IT approvals
           </div>
         </div>
         <div className="hero-preview">
@@ -70,43 +161,34 @@ export default function LandingScreen() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Core Loop — three mechanics */}
       <section className="features">
         <div className="section-head">
           <div className="section-eyebrow">WHY IT WORKS</div>
-          <h2 className="section-title">Shot tracking that actually gets used.</h2>
+          <h2 className="section-title">Three things, every day, every player.</h2>
+          <p className="section-sub">
+            Stat apps cover what happens on the ice. Team apps cover scheduling. We built the piece that didn't exist: a daily training rhythm for the work kids do at home.
+          </p>
         </div>
 
-        <div className="feat-grid">
-          <div className="feat-card">
-            <div className="feat-icon">🎯</div>
-            <h3 className="feat-title">3 seconds to log</h3>
-            <p className="feat-text">Tap a shot type, enter a number, done. No logins, no forms, no fluff. Kids actually use it.</p>
+        <div className="loop-grid">
+          <div className="loop-card">
+            <div className="loop-icon">🎯</div>
+            <div className="loop-verb">LOG</div>
+            <h3 className="loop-title">Every off-ice shot.</h3>
+            <p className="loop-text">Driveway, basement, garage — every rep shows up on the team leaderboard. Coaches finally see the work that used to be invisible.</p>
           </div>
-          <div className="feat-card">
-            <div className="feat-icon">🏆</div>
-            <h3 className="feat-title">7 ranks to climb</h3>
-            <p className="feat-text">Rookie → Junior → Prospect → Varsity → Captain → All-Star → Legend. Real progression, real motivation.</p>
+          <div className="loop-card">
+            <div className="loop-icon">📺</div>
+            <div className="loop-verb">LEARN</div>
+            <h3 className="loop-title">One new skill a day.</h3>
+            <p className="loop-text">A short video — stickhandling drill, shooting tip, edge work — picked for the player's age. Try it tonight. Better tomorrow than yesterday.</p>
           </div>
-          <div className="feat-card">
-            <div className="feat-icon">⚔️</div>
-            <h3 className="feat-title">Daily rivals</h3>
-            <p className="feat-text">Every day a teammate to chase. See the gap live. Nothing beats "you're down 9 — catch up."</p>
-          </div>
-          <div className="feat-card">
-            <div className="feat-icon">🔥</div>
-            <h3 className="feat-title">Streaks that stick</h3>
-            <p className="feat-text">Shoot every day. Keep the flame. Simple psychology that turns casual practice into a habit.</p>
-          </div>
-          <div className="feat-card">
-            <div className="feat-icon">🃏</div>
-            <h3 className="feat-title">A card of your own</h3>
-            <p className="feat-text">Serial-numbered player card with your rank, stats, and shot mix. Screenshot-worthy. Shareable.</p>
-          </div>
-          <div className="feat-card">
-            <div className="feat-icon">👥</div>
-            <h3 className="feat-title">Team & club rankings</h3>
-            <p className="feat-text">See where you stand on your team, across your club, and against every kid on the app.</p>
+          <div className="loop-card">
+            <div className="loop-icon">⚔️</div>
+            <div className="loop-verb">CHALLENGE</div>
+            <h3 className="loop-title">Beat somebody.</h3>
+            <p className="loop-text">A teammate this week. A rival team next month. The club across town for the season. Pick your battle, set the stakes, watch it climb.</p>
           </div>
         </div>
       </section>
@@ -115,35 +197,67 @@ export default function LandingScreen() {
       <section className="how">
         <div className="section-head">
           <div className="section-eyebrow">HOW IT WORKS</div>
-          <h2 className="section-title">From zero to first rank in a day.</h2>
+          <h2 className="section-title">From sign-up to first logged shot in under five minutes.</h2>
         </div>
 
         <div className="steps">
           <div className="step">
             <div className="step-num">1</div>
-            <h3 className="step-title">Make your card</h3>
-            <p className="step-text">Pick a name, position, and age. No email, no password. You get a unique username and a serial-numbered card.</p>
+            <h3 className="step-title">We send your club's link</h3>
+            <p className="step-text">Reply to our intro email. We'll send a personalized signup link for your association.</p>
           </div>
           <div className="step">
             <div className="step-num">2</div>
-            <h3 className="step-title">Log your shots</h3>
-            <p className="step-text">Go shoot a bucket of pucks. Come back, tap your shot type, punch in the count. Coach Sam keeps you going.</p>
+            <h3 className="step-title">Coaches set up teams</h3>
+            <p className="step-text">Each coach claims their team in three minutes and shares a player invite link with parents.</p>
           </div>
           <div className="step">
             <div className="step-num">3</div>
-            <h3 className="step-title">Climb the rankings</h3>
-            <p className="step-text">See yourself rise on the team, club, and global boards. Hit milestones. Unlock the next rank.</p>
+            <h3 className="step-title">Kids log, learn, and climb</h3>
+            <p className="step-text">Players open the app each day, watch the skill drop, log their shots, and see the team move up. Coaches see it all in one dashboard.</p>
           </div>
         </div>
       </section>
 
-      {/* Coaches */}
+      {/* Challenges — three tiers */}
+      <section className="challenges">
+        <div className="challenges-inner">
+          <div className="section-eyebrow">CHALLENGES</div>
+          <h2 className="challenges-title">Challenges are how off-ice gets fun.</h2>
+          <p className="challenges-text">
+            Telling a kid to "shoot 100 pucks a night" gets nowhere. Telling that kid "you're 12 shots behind your line-mate, and Oakville's whole U11 group is up by 800" — that gets pucks on the wall. Three tiers. Pick any. Run all of them.
+          </p>
+
+          <div className="tier-grid">
+            <div className="tier-card">
+              <div className="tier-num">TIER 1</div>
+              <h3 className="tier-title">Player vs. player</h3>
+              <p className="tier-text">Teammates challenge each other on shot totals, streaks, or skill-of-the-week. Weekly rivalry between the kids who share a bench.</p>
+              <div className="tier-quote">"I'll out-shoot you this week or buy you a Gatorade."</div>
+            </div>
+            <div className="tier-card">
+              <div className="tier-num">TIER 2</div>
+              <h3 className="tier-title">Team vs. team</h3>
+              <p className="tier-text">Two teams within the same club go head-to-head. Across age groups (U11 vs U13) or within one (Bulldogs A vs Bulldogs AA).</p>
+              <div className="tier-quote">"U13 AA threw down. U13 A is accepting."</div>
+            </div>
+            <div className="tier-card">
+              <div className="tier-num">TIER 3</div>
+              <h3 className="tier-title">Club vs. club</h3>
+              <p className="tier-text">Two associations opt in to a month-long head-to-head. Every team in both clubs contributes. The winning club gets bragging rights all season.</p>
+              <div className="tier-quote">"Burlington vs. Oakville. First club to 10,000 shots wins November."</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* For Coaches */}
       <section className="coaches-section">
         <div className="coaches-inner">
           <div className="coaches-eyebrow">FOR COACHES & CLUBS</div>
-          <h2 className="coaches-title">Your whole club, logging shots every day.</h2>
+          <h2 className="coaches-title">Set up your team in three minutes.</h2>
           <p className="coaches-text">
-            Create a branded club page. Share one link or QR code. Every kid who scans joins your club — instantly. No accounts for parents, no paperwork, no friction.
+            Claim your team, set a weekly shot target, share one link with parents. Every kid who joins shows up on your dashboard. Watch your team climb week by week — and challenge the rival across town when you're ready.
           </p>
           <div className="coaches-ctas">
             <button className="btn-primary-land" onClick={() => nav('/coach')}>
@@ -151,9 +265,9 @@ export default function LandingScreen() {
             </button>
           </div>
           <div className="coaches-bullets">
-            <div className="coach-bullet">✓ Free to start</div>
-            <div className="coach-bullet">✓ 5-minute setup</div>
-            <div className="coach-bullet">✓ Branded invite page</div>
+            <div className="coach-bullet">✓ 3-minute setup per team</div>
+            <div className="coach-bullet">✓ One player invite link</div>
+            <div className="coach-bullet">✓ Built for minor hockey</div>
           </div>
         </div>
       </section>
@@ -166,39 +280,43 @@ export default function LandingScreen() {
         </div>
         <div className="faq-list">
           <details className="faq-item">
-            <summary>Is it really free?</summary>
-            <p>Yes. Players and coaches sign up and use the core app free. We'll offer premium features for clubs later, but tracking shots will always be free for kids.</p>
+            <summary>What does this do that other hockey apps don't?</summary>
+            <p>Most hockey apps track in-game stats — shots from where, save percentages, plus-minus. A few do team scheduling. None of them track off-ice training, deliver daily skill content, and connect whole clubs through challenges. That combination is what's new.</p>
+          </details>
+          <details className="faq-item">
+            <summary>How do the daily skill videos work?</summary>
+            <p>Every day, players see a new short skill video — a stickhandling drill, a shooting tip, an edge work technique — they can try at home that same day. Content is curated and reviewed, matched to the player's age.</p>
+          </details>
+          <details className="faq-item">
+            <summary>How do the challenges work?</summary>
+            <p>Three tiers: player vs. player (within a team), team vs. team (within a club), and club vs. club (across associations). Coaches and players opt in. Shot totals decide. Bragging rights last all season.</p>
           </details>
           <details className="faq-item">
             <summary>Do kids need to create an account with email?</summary>
-            <p>No. Kids pick a name and get a username automatically. No email or password needed. We designed this specifically for young athletes and their parents' privacy.</p>
+            <p>No. Kids pick a screen name and get a username automatically. No email or password needed. Designed for young athletes and their parents' privacy.</p>
           </details>
           <details className="faq-item">
             <summary>What positions are supported?</summary>
-            <p>Forwards and defense track wrist shots, snap shots, slap shots, and backhands. Goalies track saves and practice reps. All four shot types count toward your rank.</p>
+            <p>Forwards and defense track wrist shots, snap shots, slap shots, and backhands. Goalies track saves and practice reps. All count toward team and club totals.</p>
           </details>
           <details className="faq-item">
-            <summary>How does shot counting work?</summary>
-            <p>Kids shoot their pucks, then log the count in the app. Tap a shot type, enter the number on the keypad, save. Takes 3 seconds.</p>
-          </details>
-          <details className="faq-item">
-            <summary>Can my whole team use it?</summary>
-            <p>Absolutely. When you sign up, pick a team name. Your teammates sign up with the same name and you're all on the same leaderboard.</p>
+            <summary>Is it really free?</summary>
+            <p>Yes. Free for clubs, coaches, players, and parents. No paid tier.</p>
           </details>
           <details className="faq-item">
             <summary>What ages is this for?</summary>
-            <p>Built for ages 6–18. Popular with U9 through U18 players who want to track practice and compete with friends.</p>
+            <p>Built for ages 6–18. Covers U7 through U18, plus House League, Select, A, AA, and AAA tiers.</p>
           </details>
         </div>
       </section>
 
       {/* Final CTA */}
       <section className="final-cta">
-        <h2 className="final-cta-title">Ready to put up some numbers?</h2>
-        <button className="btn-primary-land" onClick={() => nav('/start')}>
-          Start shooting →
+        <h2 className="final-cta-title">Ready to get your club logging?</h2>
+        <button className="btn-primary-land" onClick={() => nav('/coach')}>
+          Sign up your club →
         </button>
-        <div className="final-cta-sub">30 seconds. No email. No BS.</div>
+        <div className="final-cta-sub">3 minutes per team. No app to install. No paperwork.</div>
       </section>
 
       {/* Footer */}
@@ -211,7 +329,7 @@ export default function LandingScreen() {
           <button className="foot-link" onClick={() => nav('/start')}>Sign in</button>
           <button className="foot-link" onClick={() => nav('/coach')}>Coaches</button>
         </div>
-        <div className="foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge</div>
+        <div className="foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge · Built in Burlington, ON</div>
       </footer>
 
       <style>{styles}</style>
@@ -229,38 +347,58 @@ function BrandMark() {
 }
 
 function MockScreen() {
-  // A stylized preview of the Home screen
+  // Phone preview showing today's skill drop + team leaderboard
   return (
     <div className="mock-phone">
       <div className="mock-inner">
         <div className="mock-top">
-          <div className="mock-avatar">C</div>
           <div>
-            <div className="mock-name">Connor</div>
-            <div className="mock-sub">Junior I · 250 shots</div>
+            <div className="mock-club">Burlington Bulldogs U11 AA</div>
+            <div className="mock-week">WEEK 3</div>
           </div>
-          <div className="mock-streak">🔥 7</div>
         </div>
-        <div className="mock-grid">
-          {[
-            { name: 'WRIST', v: 85 },
-            { name: 'SNAP', v: 42 },
-            { name: 'SLAP', v: 23 },
-            { name: 'BACKHAND', v: 18 },
-          ].map((s) => (
-            <div key={s.name} className="mock-card">
-              <div className="mock-label">{s.name}</div>
-              <div className="mock-val">{s.v}</div>
-              <div className="mock-today">today</div>
-            </div>
-          ))}
-        </div>
-        <div className="mock-chase">
-          <div>
-            <div className="mock-chase-label">CHASING TODAY</div>
-            <div className="mock-chase-name">Tyler · 145 today</div>
+        <div className="mock-section-label">Today</div>
+
+        {/* Daily Skill Card */}
+        <div className="mock-skill">
+          <div className="mock-skill-play">▶</div>
+          <div className="mock-skill-info">
+            <div className="mock-skill-label">TODAY'S SKILL</div>
+            <div className="mock-skill-name">Toe drag → quick release</div>
+            <div className="mock-skill-time">2:14 · Try it tonight</div>
           </div>
-          <div className="mock-gap">−23</div>
+        </div>
+
+        {/* Team weekly progress */}
+        <div className="mock-progress">
+          <div className="mock-progress-row">
+            <span className="mock-progress-label">Team weekly goal</span>
+            <span className="mock-progress-value">3,612 / 5,000 shots</span>
+          </div>
+          <div className="mock-bar"><div className="mock-bar-fill" /></div>
+        </div>
+
+        <div className="mock-subsection-label">TOP PLAYERS THIS WEEK</div>
+
+        <div className="mock-row">
+          <span className="mock-rank mock-rank-1">1</span>
+          <span className="mock-name">Connor M.</span>
+          <span className="mock-shots">847 <span className="mock-streak">🔥 12</span></span>
+        </div>
+        <div className="mock-row">
+          <span className="mock-rank mock-rank-2">2</span>
+          <span className="mock-name">Liam K.</span>
+          <span className="mock-shots">692 <span className="mock-streak">🔥 8</span></span>
+        </div>
+        <div className="mock-row">
+          <span className="mock-rank mock-rank-3">3</span>
+          <span className="mock-name">Jake R.</span>
+          <span className="mock-shots">581</span>
+        </div>
+        <div className="mock-row">
+          <span className="mock-rank">4</span>
+          <span className="mock-name">Mason T.</span>
+          <span className="mock-shots">443</span>
         </div>
       </div>
     </div>
@@ -274,13 +412,12 @@ const styles = `
   color: var(--text);
   font-family: var(--font-body);
   overflow-x: hidden;
-  /* Override the app-shell width constraint */
   width: 100%;
   max-width: none;
 }
-/* Override app-shell styles on landing */
 body:has(.landing) { background: var(--bg) !important; }
 
+/* === NAV === */
 .land-nav {
   display: flex; justify-content: space-between; align-items: center;
   padding: 18px clamp(16px, 5vw, 40px);
@@ -314,7 +451,7 @@ body:has(.landing) { background: var(--bg) !important; }
 }
 .land-nav-cta:active { transform: scale(0.97); }
 
-/* Hero */
+/* === HERO === */
 .hero {
   display: grid;
   grid-template-columns: 1fr;
@@ -332,7 +469,6 @@ body:has(.landing) { background: var(--bg) !important; }
     padding-bottom: 100px;
   }
 }
-
 .hero-eyebrow {
   display: inline-block;
   font-family: var(--font-display);
@@ -347,19 +483,20 @@ body:has(.landing) { background: var(--bg) !important; }
 }
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(40px, 8vw, 72px);
+  font-size: clamp(36px, 7vw, 64px);
   font-weight: 800;
-  line-height: 0.95;
+  line-height: 1.05;
   letter-spacing: -0.5px;
   margin-bottom: 18px;
   color: white;
 }
+.hero-title-em { color: var(--ice); }
 .hero-sub {
-  font-size: clamp(16px, 2vw, 19px);
-  line-height: 1.5;
+  font-size: clamp(16px, 2vw, 18px);
+  line-height: 1.55;
   color: var(--text-soft);
   margin-bottom: 28px;
-  max-width: 520px;
+  max-width: 560px;
 }
 .hero-ctas {
   display: flex; gap: 10px; flex-wrap: wrap;
@@ -371,6 +508,7 @@ body:has(.landing) { background: var(--bg) !important; }
   letter-spacing: 0.3px;
 }
 
+/* === BUTTONS === */
 .btn-primary-land {
   background: var(--accent);
   color: white;
@@ -397,10 +535,8 @@ body:has(.landing) { background: var(--bg) !important; }
 }
 .btn-ghost-land:hover { background: var(--surface); }
 
-/* Mock phone preview */
-.hero-preview {
-  display: flex; justify-content: center;
-}
+/* === MOCK PHONE === */
+.hero-preview { display: flex; justify-content: center; }
 .mock-phone {
   width: 100%;
   max-width: 340px;
@@ -413,99 +549,151 @@ body:has(.landing) { background: var(--bg) !important; }
 .mock-inner {
   background: var(--bg);
   border-radius: 18px;
-  padding: 14px;
+  padding: 16px;
 }
-.mock-top {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 14px;
-}
-.mock-avatar {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--accent);
-  display: flex; align-items: center; justify-content: center;
+.mock-top { margin-bottom: 8px; }
+.mock-club {
   font-family: var(--font-display);
-  font-size: 14px; font-weight: 700; color: white;
-  flex-shrink: 0;
-}
-.mock-name {
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 700;
-  line-height: 1.1;
-}
-.mock-sub { font-size: 10px; color: var(--text-mute); margin-top: 2px; }
-.mock-streak {
-  margin-left: auto;
-  font-size: 12px;
-  background: rgba(255, 122, 41, 0.15);
-  padding: 4px 10px;
-  border-radius: 999px;
-  color: var(--warn-soft);
-  font-weight: 600;
-}
-.mock-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-.mock-card {
-  background: var(--surface);
-  border-radius: 12px;
-  padding: 12px;
-}
-.mock-label {
-  font-family: var(--font-display);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 1px;
-  opacity: 0.8;
+  color: white;
+  line-height: 1.2;
 }
-.mock-val {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--ice);
-  line-height: 1;
-  margin-top: 4px;
-}
-.mock-today {
+.mock-week {
   font-size: 9px;
   color: var(--text-mute);
-  letter-spacing: 1px;
-  margin-top: 4px;
-  text-transform: uppercase;
-}
-.mock-chase {
-  background: var(--surface);
-  border-left: 2px solid var(--warn);
-  border-radius: 10px;
-  padding: 10px 12px;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.mock-chase-label {
-  font-size: 9px; color: var(--text-mute);
-  letter-spacing: 1.5px; text-transform: uppercase;
-  font-weight: 500;
-}
-.mock-chase-name {
-  font-family: var(--font-display);
-  font-size: 12px; font-weight: 700;
+  letter-spacing: 1.5px;
+  font-weight: 600;
   margin-top: 2px;
 }
-.mock-gap {
+.mock-section-label {
   font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 800;
-  background: rgba(255, 122, 41, 0.15);
-  color: var(--warn-soft);
-  padding: 4px 11px;
-  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  margin: 12px 0 8px;
+}
+.mock-subsection-label {
+  font-size: 9px;
+  color: var(--text-mute);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 12px 0 6px;
 }
 
-/* Section headers */
+/* skill drop card in mock */
+.mock-skill {
+  background: linear-gradient(135deg, rgba(41,121,255,0.18), rgba(168,212,245,0.05));
+  border: 0.5px solid rgba(41,121,255,0.3);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mock-skill-play {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  color: white;
+  font-size: 12px;
+}
+.mock-skill-info { flex: 1; min-width: 0; }
+.mock-skill-label {
+  font-size: 8px;
+  color: var(--ice);
+  letter-spacing: 1.2px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.mock-skill-name {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mock-skill-time {
+  font-size: 10px;
+  color: var(--text-mute);
+  margin-top: 1px;
+}
+
+/* progress bar in mock */
+.mock-progress {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.mock-progress-row {
+  display: flex; justify-content: space-between;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+.mock-progress-label { color: var(--text-soft); }
+.mock-progress-value {
+  color: white; font-weight: 700;
+  font-family: var(--font-display);
+}
+.mock-bar {
+  height: 5px;
+  background: rgba(168, 212, 245, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.mock-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--ice));
+  width: 72%;
+}
+
+/* leaderboard rows in mock */
+.mock-row {
+  display: flex; align-items: center;
+  padding: 7px 0;
+  border-bottom: 0.5px solid rgba(168, 212, 245, 0.06);
+  font-size: 12px;
+}
+.mock-row:last-child { border-bottom: none; }
+.mock-rank {
+  width: 22px;
+  font-family: var(--font-display);
+  color: var(--text-mute);
+  font-weight: 700;
+  font-size: 11px;
+}
+.mock-rank-1 { color: #f4c542; }
+.mock-rank-2 { color: var(--ice); }
+.mock-rank-3 { color: #d4a574; }
+.mock-name {
+  flex: 1;
+  color: white;
+  font-weight: 500;
+}
+.mock-shots {
+  color: var(--text-soft);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.mock-streak {
+  color: #f4c542;
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+/* === SECTION HEADERS === */
 .section-head {
   text-align: center;
-  max-width: 680px;
+  max-width: 720px;
   margin: 0 auto 40px;
   padding: 0 16px;
 }
@@ -525,59 +713,70 @@ body:has(.landing) { background: var(--bg) !important; }
   letter-spacing: -0.3px;
   color: white;
 }
+.section-sub {
+  font-size: clamp(15px, 2vw, 17px);
+  color: var(--text-soft);
+  line-height: 1.55;
+  margin-top: 14px;
+}
 
-/* Features grid */
+/* === LOOP GRID (LOG/LEARN/CHALLENGE) === */
 .features {
   padding: 60px clamp(16px, 5vw, 40px);
   max-width: 1200px;
   margin: 0 auto;
   border-top: 0.5px solid var(--border-dim);
 }
-.feat-grid {
+.loop-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 16px;
   max-width: 1000px;
   margin: 0 auto;
 }
-@media (min-width: 700px) {
-  .feat-grid { grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 800px) {
+  .loop-grid { grid-template-columns: repeat(3, 1fr); }
 }
-@media (min-width: 1000px) {
-  .feat-grid { grid-template-columns: repeat(3, 1fr); }
-}
-.feat-card {
+.loop-card {
   background: var(--surface);
   border: 0.5px solid var(--border-dim);
   border-radius: 16px;
-  padding: 24px;
+  padding: 28px;
   transition: border-color 0.2s, transform 0.2s;
 }
-.feat-card:hover {
+.loop-card:hover {
   border-color: var(--accent);
   transform: translateY(-2px);
 }
-.feat-icon {
+.loop-icon {
   font-size: 32px;
   margin-bottom: 14px;
   line-height: 1;
 }
-.feat-title {
+.loop-verb {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.3px;
-  margin-bottom: 8px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.loop-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  margin-bottom: 10px;
   color: white;
 }
-.feat-text {
+.loop-text {
   font-size: 14px;
   color: var(--text-soft);
-  line-height: 1.5;
+  line-height: 1.55;
   margin: 0;
 }
 
-/* How it works */
+/* === HOW IT WORKS === */
 .how {
   padding: 60px clamp(16px, 5vw, 40px);
   max-width: 1200px;
@@ -623,11 +822,81 @@ body:has(.landing) { background: var(--bg) !important; }
   margin: 0;
 }
 
-/* Coaches */
-.coaches-section {
+/* === CHALLENGES === */
+.challenges {
   padding: 80px clamp(16px, 5vw, 40px);
   border-top: 0.5px solid var(--border-dim);
   background: linear-gradient(180deg, var(--bg), rgba(41, 121, 255, 0.04));
+}
+.challenges-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+.challenges-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.3px;
+  color: white;
+  margin: 12px 0 16px;
+}
+.challenges-text {
+  font-size: clamp(15px, 2vw, 17px);
+  color: var(--text-soft);
+  line-height: 1.55;
+  max-width: 720px;
+  margin: 0 auto 36px;
+}
+.tier-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 800px) {
+  .tier-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.tier-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: 14px;
+  padding: 22px;
+  text-align: left;
+}
+.tier-num {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--ice);
+  margin-bottom: 8px;
+}
+.tier-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 8px;
+}
+.tier-text {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.tier-quote {
+  font-size: 13px;
+  color: var(--ice);
+  font-style: italic;
+  padding-top: 12px;
+  border-top: 0.5px solid var(--border-dim);
+}
+
+/* === COACHES === */
+.coaches-section {
+  padding: 80px clamp(16px, 5vw, 40px);
+  border-top: 0.5px solid var(--border-dim);
 }
 .coaches-inner {
   max-width: 700px;
@@ -669,7 +938,7 @@ body:has(.landing) { background: var(--bg) !important; }
   color: var(--text-mute);
 }
 
-/* FAQ */
+/* === FAQ === */
 .faq {
   padding: 60px clamp(16px, 5vw, 40px);
   max-width: 720px;
@@ -718,7 +987,7 @@ body:has(.landing) { background: var(--bg) !important; }
   line-height: 1.5;
 }
 
-/* Final CTA */
+/* === FINAL CTA === */
 .final-cta {
   padding: 80px clamp(16px, 5vw, 40px);
   text-align: center;
@@ -740,7 +1009,7 @@ body:has(.landing) { background: var(--bg) !important; }
   margin-top: 14px;
 }
 
-/* Footer */
+/* === FOOTER === */
 .land-footer {
   padding: 40px clamp(16px, 5vw, 40px);
   max-width: 1200px;
