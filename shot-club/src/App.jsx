@@ -4,11 +4,10 @@ import { AuthProvider, useAuth } from './hooks/useAuth'
 
 // Public screens
 import LandingScreen from './screens/LandingScreen'
+import ForClubsScreen from './screens/ForClubsScreen'
 import ClubJoinScreen from './screens/ClubJoinScreen'
-import ClubScreen from './screens/ClubScreen'
 import CardPublicScreen from './screens/CardPublicScreen'
 import AuthScreen from './screens/AuthScreen'
-import PlayerJoinTeamScreen from './screens/PlayerJoinTeamScreen'
 
 // Coach
 import CoachAuthScreen from './screens/CoachAuthScreen'
@@ -37,6 +36,7 @@ function LoadingScreen() {
   )
 }
 
+// Protects a route: redirects to /start if not signed in as a player
 function Protected({ children }) {
   const { player, loading } = useAuth()
   if (loading) return <LoadingScreen />
@@ -44,6 +44,7 @@ function Protected({ children }) {
   return children
 }
 
+// Root redirect — if signed in, go straight to /home. Otherwise show landing.
 function RootRoute() {
   const { player, loading } = useAuth()
   if (loading) return <LoadingScreen />
@@ -56,6 +57,7 @@ function BottomNav() {
   const nav = useNavigate()
   const { player } = useAuth()
 
+  // Only show nav on authenticated player screens
   const authedPaths = ['/home', '/card', '/rank', '/more']
   if (!authedPaths.includes(loc.pathname) || !player) return null
 
@@ -84,6 +86,8 @@ function BottomNav() {
   )
 }
 
+// Wrapper that decides whether to apply the app-shell styling
+// app-shell = mobile phone frame, only for authenticated player screens
 function ShellWrapper() {
   const loc = useLocation()
   const useAppShell = ['/home', '/card', '/rank', '/more'].includes(loc.pathname)
@@ -93,18 +97,16 @@ function ShellWrapper() {
       <Routes>
         {/* Public */}
         <Route path="/" element={<RootRoute />} />
+        <Route path="/for-clubs" element={<ForClubsScreen />} />
         <Route path="/start" element={<AuthScreen />} />
         <Route path="/join/:slug" element={<ClubJoinScreen />} />
-        <Route path="/club/:slug" element={<ClubScreen />} />
         <Route path="/card/:username" element={<CardPublicScreen />} />
-        <Route path="/j/:code" element={<PlayerJoinTeamScreen />} />
 
         {/* Legacy auth redirect */}
         <Route path="/auth" element={<Navigate to="/start" replace />} />
 
         {/* Coach */}
         <Route path="/coach" element={<CoachAuthScreen />} />
-        <Route path="/coach/join" element={<CoachAuthScreen />} />
         <Route path="/coach/dashboard" element={<CoachDashboardScreen />} />
 
         {/* Authenticated player */}
