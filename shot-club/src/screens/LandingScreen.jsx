@@ -5,16 +5,17 @@ import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 export default function LandingScreen() {
   const nav = useNavigate()
 
+  const scrollToPaths = () => {
+    document.getElementById('choose-path')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   useEffect(() => {
     setSEO({
-      title: null, // use default — already homepage-optimized in seo.js
+      title: null,
       description: 'The off-ice training platform built for the whole hockey family. Players log shots, learn a new skill every day, and challenge teammates, rival teams, and rival clubs.',
       url: CANONICAL_URL,
     })
 
-    // Single @graph payload — seo.js only allows one JSON-LD block at a time.
-    // Combining Organization + SoftwareApplication + FAQPage keeps all three
-    // visible to AEO/SEO crawlers (ChatGPT, Perplexity, Claude, Google).
     addStructuredData({
       '@context': 'https://schema.org',
       '@graph': [
@@ -129,7 +130,7 @@ export default function LandingScreen() {
         </div>
         <div className="land-nav-actions">
           <button className="land-nav-link" onClick={() => nav('/start')}>Sign in</button>
-          <button className="land-nav-cta" onClick={() => nav('/coach')}>Sign up your club</button>
+          <button className="land-nav-cta" onClick={scrollToPaths}>Get started</button>
         </div>
       </nav>
 
@@ -145,11 +146,8 @@ export default function LandingScreen() {
             The off-ice training platform built for youth hockey. Players log their reps and watch a daily skill drop. Coaches see what their team is putting in. Whole clubs go head-to-head with their biggest rivals.
           </p>
           <div className="hero-ctas">
-            <button className="btn-primary-land" onClick={() => nav('/coach')}>
-              Get your club's link →
-            </button>
-            <button className="btn-ghost-land" onClick={() => nav('/start')}>
-              I'm a player
+            <button className="btn-primary-land" onClick={scrollToPaths}>
+              How do I start? ↓
             </button>
           </div>
           <div className="hero-trust">
@@ -161,7 +159,45 @@ export default function LandingScreen() {
         </div>
       </section>
 
-      {/* Core Loop — three mechanics */}
+      {/* Choose your path — three role tiles */}
+      <section className="paths" id="choose-path">
+        <div className="paths-head">
+          <div className="paths-eyebrow">GET STARTED</div>
+          <h2 className="paths-title">Pick your path.</h2>
+          <p className="paths-sub">Three different doors, all leading to the same rink.</p>
+        </div>
+
+        <div className="paths-grid">
+          {/* Club Leader */}
+          <button className="path-card path-club" onClick={() => nav('/coach')}>
+            <div className="path-icon">🏒</div>
+            <div className="path-label">CLUB LEADER</div>
+            <h3 className="path-title">Bring your whole association on board.</h3>
+            <p className="path-text">Sign up your club and get a personalized link to share with your coaches. The first move that starts the chain.</p>
+            <div className="path-cta">Sign up your club →</div>
+          </button>
+
+          {/* Coach */}
+          <button className="path-card path-coach" onClick={() => nav('/coach')}>
+            <div className="path-icon">🎯</div>
+            <div className="path-label">COACH</div>
+            <h3 className="path-title">Set up your team in 3 minutes.</h3>
+            <p className="path-text">Claim your team, set a weekly shot target, and share one invite link with parents. Watch your team climb the leaderboard.</p>
+            <div className="path-cta">Claim your team →</div>
+          </button>
+
+          {/* Player */}
+          <button className="path-card path-player" onClick={() => nav('/start')}>
+            <div className="path-icon">⚡</div>
+            <div className="path-label">PLAYER</div>
+            <h3 className="path-title">Already have a screen name?</h3>
+            <p className="path-text">Sign in with the link your coach sent you, log your shots, watch today's skill, and chase the top spot on your team.</p>
+            <div className="path-cta">Sign in →</div>
+          </button>
+        </div>
+      </section>
+
+      {/* Core Loop */}
       <section className="features">
         <div className="section-head">
           <div className="section-eyebrow">WHY IT WORKS</div>
@@ -251,27 +287,6 @@ export default function LandingScreen() {
         </div>
       </section>
 
-      {/* For Coaches */}
-      <section className="coaches-section">
-        <div className="coaches-inner">
-          <div className="coaches-eyebrow">FOR COACHES & CLUBS</div>
-          <h2 className="coaches-title">Set up your team in three minutes.</h2>
-          <p className="coaches-text">
-            Claim your team, set a weekly shot target, share one link with parents. Every kid who joins shows up on your dashboard. Watch your team climb week by week — and challenge the rival across town when you're ready.
-          </p>
-          <div className="coaches-ctas">
-            <button className="btn-primary-land" onClick={() => nav('/coach')}>
-              Set up your club →
-            </button>
-          </div>
-          <div className="coaches-bullets">
-            <div className="coach-bullet">✓ 3-minute setup per team</div>
-            <div className="coach-bullet">✓ One player invite link</div>
-            <div className="coach-bullet">✓ Built for minor hockey</div>
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
       <section className="faq">
         <div className="section-head">
@@ -313,8 +328,8 @@ export default function LandingScreen() {
       {/* Final CTA */}
       <section className="final-cta">
         <h2 className="final-cta-title">Ready to get your club logging?</h2>
-        <button className="btn-primary-land" onClick={() => nav('/coach')}>
-          Sign up your club →
+        <button className="btn-primary-land" onClick={scrollToPaths}>
+          Pick your path ↑
         </button>
         <div className="final-cta-sub">3 minutes per team. No app to install. No paperwork.</div>
       </section>
@@ -328,6 +343,7 @@ export default function LandingScreen() {
         <div className="foot-links">
           <button className="foot-link" onClick={() => nav('/start')}>Sign in</button>
           <button className="foot-link" onClick={() => nav('/coach')}>Coaches</button>
+          <button className="foot-link" onClick={() => nav('/for-clubs')}>For Clubs</button>
         </div>
         <div className="foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge · Built in Burlington, ON</div>
       </footer>
@@ -347,7 +363,6 @@ function BrandMark() {
 }
 
 function MockScreen() {
-  // Phone preview showing today's skill drop + team leaderboard
   return (
     <div className="mock-phone">
       <div className="mock-inner">
@@ -359,7 +374,6 @@ function MockScreen() {
         </div>
         <div className="mock-section-label">Today</div>
 
-        {/* Daily Skill Card */}
         <div className="mock-skill">
           <div className="mock-skill-play">▶</div>
           <div className="mock-skill-info">
@@ -369,7 +383,6 @@ function MockScreen() {
           </div>
         </div>
 
-        {/* Team weekly progress */}
         <div className="mock-progress">
           <div className="mock-progress-row">
             <span className="mock-progress-label">Team weekly goal</span>
@@ -466,7 +479,7 @@ body:has(.landing) { background: var(--bg) !important; }
     grid-template-columns: 1.1fr 0.9fr;
     gap: 60px;
     padding-top: 80px;
-    padding-bottom: 100px;
+    padding-bottom: 80px;
   }
 }
 .hero-eyebrow {
@@ -581,17 +594,13 @@ body:has(.landing) { background: var(--bg) !important; }
   font-weight: 600;
   margin: 12px 0 6px;
 }
-
-/* skill drop card in mock */
 .mock-skill {
   background: linear-gradient(135deg, rgba(41,121,255,0.18), rgba(168,212,245,0.05));
   border: 0.5px solid rgba(41,121,255,0.3);
   border-radius: 10px;
   padding: 10px;
   margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex; align-items: center; gap: 10px;
 }
 .mock-skill-play {
   width: 32px; height: 32px;
@@ -599,8 +608,7 @@ body:has(.landing) { background: var(--bg) !important; }
   border-radius: 8px;
   display: grid; place-items: center;
   flex-shrink: 0;
-  color: white;
-  font-size: 12px;
+  color: white; font-size: 12px;
 }
 .mock-skill-info { flex: 1; min-width: 0; }
 .mock-skill-label {
@@ -625,8 +633,6 @@ body:has(.landing) { background: var(--bg) !important; }
   color: var(--text-mute);
   margin-top: 1px;
 }
-
-/* progress bar in mock */
 .mock-progress {
   background: var(--surface);
   border-radius: 10px;
@@ -654,8 +660,6 @@ body:has(.landing) { background: var(--bg) !important; }
   background: linear-gradient(90deg, var(--accent), var(--ice));
   width: 72%;
 }
-
-/* leaderboard rows in mock */
 .mock-row {
   display: flex; align-items: center;
   padding: 7px 0;
@@ -673,11 +677,7 @@ body:has(.landing) { background: var(--bg) !important; }
 .mock-rank-1 { color: #f4c542; }
 .mock-rank-2 { color: var(--ice); }
 .mock-rank-3 { color: #d4a574; }
-.mock-name {
-  flex: 1;
-  color: white;
-  font-weight: 500;
-}
+.mock-name { flex: 1; color: white; font-weight: 500; }
 .mock-shots {
   color: var(--text-soft);
   font-family: var(--font-display);
@@ -688,6 +688,111 @@ body:has(.landing) { background: var(--bg) !important; }
   color: #f4c542;
   font-size: 10px;
   margin-left: 4px;
+}
+
+/* === PATHS — three role tiles === */
+.paths {
+  padding: 64px clamp(16px, 5vw, 40px);
+  max-width: 1200px;
+  margin: 0 auto;
+  border-top: 0.5px solid var(--border-dim);
+  background: linear-gradient(180deg, var(--bg), rgba(41, 121, 255, 0.04), var(--bg));
+  scroll-margin-top: 80px;
+}
+.paths-head {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 40px;
+}
+.paths-eyebrow {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ice);
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+.paths-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.3px;
+  color: white;
+  margin-bottom: 12px;
+}
+.paths-sub {
+  font-size: 16px;
+  color: var(--text-soft);
+}
+.paths-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+@media (min-width: 800px) {
+  .paths-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.path-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: 18px;
+  padding: 32px 28px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s, background 0.2s;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.path-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  background: linear-gradient(180deg, var(--surface), rgba(41, 121, 255, 0.06));
+}
+.path-card:active {
+  transform: translateY(-1px);
+}
+.path-icon {
+  font-size: 36px;
+  margin-bottom: 14px;
+  line-height: 1;
+}
+.path-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.path-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  margin-bottom: 12px;
+  color: white;
+  line-height: 1.15;
+}
+.path-text {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.55;
+  margin: 0 0 20px;
+  flex: 1;
+}
+.path-cta {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ice);
+  letter-spacing: 0.3px;
+}
+.path-card:hover .path-cta {
+  color: white;
 }
 
 /* === SECTION HEADERS === */
@@ -720,7 +825,7 @@ body:has(.landing) { background: var(--bg) !important; }
   margin-top: 14px;
 }
 
-/* === LOOP GRID (LOG/LEARN/CHALLENGE) === */
+/* === LOOP GRID === */
 .features {
   padding: 60px clamp(16px, 5vw, 40px);
   max-width: 1200px;
@@ -893,51 +998,6 @@ body:has(.landing) { background: var(--bg) !important; }
   border-top: 0.5px solid var(--border-dim);
 }
 
-/* === COACHES === */
-.coaches-section {
-  padding: 80px clamp(16px, 5vw, 40px);
-  border-top: 0.5px solid var(--border-dim);
-}
-.coaches-inner {
-  max-width: 700px;
-  margin: 0 auto;
-  text-align: center;
-}
-.coaches-eyebrow {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ice);
-  letter-spacing: 2px;
-  margin-bottom: 12px;
-}
-.coaches-title {
-  font-family: var(--font-display);
-  font-size: clamp(28px, 5vw, 42px);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.3px;
-  color: white;
-  margin-bottom: 16px;
-}
-.coaches-text {
-  font-size: clamp(15px, 2vw, 17px);
-  color: var(--text-soft);
-  line-height: 1.6;
-  margin-bottom: 28px;
-}
-.coaches-ctas { margin-bottom: 18px; }
-.coaches-bullets {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-.coach-bullet {
-  font-size: 13px;
-  color: var(--text-mute);
-}
-
 /* === FAQ === */
 .faq {
   padding: 60px clamp(16px, 5vw, 40px);
@@ -1028,7 +1088,7 @@ body:has(.landing) { background: var(--bg) !important; }
   font-weight: 700;
   letter-spacing: 0.4px;
 }
-.foot-links { display: flex; gap: 20px; }
+.foot-links { display: flex; gap: 20px; flex-wrap: wrap; }
 .foot-link {
   color: var(--text-mute);
   font-size: 13px;
