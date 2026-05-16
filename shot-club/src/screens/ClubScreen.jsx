@@ -1,741 +1,602 @@
-import { useEffect, useState, useMemo } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams, Link } from 'react-router-dom'
+import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import { getClubBySlug, getClubStats, getClubTeams } from '../lib/clubs'
-import { getLeaderboardLifetime } from '../lib/shots'
-import { supabase } from '../lib/supabase'
-
-const TODAY_REFRESH_MS = 15000
 
 export default function ClubScreen() {
   const { slug } = useParams()
-  const navigate = useNavigate()
-  const { player } = useAuth()
-
-  const [club, setClub] = useState(undefined)
-  const [stats, setStats] = useState({ playerCount: 0, teamCount: 0, totalShots: 0 })
+  const nav = useNavigate()
+  const [club, setClub] = useState(null)
+  const [stats, setStats] = useState(null)
   const [teams, setTeams] = useState([])
-  const [lifetime, setLifetime] = useState([])
-  const [todayLeader, setTodayLeader] = useState(null)
-  const [showAll, setShowAll] = useState(false)
-  const [todayPulse, setTodayPulse] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    setClub(undefined)
-    getClubBySlug(slug).then((c) => {
+    async function load() {
+      setLoading(true)
+      const c = await getClubBySlug(slug)
       if (cancelled) return
-      setClub(c || null)
-    }).catch(() => {
-      if (!cancelled) setClub(null)
-    })
-    return () => { cancelled = true }
-  }, [slug])
+      if (!c) {
+        setNotFound(true)
+        setLoading(false)
+        // Still set SEO so a 404 page has proper noindex
+        setSEO({
+          title: 'Club not found',
+          description: 'This club hasn\'t been set up on Hockey Shot Challenge yet.',
+          url: `${CANONICAL_URL}/clubs/${slug}`,
+          noindex: true,
+        })
+        return
+      }
 
-  useEffect(() => {
-    if (!club) return
-    let cancelled = false
-
-    Promise.all([
-      getClubStats(club.id).catch(() => ({ playerCount: 0, teamCount: 0, totalShots: 0 })),
-      getClubTeams(club.id).catch(() => []),
-      getLeaderboardLifetime({ clubName: club.name, limit: 25 }).catch(() => []),
-    ]).then(([s, t, l]) => {
+      setClub(c)
+      const [s, t] = await Promise.all([
+        getClubStats(c.id),
+        getClubTeams(c.id),
+      ])
       if (cancelled) return
       setStats(s)
       setTeams(t)
-      setLifetime(l.filter((p) => (p.lifetime_shots || 0) > 0))
-    })
+      setLoading(false)
 
-    return () => { cancelled = true }
-  }, [club])
+      // SEO — unique title + description per club
+      const cityPart = c.city ? `, ${c.city}` : ''
+      setSEO({
+        title: `${c.name}${cityPart} — Off-Ice Training`,
+        description: `Off-ice training and shot tracking for ${c.name}${cityPart}. Log your shots, learn a new skill every day, and compete on the team leaderboard. Free for the whole club.`,
+        url: `${CANONICAL_URL}/clubs/${slug}`,
+      })
 
-  useEffect(() => {
-    if (!club) return
-    let cancelled = false
-
-    const fetchTodayLeader = async () => {
-      try {
-        const today = new Date().toISOString().slice(0, 10)
-        const { data: clubPlayers } = await supabase
-          .from('players')
-          .select('id, display_name, team:teams(name)')
-          .eq('club_name', club.name)
-        if (cancelled || !clubPlayers || clubPlayers.length === 0) {
-          if (!cancelled) setTodayLeader(null)
-          return
-        }
-        const ids = clubPlayers.map((p) => p.id)
-
-        const { data: logs } = await supabase
-          .from('shot_logs')
-          .select('player_id, count')
-          .in('player_id', ids)
-          .eq('log_date', today)
-        if (cancelled) return
-
-        const totals = {}
-        ;(logs || []).forEach((r) => {
-          totals[r.player_id] = (totals[r.player_id] || 0) + r.count
-        })
-
-        let topId = null
-        let topCount = 0
-        Object.entries(totals).forEach(([id, c]) => {
-          if (c > topCount) { topId = id; topCount = c }
-        })
-
-        if (!topId || topCount === 0) {
-          setTodayLeader(null)
-          return
-        }
-        const topPlayer = clubPlayers.find((p) => p.id === topId)
-        setTodayLeader({
-          id: topId,
-          display_name: topPlayer?.display_name || 'Someone',
-          team_name: topPlayer?.team?.name || null,
-          today_shots: topCount,
-        })
-        setTodayPulse(true)
-        setTimeout(() => setTodayPulse(false), 600)
-      } catch (e) {
-        // silent
-      }
+      // Structured data — SportsOrganization schema for the club
+      addStructuredData({
+        '@context': 'https://schema.org',
+        '@type': 'SportsOrganization',
+        name: c.name,
+        sport: 'Ice Hockey',
+        url: `${CANONICAL_URL}/clubs/${slug}`,
+        ...(c.city ? {
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: c.city,
+            addressCountry: 'CA',
+          },
+        } : {}),
+        memberOf: {
+          '@type': 'Organization',
+          name: 'Hockey Shot Challenge',
+          url: CANONICAL_URL,
+        },
+      })
     }
+    load()
+    return () => { cancelled = true }
+  }, [slug])
 
-    fetchTodayLeader()
-    const t = setInterval(fetchTodayLeader, TODAY_REFRESH_MS)
-    return () => { cancelled = true; clearInterval(t) }
-  }, [club])
-
-  const ctaLabel = useMemo(() => {
-    if (!club) return ''
-    if (player) return 'Start logging shots'
-    return `Join ${club.name}`
-  }, [player, club])
-
-  const ctaTarget = useMemo(() => {
-    if (!club) return '/start'
-    if (player) return '/home'
-    return `/start?club=${encodeURIComponent(club.slug)}`
-  }, [player, club])
-
-  if (club === undefined) {
+  if (loading) {
     return (
-      <div className="club-loading">
-        <div className="club-loading-text">LOADING…</div>
+      <div className="club-screen">
+        <ClubNav nav={nav} />
+        <div className="club-loading">Loading…</div>
         <style>{styles}</style>
       </div>
     )
   }
 
-  if (club === null) {
+  if (notFound) {
     return (
-      <div className="club-404">
-        <div className="club-404-mark">?</div>
-        <div className="club-404-title">Club not found</div>
-        <div className="club-404-text">
-          The club <span className="club-404-slug">{slug}</span> isn't on Hockey Shot Challenge yet.
+      <div className="club-screen">
+        <ClubNav nav={nav} />
+        <div className="club-404">
+          <h1 className="club-404-title">Club not found.</h1>
+          <p className="club-404-text">
+            We couldn't find a club with that slug. It may have been removed, or the link might be wrong.
+          </p>
+          <button className="club-btn-primary" onClick={() => nav('/')}>← Back to home</button>
         </div>
-        <button className="club-404-btn" onClick={() => navigate('/start')}>
-          Search clubs
-        </button>
         <style>{styles}</style>
       </div>
     )
   }
 
-  const hasAnyShots = lifetime.length > 0
-  const top1 = lifetime[0]
-  const next4 = lifetime.slice(1, 5)
-  const rest = lifetime.slice(5)
+  const hasActivity = (stats?.playerCount > 0) || (stats?.totalShots > 0)
+  const cityPart = club.city ? `, ${club.city}` : ''
+  const coachSignupLink = `/coach?club=${slug}`
+  const playerSignupLink = `/start`
 
   return (
-    <div className="club fade-in">
-      <div className="club-back">
-        <button className="club-back-btn" onClick={() => navigate(-1)} aria-label="Back">←</button>
-      </div>
+    <div className="club-screen">
+      <ClubNav nav={nav} />
 
-      <header className="club-header">
+      {/* Hero */}
+      <section className="club-hero">
         <div className="club-eyebrow">
-          {club.governing_body && <span className="club-badge">{club.governing_body}</span>}
-          {club.city && <span className="club-city">{club.city}</span>}
+          {hasActivity ? 'ACTIVE ON HOCKEY SHOT CHALLENGE' : 'JOIN THE CHALLENGE'}
         </div>
-        <h1 className="club-name">{club.name}</h1>
-      </header>
-
-      {todayLeader ? (
-        <div className="today-strip">
-          <div className="today-left">
-            <span className={`today-dot ${todayPulse ? 'today-dot--pulse' : ''}`} />
-            <span className="today-label">Today's leader</span>
-          </div>
-          <div className="today-body">
-            <span className="today-name">{todayLeader.display_name}</span>
-            {todayLeader.team_name && (
-              <span className="today-team"> · {todayLeader.team_name}</span>
-            )}
-            <span className="today-count tnum"> {todayLeader.today_shots}</span>
-            <span className="today-unit"> shots</span>
-          </div>
-        </div>
-      ) : hasAnyShots ? (
-        <div className="today-strip today-strip--quiet">
-          <div className="today-left">
-            <span className="today-dot today-dot--off" />
-            <span className="today-label">No shots today yet</span>
-          </div>
-          <div className="today-quiet-cta">First one sets the pace</div>
-        </div>
-      ) : null}
-
-      <div className="stats-row">
-        <div className="stat">
-          <div className="stat-num tnum">{stats.playerCount.toLocaleString()}</div>
-          <div className="stat-label">{stats.playerCount === 1 ? 'Player' : 'Players'}</div>
-        </div>
-        <div className="stat">
-          <div className="stat-num tnum">{stats.teamCount.toLocaleString()}</div>
-          <div className="stat-label">{stats.teamCount === 1 ? 'Team' : 'Teams'}</div>
-        </div>
-        <div className="stat">
-          <div className="stat-num tnum">{stats.totalShots.toLocaleString()}</div>
-          <div className="stat-label">Total shots</div>
-        </div>
-      </div>
-
-      {!hasAnyShots && (
-        <div className="empty">
-          <div className="empty-glyph">🏒</div>
-          <div className="empty-title">Be the first kid from {club.name} to log a shot.</div>
-          <div className="empty-text">The leaderboard starts with you.</div>
-        </div>
-      )}
-
-      {hasAnyShots && (
-        <section className="rank-section">
-          <div className="section-label">All-time leaders</div>
-
-          {top1 && (
-            <Link to={top1.username ? `/card/${top1.username}` : '#'} className="hero-card">
-              <div className="hero-rank">1</div>
-              <div className="hero-body">
-                <div className="hero-name">{top1.display_name}</div>
-                <div className="hero-meta">
-                  {top1.team?.name || top1.club_name || ''}
-                </div>
-              </div>
-              <div className="hero-num tnum">{(top1.lifetime_shots || 0).toLocaleString()}</div>
-            </Link>
+        <h1 className="club-h1">
+          {hasActivity ? (
+            <>
+              <span className="club-h1-name">{club.name}</span>
+              <span className="club-h1-em">is climbing the leaderboard.</span>
+            </>
+          ) : (
+            <>
+              <span className="club-h1-name">{club.name}</span>
+              <span className="club-h1-em">isn't on the platform yet.</span>
+            </>
           )}
+        </h1>
+        <p className="club-lede">
+          {hasActivity ? (
+            <>
+              {club.name}{cityPart} is tracking off-ice shots, learning new skills daily, and competing in challenges. See team progress, climb your team's leaderboard, or bring more parents on board.
+            </>
+          ) : (
+            <>
+              Hockey Shot Challenge is an off-ice training platform for youth hockey clubs. Players log shots, get a new skill drop every day, and compete in challenges. {club.name}{cityPart} families can be the first to bring the club on board.
+            </>
+          )}
+        </p>
 
-          {next4.length > 0 && (
-            <div className="rank-list">
-              {next4.map((p, i) => (
-                <RankRow key={p.id} rank={i + 2} player={p} />
-              ))}
+        <div className="club-ctas">
+          {hasActivity ? (
+            <>
+              <button className="club-btn-primary" onClick={() => nav(playerSignupLink)}>
+                Sign in →
+              </button>
+              <button className="club-btn-ghost" onClick={() => nav(coachSignupLink)}>
+                I'm a coach
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="club-btn-primary" onClick={() => nav(coachSignupLink)}>
+                Bring {club.name} on board →
+              </button>
+              <button className="club-btn-ghost" onClick={() => nav('/')}>
+                Learn more
+              </button>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Stats (only if active) */}
+      {hasActivity && (
+        <section className="club-section">
+          <div className="club-stats">
+            <div className="club-stat">
+              <div className="club-stat-num">{stats.playerCount.toLocaleString()}</div>
+              <div className="club-stat-label">Players</div>
             </div>
-          )}
-
-          {rest.length > 0 && !showAll && (
-            <button className="see-all" onClick={() => setShowAll(true)}>
-              See all {lifetime.length} shooters →
-            </button>
-          )}
-
-          {showAll && rest.length > 0 && (
-            <div className="rank-list rank-list--rest">
-              {rest.map((p, i) => (
-                <RankRow key={p.id} rank={i + 6} player={p} />
-              ))}
+            <div className="club-stat">
+              <div className="club-stat-num">{stats.teamCount.toLocaleString()}</div>
+              <div className="club-stat-label">Teams</div>
             </div>
-          )}
+            <div className="club-stat">
+              <div className="club-stat-num">{stats.totalShots.toLocaleString()}</div>
+              <div className="club-stat-label">Shots logged</div>
+            </div>
+          </div>
         </section>
       )}
 
+      {/* Teams (only if any exist) */}
       {teams.length > 0 && (
-        <section className="teams-section">
-          <div className="section-label">Teams ({teams.length})</div>
-          <div className="teams-list">
+        <section className="club-section">
+          <h2 className="club-h2">Teams in {club.name}</h2>
+          <div className="club-teams">
             {teams.map((t) => (
-              <div key={t.id} className="team-row">
-                <div className="team-name">{t.name}</div>
-                {t.code && <div className="team-code">{t.code}</div>}
+              <div key={t.id} className="club-team">
+                <span className="club-team-name">{t.name}</span>
+                <span className="club-team-code">CODE {t.code}</span>
               </div>
             ))}
           </div>
         </section>
       )}
 
-      <div className="cta-spacer" />
-      <div className="cta-dock">
-        <button className="cta-btn" onClick={() => navigate(ctaTarget)}>
-          {ctaLabel}
+      {/* What this is */}
+      <section className="club-section">
+        <h2 className="club-h2">
+          {hasActivity ? `What ${club.name} families do here` : `What ${club.name} families would do here`}
+        </h2>
+        <div className="club-loop">
+          <div className="club-loop-card">
+            <div className="club-loop-icon">🎯</div>
+            <div className="club-loop-verb">LOG</div>
+            <h3 className="club-loop-title">Every off-ice shot.</h3>
+            <p className="club-loop-text">Driveway, basement, garage — every rep shows up on the team leaderboard. Coaches see the work that used to be invisible.</p>
+          </div>
+          <div className="club-loop-card">
+            <div className="club-loop-icon">📺</div>
+            <div className="club-loop-verb">LEARN</div>
+            <h3 className="club-loop-title">A new skill every day.</h3>
+            <p className="club-loop-text">A short skill video each day — stickhandling, shooting, edge work — picked for the player's age. Try it tonight.</p>
+          </div>
+          <div className="club-loop-card">
+            <div className="club-loop-icon">⚔️</div>
+            <div className="club-loop-verb">CHALLENGE</div>
+            <h3 className="club-loop-title">Beat your rivals.</h3>
+            <p className="club-loop-text">Teammate this week. Rival team next month. Whole club across town for the season. Pick your battle.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* For families */}
+      <section className="club-section club-families">
+        <h2 className="club-h2">
+          {hasActivity ? `For ${club.name} parents` : `Calling all ${club.name} parents`}
+        </h2>
+        <p className="club-section-text">
+          {hasActivity ? (
+            <>
+              If your kid plays for {club.name}, ask your coach for the team's invite link. Your kid logs their off-ice shots from home, sees the daily skill drop, and watches their team climb. Free for all {club.name} families.
+            </>
+          ) : (
+            <>
+              Hockey Shot Challenge isn't active at {club.name} yet — but it's free to bring on board. Forward this page to your team coach, your hockey director, or anyone else at {club.name} who can sign the club up. Three minutes per team to set up. No app to install.
+            </>
+          )}
+        </p>
+      </section>
+
+      {/* CTA */}
+      <section className="club-section club-final">
+        <h2 className="club-h2">
+          {hasActivity ? `Ready to log your shots for ${club.name}?` : `Be the parent who brought ${club.name} on board.`}
+        </h2>
+        <button className="club-btn-primary" onClick={() => nav(hasActivity ? playerSignupLink : coachSignupLink)}>
+          {hasActivity ? 'Sign in →' : `Sign up ${club.name} →`}
         </button>
-      </div>
+        <div className="club-final-sub">
+          Free for clubs, coaches, players, and parents.
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="club-footer">
+        <BrandLink nav={nav} />
+        <div className="club-foot-links">
+          <Link to="/" className="club-foot-link">Home</Link>
+          <Link to="/for-clubs" className="club-foot-link">For Clubs</Link>
+        </div>
+        <div className="club-foot-copy">
+          © {new Date().getFullYear()} Hockey Shot Challenge · Built in Burlington, ON
+        </div>
+      </footer>
 
       <style>{styles}</style>
     </div>
   )
 }
 
-function RankRow({ rank, player }) {
-  const teamName = player.team?.name || ''
+function ClubNav({ nav }) {
   return (
-    <Link to={player.username ? `/card/${player.username}` : '#'} className="rank-row">
-      <div className="rank-num tnum">{rank}</div>
-      <div className="rank-body">
-        <div className="rank-name">{player.display_name}</div>
-        {teamName && <div className="rank-meta">{teamName}</div>}
-      </div>
-      <div className="rank-count tnum">{(player.lifetime_shots || 0).toLocaleString()}</div>
-    </Link>
+    <nav className="club-nav">
+      <BrandLink nav={nav} />
+      <button className="club-nav-link" onClick={() => nav('/')}>← Home</button>
+    </nav>
+  )
+}
+
+function BrandLink({ nav }) {
+  return (
+    <button className="club-brand" onClick={() => nav('/')}>
+      <svg width="24" height="24" viewBox="0 0 40 40" style={{ display: 'block', flexShrink: 0 }}>
+        <circle cx="20" cy="20" r="17" fill="#1a2847" stroke="#2979ff" strokeWidth="1" />
+        <path d="M 12 22 L 17.5 27 L 28 15" stroke="#a8d4f5" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <span>Hockey Shot Challenge</span>
+    </button>
   )
 }
 
 const styles = `
-.club {
-  padding: 16px 16px 0;
+.club-screen {
   min-height: 100dvh;
-  max-width: 480px;
-  margin: 0 auto;
-  position: relative;
-}
-
-.club-loading {
-  min-height: 100dvh;
-  display: flex; align-items: center; justify-content: center;
   background: var(--bg);
-}
-.club-loading-text {
-  font-family: var(--font-display);
-  color: var(--text-mute);
-  letter-spacing: 2px;
-  font-size: 12px;
-}
-
-.club-404 {
-  min-height: 100dvh;
-  max-width: 420px;
-  margin: 0 auto;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 24px;
-  text-align: center;
-}
-.club-404-mark {
-  font-family: var(--font-display);
-  font-size: 56px;
-  color: var(--text-mute);
-  margin-bottom: 8px;
-}
-.club-404-title {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
-}
-.club-404-text {
-  color: var(--text-soft);
-  font-size: 14px;
-  line-height: 1.5;
-  margin-bottom: 24px;
-}
-.club-404-slug {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  background: var(--surface);
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-size: 12px;
   color: var(--text);
-}
-.club-404-btn {
-  background: var(--accent);
-  color: white;
-  border-radius: 12px;
-  padding: 14px 28px;
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.club-back {
-  margin-bottom: 8px;
-}
-.club-back-btn {
-  background: var(--surface);
-  color: var(--text);
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  font-size: 18px;
-  display: flex; align-items: center; justify-content: center;
-}
-
-.club-header {
-  margin-bottom: 16px;
-}
-.club-eyebrow {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 11px;
-  color: var(--text-mute);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.club-badge {
-  background: var(--surface);
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-weight: 600;
-  letter-spacing: 0.8px;
-}
-.club-city {
-  font-weight: 500;
-}
-.club-name {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  line-height: 1.1;
-  margin: 0;
-}
-
-.today-strip {
-  background: var(--surface);
-  border-left: 2px solid var(--success);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  margin-bottom: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.today-strip--quiet {
-  border-left-color: var(--border);
-}
-.today-left {
-  display: flex; align-items: center; gap: 8px;
-}
-.today-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--success);
-  box-shadow: 0 0 0 0 rgba(61, 214, 140, 0.5);
-  transition: box-shadow 0.6s;
-}
-.today-dot--pulse {
-  box-shadow: 0 0 0 5px rgba(61, 214, 140, 0);
-  transition: box-shadow 0.6s;
-}
-.today-dot--off {
-  background: var(--text-mute);
-  opacity: 0.5;
-}
-.today-label {
-  font-size: 11px;
-  color: var(--text-mute);
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-.today-body {
-  font-size: 14px;
-  line-height: 1.4;
-  color: var(--text);
-}
-.today-name {
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.3px;
-}
-.today-team {
-  color: var(--text-mute);
-  font-size: 13px;
-}
-.today-count {
-  font-family: var(--font-display);
-  font-weight: 800;
-  color: var(--ice);
-  margin-left: 4px;
-}
-.today-unit {
-  color: var(--text-mute);
-  font-size: 12px;
-}
-.today-quiet-cta {
-  font-size: 13px;
-  color: var(--text-soft);
-}
-
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 18px;
-}
-.stat {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 12px 8px;
-  text-align: center;
-}
-.stat-num {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--ice);
-}
-.stat-label {
-  font-size: 10px;
-  color: var(--text-mute);
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  margin-top: 6px;
-  font-weight: 500;
-}
-
-.empty {
-  background: var(--surface);
-  border-radius: 16px;
-  padding: 28px 22px;
-  text-align: center;
-  margin-bottom: 18px;
-  border: 0.5px dashed var(--border);
-}
-.empty-glyph {
-  font-size: 36px;
-  margin-bottom: 10px;
-}
-.empty-title {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  line-height: 1.3;
-  margin-bottom: 8px;
-}
-.empty-text {
-  font-size: 14px;
-  color: var(--text-soft);
-  line-height: 1.4;
-}
-
-.section-label {
-  font-size: 11px;
-  color: var(--text-mute);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  font-weight: 600;
-  margin-bottom: 10px;
-  margin-top: 4px;
-}
-
-.rank-section {
-  margin-bottom: 22px;
-}
-
-.hero-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: var(--surface);
-  border: 0.5px solid var(--border-dim);
-  border-left: 3px solid var(--ice);
-  border-radius: 16px;
-  padding: 18px 16px;
-  margin-bottom: 8px;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.1s;
-}
-.hero-card:active {
-  transform: scale(0.99);
-}
-.hero-rank {
-  font-family: var(--font-display);
-  font-size: 36px;
-  font-weight: 800;
-  color: var(--ice);
-  width: 38px;
-  text-align: center;
-  line-height: 1;
-}
-.hero-body {
-  flex: 1;
-  min-width: 0;
-}
-.hero-name {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.hero-meta {
-  font-size: 12px;
-  color: var(--text-mute);
-  margin-top: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.hero-num {
-  font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--ice);
-  line-height: 1;
-}
-
-.rank-list {
-  display: flex;
-  flex-direction: column;
-}
-.rank-list--rest {
-  margin-top: 4px;
-  animation: fade-in 0.25s ease-out;
-}
-.rank-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 11px 14px;
-  background: var(--surface);
-  border-radius: 12px;
-  margin-bottom: 4px;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.1s;
-}
-.rank-row:active {
-  transform: scale(0.99);
-}
-.rank-num {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-mute);
-  width: 22px;
-  text-align: center;
-}
-.rank-body {
-  flex: 1;
-  min-width: 0;
-}
-.rank-name {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.rank-meta {
-  font-size: 11px;
-  color: var(--text-mute);
-  margin-top: 1px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.rank-count {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ice);
-}
-
-.see-all {
+  font-family: var(--font-body);
+  overflow-x: hidden;
   width: 100%;
-  background: transparent;
-  color: var(--text-mute);
-  padding: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  margin-top: 4px;
+  max-width: 760px;
+  margin: 0 auto;
 }
-.see-all:active {
-  color: var(--text);
-}
+body:has(.club-screen) { background: var(--bg) !important; }
 
-.teams-section {
-  margin-bottom: 18px;
-}
-.teams-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.team-row {
-  background: var(--surface);
-  border-radius: 10px;
-  padding: 10px 14px;
+/* === NAV === */
+.club-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 16px clamp(16px, 5vw, 24px);
+  border-bottom: 0.5px solid var(--border-dim);
 }
-.team-name {
+.club-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  color: white;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
 }
-.team-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
+.club-nav-link {
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 14px;
+  padding: 6px 10px;
+}
+.club-nav-link:hover { color: white; }
+
+/* === LOADING / 404 === */
+.club-loading {
+  padding: 80px 24px;
+  text-align: center;
   color: var(--text-mute);
-  background: var(--bg);
-  padding: 2px 8px;
-  border-radius: 6px;
-  margin-left: 8px;
-  flex-shrink: 0;
+  font-family: var(--font-display);
+  letter-spacing: 1.5px;
+  font-size: 12px;
+}
+.club-404 {
+  padding: 80px clamp(16px, 5vw, 24px);
+  text-align: center;
+}
+.club-404-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  color: white;
+  margin: 0 0 12px;
+}
+.club-404-text {
+  color: var(--text-soft);
+  font-size: 16px;
+  margin: 0 0 24px;
 }
 
-.cta-spacer {
-  height: 96px;
+/* === HERO === */
+.club-hero {
+  padding: 40px clamp(16px, 5vw, 24px) 32px;
+  text-align: center;
 }
-.cta-dock {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 12px 16px calc(12px + var(--safe-bottom));
-  background: linear-gradient(180deg, transparent, var(--bg) 30%);
-  z-index: 20;
+.club-eyebrow {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ice);
+  letter-spacing: 2px;
+  background: var(--accent-bg);
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+}
+.club-h1 {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5.5vw, 42px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.3px;
+  color: white;
+  margin: 0 0 16px;
+}
+.club-h1-name {
+  display: block;
+  color: white;
+}
+.club-h1-em {
+  display: block;
+  color: var(--ice);
+  margin-top: 4px;
+}
+.club-lede {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--text-soft);
+  margin: 0 0 28px;
+}
+.club-ctas {
   display: flex;
+  gap: 10px;
   justify-content: center;
+  flex-wrap: wrap;
 }
-.cta-btn {
-  width: 100%;
-  max-width: 448px;
+
+/* === BUTTONS === */
+.club-btn-primary {
   background: var(--accent);
   color: white;
-  border-radius: 14px;
-  padding: 16px;
+  padding: 13px 22px;
+  border-radius: 10px;
   font-family: var(--font-display);
   font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  min-height: 54px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  transition: transform 0.1s;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  transition: transform 0.1s, background 0.15s;
 }
-.cta-btn:active {
-  transform: scale(0.985);
+.club-btn-primary:hover { background: var(--accent-soft); }
+.club-btn-primary:active { transform: scale(0.98); }
+.club-btn-ghost {
+  background: transparent;
+  color: var(--ice);
+  padding: 13px 20px;
+  border-radius: 10px;
+  border: 0.5px solid var(--border);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.club-btn-ghost:hover { background: var(--surface); }
+
+/* === SECTIONS === */
+.club-section {
+  padding: 36px clamp(16px, 5vw, 24px);
+  border-top: 0.5px solid var(--border-dim);
+}
+.club-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 4vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: white;
+  margin: 0 0 14px;
+}
+.club-section-text {
+  color: var(--text-soft);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* === STATS === */
+.club-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.club-stat {
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 18px 12px;
+  text-align: center;
+}
+.club-stat-num {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 5vw, 36px);
+  font-weight: 800;
+  color: var(--ice);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.club-stat-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--text-mute);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+/* === TEAMS === */
+.club-teams {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.club-team {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: 10px;
+}
+.club-team-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: white;
+  font-size: 15px;
+}
+.club-team-code {
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--text-mute);
+  letter-spacing: 1.5px;
+  font-weight: 600;
+}
+
+/* === LOOP === */
+.club-loop {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 700px) {
+  .club-loop { grid-template-columns: repeat(3, 1fr); }
+}
+.club-loop-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 20px;
+}
+.club-loop-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+.club-loop-verb {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 5px;
+}
+.club-loop-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: white;
+  margin: 0 0 8px;
+}
+.club-loop-text {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* === FAMILIES === */
+.club-families {
+  background: linear-gradient(180deg, var(--bg), rgba(41, 121, 255, 0.04));
+}
+
+/* === FINAL === */
+.club-final {
+  text-align: center;
+  background: linear-gradient(180deg, var(--bg), rgba(41, 121, 255, 0.08));
+}
+.club-final-sub {
+  font-size: 13px;
+  color: var(--text-mute);
+  margin-top: 14px;
+}
+
+/* === FOOTER === */
+.club-footer {
+  padding: 24px clamp(16px, 5vw, 24px);
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-mute);
+  border-top: 0.5px solid var(--border-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+.club-foot-links {
+  display: flex;
+  gap: 16px;
+}
+.club-foot-link {
+  color: var(--text-soft);
+  font-size: 13px;
+  text-decoration: none;
+}
+.club-foot-link:hover { color: white; }
+.club-foot-copy {
+  font-size: 12px;
+  color: var(--text-mute);
 }
 `
