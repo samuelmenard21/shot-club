@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
+import ContactSection from '../components/ContactSection'
 
 export default function ForClubsScreen() {
   const nav = useNavigate()
@@ -28,7 +29,6 @@ export default function ForClubsScreen() {
 
   return (
     <div className="forclubs">
-      {/* Nav */}
       <nav className="fc-nav">
         <div className="fc-brand" onClick={() => nav('/')} role="button" tabIndex={0}>
           <BrandMark />
@@ -37,7 +37,6 @@ export default function ForClubsScreen() {
         <button className="fc-nav-link" onClick={() => nav('/')}>← Home</button>
       </nav>
 
-      {/* Hero */}
       <section className="fc-hero">
         <div className="fc-eyebrow">FOR LEAGUES, CLUBS, AND ASSOCIATIONS</div>
         <h1 className="fc-h1">
@@ -59,7 +58,6 @@ export default function ForClubsScreen() {
         </div>
       </section>
 
-      {/* 90-second block */}
       <section className="fc-section">
         <div className="fc-ninety">
           <h2 className="fc-ninety-title">The 90-second version</h2>
@@ -85,7 +83,6 @@ export default function ForClubsScreen() {
         </div>
       </section>
 
-      {/* Three pillars / the loop */}
       <section className="fc-section">
         <h2 className="fc-h2">Three things, every day, every player.</h2>
         <p className="fc-section-sub">A daily training rhythm built around the off-ice work kids were already (or should already be) doing.</p>
@@ -112,7 +109,6 @@ export default function ForClubsScreen() {
         </div>
       </section>
 
-      {/* Challenges — three tiers */}
       <section className="fc-section">
         <div className="fc-challenges">
           <h2 className="fc-challenges-title">How challenges work</h2>
@@ -145,7 +141,6 @@ export default function ForClubsScreen() {
         </div>
       </section>
 
-      {/* What to forward */}
       <section className="fc-section" id="what-to-forward">
         <h2 className="fc-h2">What to forward to your coaches</h2>
         <p className="fc-section-sub">
@@ -160,7 +155,6 @@ export default function ForClubsScreen() {
         </div>
       </section>
 
-      {/* FAQ */}
       <section className="fc-section">
         <h2 className="fc-h2">Questions you're probably asking</h2>
 
@@ -212,16 +206,16 @@ export default function ForClubsScreen() {
         </div>
       </section>
 
-      {/* Final CTA */}
       <section className="fc-section fc-final">
         <h2 className="fc-h2">Want a signup link for your league or club?</h2>
         <p className="fc-section-sub">
-          Reply to my email and I'll send a personalized signup link for your association — yours to share with member clubs whenever you're ready.
+          Reach out and I'll send a personalized signup link for your association — yours to share with member clubs whenever you're ready.
         </p>
         <button className="fc-btn-primary" onClick={() => nav('/coach')}>Start your club</button>
       </section>
 
-      {/* Footer */}
+      <ContactSection />
+
       <footer className="fc-footer">
         Hockey Shot Challenge · Built in Burlington, ON ·
         <button className="fc-foot-link" onClick={() => nav('/')}>Home</button>
@@ -256,7 +250,7 @@ function MockScreen() {
         <div className="fc-mock-skill">
           <div className="fc-mock-skill-play">▶</div>
           <div className="fc-mock-skill-info">
-            <div className="fc-mock-skill-label">TODAY'S SKILL</div>
+            <div className="fc-mock-skill-label">FEATURED SKILL</div>
             <div className="fc-mock-skill-name">Toe drag → quick release</div>
             <div className="fc-mock-skill-time">2:14 · Try it tonight</div>
           </div>
@@ -310,7 +304,6 @@ const styles = `
 }
 body:has(.forclubs) { background: var(--bg) !important; }
 
-/* === NAV === */
 .fc-nav {
   display: flex;
   justify-content: space-between;
@@ -337,7 +330,6 @@ body:has(.forclubs) { background: var(--bg) !important; }
 }
 .fc-nav-link:hover { color: white; }
 
-/* === HERO === */
 .fc-hero {
   padding: 40px clamp(16px, 5vw, 24px) 32px;
   text-align: center;
@@ -373,7 +365,6 @@ body:has(.forclubs) { background: var(--bg) !important; }
   margin: 0 0 28px;
 }
 
-/* === MOCK PHONE === */
 .fc-phone-wrap {
   display: flex;
   justify-content: center;
@@ -522,7 +513,6 @@ body:has(.forclubs) { background: var(--bg) !important; }
   margin-left: 3px;
 }
 
-/* === HERO CTAS === */
 .fc-ctas {
   display: flex;
   gap: 10px;
@@ -558,7 +548,6 @@ body:has(.forclubs) { background: var(--bg) !important; }
 }
 .fc-btn-ghost:hover { background: var(--surface); }
 
-/* === SECTIONS === */
 .fc-section {
   padding: 36px clamp(16px, 5vw, 24px);
   border-top: 0.5px solid var(--border-dim);
@@ -578,7 +567,6 @@ body:has(.forclubs) { background: var(--bg) !important; }
   margin: 0 0 20px;
 }
 
-/* === 90-SECOND BLOCK === */
 .fc-ninety {
   background: var(--surface);
   border: 0.5px solid var(--border-dim);
@@ -610,7 +598,6 @@ body:has(.forclubs) { background: var(--bg) !important; }
   line-height: 1.55;
 }
 
-/* === LOOP === */
 .fc-loop {
   display: grid;
   grid-template-columns: 1fr;
@@ -652,7 +639,6 @@ body:has(.forclubs) { background: var(--bg) !important; }
   margin: 0;
 }
 
-/* === CHALLENGES === */
 .fc-challenges {
   background: linear-gradient(180deg, var(--bg), rgba(41, 121, 255, 0.05));
   border: 0.5px solid var(--border-dim);
@@ -712,7 +698,6 @@ body:has(.forclubs) { background: var(--bg) !important; }
   border-top: 0.5px solid var(--border-dim);
 }
 
-/* === WHAT TO FORWARD === */
 .fc-forward {
   background: var(--surface);
   border-left: 3px solid var(--accent);
@@ -736,7 +721,6 @@ body:has(.forclubs) { background: var(--bg) !important; }
   line-height: 1.55;
 }
 
-/* === FAQ === */
 .fc-faq-list { display: flex; flex-direction: column; gap: 6px; }
 .fc-faq {
   background: var(--surface);
@@ -778,13 +762,11 @@ body:has(.forclubs) { background: var(--bg) !important; }
   line-height: 1.55;
 }
 
-/* === FINAL === */
 .fc-final {
   text-align: center;
   background: linear-gradient(180deg, var(--bg), rgba(41, 121, 255, 0.08));
 }
 
-/* === FOOTER === */
 .fc-footer {
   padding: 24px clamp(16px, 5vw, 24px);
   text-align: center;
