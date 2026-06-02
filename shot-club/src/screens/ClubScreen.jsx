@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import { getClubBySlug, getClubStats, getClubTeams } from '../lib/clubs'
+import ContactSection from '../components/ContactSection'
 
 export default function ClubScreen() {
   const { slug } = useParams()
@@ -21,7 +22,6 @@ export default function ClubScreen() {
       if (!c) {
         setNotFound(true)
         setLoading(false)
-        // Still set SEO so a 404 page has proper noindex
         setSEO({
           title: 'Club not found',
           description: 'This club hasn\'t been set up on Hockey Shot Challenge yet.',
@@ -41,7 +41,6 @@ export default function ClubScreen() {
       setTeams(t)
       setLoading(false)
 
-      // SEO — unique title + description per club
       const cityPart = c.city ? `, ${c.city}` : ''
       setSEO({
         title: `${c.name}${cityPart} — Off-Ice Training`,
@@ -49,7 +48,6 @@ export default function ClubScreen() {
         url: `${CANONICAL_URL}/clubs/${slug}`,
       })
 
-      // Structured data — SportsOrganization schema for the club
       addStructuredData({
         '@context': 'https://schema.org',
         '@type': 'SportsOrganization',
@@ -109,7 +107,6 @@ export default function ClubScreen() {
     <div className="club-screen">
       <ClubNav nav={nav} />
 
-      {/* Hero */}
       <section className="club-hero">
         <div className="club-eyebrow">
           {hasActivity ? 'ACTIVE ON HOCKEY SHOT CHALLENGE' : 'JOIN THE CHALLENGE'}
@@ -130,11 +127,11 @@ export default function ClubScreen() {
         <p className="club-lede">
           {hasActivity ? (
             <>
-              {club.name}{cityPart} is tracking off-ice shots, learning new skills daily, and competing in challenges. See team progress, climb your team's leaderboard, or bring more parents on board.
+              {club.name}{cityPart} is tracking off-ice shots, learning new skills, and competing in challenges. See team progress, climb your team's leaderboard, or bring more parents on board.
             </>
           ) : (
             <>
-              Hockey Shot Challenge is an off-ice training platform for youth hockey clubs. Players log shots, get a new skill drop every day, and compete in challenges. {club.name}{cityPart} families can be the first to bring the club on board.
+              Hockey Shot Challenge is an off-ice training platform for youth hockey clubs. Players log shots, browse a growing skill video library, and compete in challenges. {club.name}{cityPart} families can be the first to bring the club on board.
             </>
           )}
         </p>
@@ -162,7 +159,6 @@ export default function ClubScreen() {
         </div>
       </section>
 
-      {/* Stats (only if active) */}
       {hasActivity && (
         <section className="club-section">
           <div className="club-stats">
@@ -182,7 +178,6 @@ export default function ClubScreen() {
         </section>
       )}
 
-      {/* Teams (only if any exist) */}
       {teams.length > 0 && (
         <section className="club-section">
           <h2 className="club-h2">Teams in {club.name}</h2>
@@ -197,7 +192,6 @@ export default function ClubScreen() {
         </section>
       )}
 
-      {/* What this is */}
       <section className="club-section">
         <h2 className="club-h2">
           {hasActivity ? `What ${club.name} families do here` : `What ${club.name} families would do here`}
@@ -212,8 +206,8 @@ export default function ClubScreen() {
           <div className="club-loop-card">
             <div className="club-loop-icon">📺</div>
             <div className="club-loop-verb">LEARN</div>
-            <h3 className="club-loop-title">A new skill every day.</h3>
-            <p className="club-loop-text">A short skill video each day — stickhandling, shooting, edge work — picked for the player's age. Try it tonight.</p>
+            <h3 className="club-loop-title">A growing skill library.</h3>
+            <p className="club-loop-text">Short skill videos — stickhandling, shooting, edge work — matched to the player's age. Browse anytime.</p>
           </div>
           <div className="club-loop-card">
             <div className="club-loop-icon">⚔️</div>
@@ -224,7 +218,6 @@ export default function ClubScreen() {
         </div>
       </section>
 
-      {/* For families */}
       <section className="club-section club-families">
         <h2 className="club-h2">
           {hasActivity ? `For ${club.name} parents` : `Calling all ${club.name} parents`}
@@ -232,7 +225,7 @@ export default function ClubScreen() {
         <p className="club-section-text">
           {hasActivity ? (
             <>
-              If your kid plays for {club.name}, ask your coach for the team's invite link. Your kid logs their off-ice shots from home, sees the daily skill drop, and watches their team climb. Free for all {club.name} families.
+              If your kid plays for {club.name}, ask your coach for the team's invite link. Your kid logs their off-ice shots from home, browses the skill library, and watches their team climb. Free for all {club.name} families.
             </>
           ) : (
             <>
@@ -242,7 +235,6 @@ export default function ClubScreen() {
         </p>
       </section>
 
-      {/* CTA */}
       <section className="club-section club-final">
         <h2 className="club-h2">
           {hasActivity ? `Ready to log your shots for ${club.name}?` : `Be the parent who brought ${club.name} on board.`}
@@ -255,7 +247,8 @@ export default function ClubScreen() {
         </div>
       </section>
 
-      {/* Footer */}
+      <ContactSection />
+
       <footer className="club-footer">
         <BrandLink nav={nav} />
         <div className="club-foot-links">
@@ -306,7 +299,6 @@ const styles = `
 }
 body:has(.club-screen) { background: var(--bg) !important; }
 
-/* === NAV === */
 .club-nav {
   display: flex;
   justify-content: space-between;
@@ -335,7 +327,6 @@ body:has(.club-screen) { background: var(--bg) !important; }
 }
 .club-nav-link:hover { color: white; }
 
-/* === LOADING / 404 === */
 .club-loading {
   padding: 80px 24px;
   text-align: center;
@@ -361,7 +352,6 @@ body:has(.club-screen) { background: var(--bg) !important; }
   margin: 0 0 24px;
 }
 
-/* === HERO === */
 .club-hero {
   padding: 40px clamp(16px, 5vw, 24px) 32px;
   text-align: center;
@@ -409,7 +399,6 @@ body:has(.club-screen) { background: var(--bg) !important; }
   flex-wrap: wrap;
 }
 
-/* === BUTTONS === */
 .club-btn-primary {
   background: var(--accent);
   color: white;
@@ -436,7 +425,6 @@ body:has(.club-screen) { background: var(--bg) !important; }
 }
 .club-btn-ghost:hover { background: var(--surface); }
 
-/* === SECTIONS === */
 .club-section {
   padding: 36px clamp(16px, 5vw, 24px);
   border-top: 0.5px solid var(--border-dim);
@@ -456,7 +444,6 @@ body:has(.club-screen) { background: var(--bg) !important; }
   margin: 0;
 }
 
-/* === STATS === */
 .club-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -487,7 +474,6 @@ body:has(.club-screen) { background: var(--bg) !important; }
   margin-top: 8px;
 }
 
-/* === TEAMS === */
 .club-teams {
   display: flex;
   flex-direction: column;
@@ -516,7 +502,6 @@ body:has(.club-screen) { background: var(--bg) !important; }
   font-weight: 600;
 }
 
-/* === LOOP === */
 .club-loop {
   display: grid;
   grid-template-columns: 1fr;
@@ -557,12 +542,10 @@ body:has(.club-screen) { background: var(--bg) !important; }
   margin: 0;
 }
 
-/* === FAMILIES === */
 .club-families {
   background: linear-gradient(180deg, var(--bg), rgba(41, 121, 255, 0.04));
 }
 
-/* === FINAL === */
 .club-final {
   text-align: center;
   background: linear-gradient(180deg, var(--bg), rgba(41, 121, 255, 0.08));
@@ -573,7 +556,6 @@ body:has(.club-screen) { background: var(--bg) !important; }
   margin-top: 14px;
 }
 
-/* === FOOTER === */
 .club-footer {
   padding: 24px clamp(16px, 5vw, 24px);
   text-align: center;
