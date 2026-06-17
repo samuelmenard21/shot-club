@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signUp, signIn } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
 import {
   getClubBySlug,
   findOrCreateTeamForPlayer,
+  searchClubs,
   AGE_DIVISIONS,
   TIERS,
 } from '../lib/clubs'
@@ -33,6 +34,14 @@ export default function AuthScreen() {
   const [generatedClubName, setGeneratedClubName] = useState('')
   const [copiedWhat, setCopiedWhat] = useState('')
   const [shared, setShared] = useState(false)
+  // Join-path club search
+  const [joinClub, setJoinClub] = useState(null)
+  const [joinClubQuery, setJoinClubQuery] = useState('')
+  const [joinClubResults, setJoinClubResults] = useState([])
+  const [joinSearching, setJoinSearching] = useState(false)
+  const [showFreeText, setShowFreeText] = useState(false)
+  const joinClubTimer = useRef(null)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const nav = useNavigate()
@@ -46,6 +55,28 @@ export default function AuthScreen() {
       noindex: true,
     })
   }, [mode])
+
+  // Debounced search for join-path club picker
+  useEffect(() => {
+    if (joinClubTimer.current) clearTimeout(joinClubTimer.current)
+    if (!joinClubQuery.trim() || joinClubQuery.trim().length < 2) {
+      setJoinClubResults([])
+      setJoinSearching(false)
+      return
+    }
+    setJoinSearching(true)
+    joinClubTimer.current = setTimeout(async () => {
+      try {
+        const results = await searchClubs(joinClubQuery, 6)
+        setJoinClubResults(results || [])
+      } catch (e) {
+        setJoinClubResults([])
+      } finally {
+        setJoinSearching(false)
+      }
+    }, 200)
+    return () => { if (joinClubTimer.current) clearTimeout(joinClubTimer.current) }
+  }, [joinClubQuery])
 
   // Check for pre-selected club via URL (from /join/:slug redirect)
   useEffect(() => {
@@ -82,9 +113,18 @@ export default function AuthScreen() {
       return
     }
 
-    // Legacy free-text Join path
-    if (path === 'join' && !teamName.trim()) {
-      setError('Type a team name to join.')
+    // Join path with a club selected — need age + tier
+    if (path === 'join' && joinClub) {
+      if (!ageDivision) { setError('Pick your age division.'); return }
+      if (!tier) { setError('Pick your tier.'); return }
+      setError('')
+      setStep(2)
+      return
+    }
+
+    // Join path free-text fallback
+    if (path === 'join' && !joinClub && !teamName.trim()) {
+      setError('Search for your club or enter a team name.')
       return
     }
 
@@ -116,6 +156,16 @@ export default function AuthScreen() {
         teamIdToUse = teamResult.teamId
         clubIdToUse = preClub.id
         clubNameToUse = preClub.name
+        displayTeamLabel = `${ageDivision} ${tier}`
+      } else if (path === 'join' && joinClub) {
+        const teamResult = await findOrCreateTeamForPlayer({
+          clubId: joinClub.id,
+          ageDivision,
+          tier,
+        })
+        teamIdToUse = teamResult.teamId
+        clubIdToUse = joinClub.id
+        clubNameToUse = joinClub.name
         displayTeamLabel = `${ageDivision} ${tier}`
       } else if (path === 'join') {
         teamNameToUse = teamName.trim().toUpperCase()
@@ -324,34 +374,89 @@ export default function AuthScreen() {
                   </div>
                   {path === 'join' && (
                     <div className="path-body">
-                      <label className="input-label">
-                        <span>Team name</span>
-                        <input
-                          type="text"
-                          value={teamName}
-                          onChange={(e) => setTeamName(e.target.value.toUpperCase())}
-                          placeholder="e.g. NORTHSTARS"
-                          autoCapitalize="characters"
-                          autoCorrect="off"
-                          spellCheck="false"
-                          className="input-field input-field--code"
-                          autoFocus
-                        />
-                      </label>
-                      <div className="path-hint">
-                        Same name as your teammates = you're on the same team.
-                      </div>
-
-                      <label className="input-label" style={{ marginTop: 14 }}>
-                        <span>Club name (optional)</span>
-                        <input
-                          type="text"
-                          value={clubName}
-                          onChange={(e) => setClubName(e.target.value)}
-                          placeholder="e.g. Burlington Eagles"
-                          className="input-field"
-                        />
-                      </label>
+                      {!joinClub ? (
+                        <>
+                          <div className="path-hint" style={{ marginBottom: 10 }}>
+                            Search for your club to find your team.
+                          </div>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type="text"
+                              value={joinClubQuery}
+                              onChange={(e) => setJoinClubQuery(e.target.value)}
+                              placeholder="Burlington Eagles, Mississauga…"
+                              autoCorrect="off"
+                              autoCapitalize="none"
+                              spellCheck="false"
+                              className="input-field"
+                              autoFocus
+                            />
+                            {joinClubQuery.trim().length >= 2 && (
+                              <div className="join-club-dropdown">
+                                {joinSearching && <div className="join-club-status">Searching…</div>}
+                                {!joinSearching && joinClubResults.length === 0 && (
+                                  <div className="join-club-status">No clubs found.</div>
+                                )}
+                                {joinClubResults.map((c) => (
+                                  <button
+                                    key={c.id}
+                                    className="join-club-result"
+                                    onClick={() => { setJoinClub(c); setJoinClubQuery(''); setJoinClubResults([]) }}
+                                  >
+                                    <span className="join-club-result-name">{c.name}</span>
+                                    {c.city && <span className="join-club-result-meta">{c.city}</span>}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          {!showFreeText ? (
+                            <button className="btn-text" style={{ marginTop: 6, fontSize: 11 }} onClick={() => setShowFreeText(true)}>
+                              My club isn't listed
+                            </button>
+                          ) : (
+                            <>
+                              <label className="input-label" style={{ marginTop: 12 }}>
+                                <span>Team name</span>
+                                <input
+                                  type="text"
+                                  value={teamName}
+                                  onChange={(e) => setTeamName(e.target.value.toUpperCase())}
+                                  placeholder="e.g. NORTHSTARS"
+                                  autoCapitalize="characters"
+                                  autoCorrect="off"
+                                  spellCheck="false"
+                                  className="input-field input-field--code"
+                                />
+                              </label>
+                              <div className="path-hint">Same name as your teammates = same leaderboard.</div>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div className="join-club-selected">
+                            <div className="join-club-selected-name">{joinClub.name}</div>
+                            {joinClub.city && <div className="join-club-selected-city">{joinClub.city}</div>}
+                            <button className="join-club-change" onClick={() => { setJoinClub(null); setAgeDivision(''); setTier('') }}>Change</button>
+                          </div>
+                          <label className="input-label" style={{ marginTop: 12 }}>
+                            <span>Age division</span>
+                            <select value={ageDivision} onChange={(e) => setAgeDivision(e.target.value)} className="input-field">
+                              <option value="">Pick one</option>
+                              {AGE_DIVISIONS.map((a) => <option key={a} value={a}>{a}</option>)}
+                            </select>
+                          </label>
+                          <label className="input-label" style={{ marginTop: 10 }}>
+                            <span>Tier</span>
+                            <select value={tier} onChange={(e) => setTier(e.target.value)} className="input-field">
+                              <option value="">Pick one</option>
+                              {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                          </label>
+                          <div className="path-hint" style={{ marginTop: 6 }}>Not sure? Ask your coach.</div>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -879,6 +984,66 @@ const styles = `
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.4px;
+}
+
+.join-club-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  z-index: 30;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+.join-club-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 14px;
+  border-bottom: 0.5px solid var(--border-dim);
+  text-align: left;
+  transition: background 0.1s;
+}
+.join-club-result:last-child { border-bottom: none; }
+.join-club-result:hover { background: var(--bg); }
+.join-club-result-name {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  color: white;
+}
+.join-club-result-meta { font-size: 11px; color: var(--text-mute); margin-top: 1px; }
+.join-club-status {
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--text-mute);
+  text-align: center;
+}
+.join-club-selected {
+  background: var(--surface-raised);
+  border: 0.5px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.join-club-selected-name {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  color: white;
+  flex: 1;
+}
+.join-club-selected-city { font-size: 11px; color: var(--text-mute); }
+.join-club-change {
+  background: transparent;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .label-sm {
