@@ -1,10 +1,36 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import ContactSection from '../components/ContactSection'
+import { searchClubs } from '../lib/clubs'
 
 export default function LandingScreen() {
   const nav = useNavigate()
+  const [clubQuery, setClubQuery] = useState('')
+  const [clubResults, setClubResults] = useState([])
+  const [searchingClubs, setSearchingClubs] = useState(false)
+  const searchTimer = useRef(null)
+
+  useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    if (!clubQuery.trim() || clubQuery.trim().length < 2) {
+      setClubResults([])
+      setSearchingClubs(false)
+      return
+    }
+    setSearchingClubs(true)
+    searchTimer.current = setTimeout(async () => {
+      try {
+        const results = await searchClubs(clubQuery, 6)
+        setClubResults(results || [])
+      } catch (e) {
+        setClubResults([])
+      } finally {
+        setSearchingClubs(false)
+      }
+    }, 200)
+    return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
+  }, [clubQuery])
 
   useEffect(() => {
     setSEO({
@@ -60,6 +86,44 @@ export default function LandingScreen() {
         </p>
 
         <div className="hero-pick">
+          <div className="hero-search-wrap">
+            <input
+              type="text"
+              className="hero-search-input"
+              placeholder="Search for your club or association..."
+              value={clubQuery}
+              onChange={(e) => setClubQuery(e.target.value)}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck="false"
+            />
+            {clubQuery.trim().length >= 2 && (
+              <div className="hero-search-dropdown">
+                {searchingClubs && clubResults.length === 0 && (
+                  <div className="hero-search-status">Searching…</div>
+                )}
+                {!searchingClubs && clubResults.length === 0 && (
+                  <div className="hero-search-status">
+                    No clubs found. <button className="hero-search-add" onClick={() => nav('/coach')}>Add yours →</button>
+                  </div>
+                )}
+                {clubResults.map((c) => (
+                  <button
+                    key={c.id}
+                    className="hero-search-result"
+                    onClick={() => { nav(`/clubs/${c.slug}`); setClubQuery(''); setClubResults([]) }}
+                  >
+                    <span className="hero-search-result-name">{c.name}</span>
+                    <span className="hero-search-result-meta">
+                      {[c.city, c.governing_body].filter(Boolean).join(' · ')}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="hero-pick-label">WHO ARE YOU?</div>
 
           <div className="hero-cards">
@@ -534,6 +598,75 @@ body:has(.landing) { background: var(--bg) !important; }
 
 .hero-pick {
   margin-top: 8px;
+}
+.hero-search-wrap {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto 20px;
+}
+.hero-search-input {
+  width: 100%;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  color: var(--text);
+  font-size: 15px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.hero-search-input:focus { border-color: var(--accent); }
+.hero-search-input::placeholder { color: var(--text-mute); }
+.hero-search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0; right: 0;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 50;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+.hero-search-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 12px 16px;
+  border-bottom: 0.5px solid var(--border-dim);
+  text-align: left;
+  transition: background 0.1s;
+}
+.hero-search-result:last-child { border-bottom: none; }
+.hero-search-result:hover { background: var(--bg); }
+.hero-search-result-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.2px;
+}
+.hero-search-result-meta {
+  font-size: 12px;
+  color: var(--text-mute);
+  margin-top: 2px;
+}
+.hero-search-status {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--text-mute);
+  text-align: center;
+}
+.hero-search-add {
+  background: transparent;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  display: inline;
 }
 .hero-pick-label {
   font-family: var(--font-display);

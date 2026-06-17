@@ -9,7 +9,7 @@ export default function ForClubsScreen() {
   useEffect(() => {
     setSEO({
       title: 'For Clubs & Leagues',
-      description: 'An off-ice training platform built for minor hockey clubs. Players log shots, learn a new skill every day, and compete in player, team, and club challenges. Built for the whole hockey community.',
+      description: 'An off-ice training platform built for minor hockey clubs. Players log shots and stickhandling reps, access a growing skill library, and compete in team and club challenges. Built for the whole hockey community.',
       url: `${CANONICAL_URL}/for-clubs`,
     })
 
@@ -43,7 +43,7 @@ export default function ForClubsScreen() {
           The off-ice training platform <span className="fc-h1-em">your member clubs don't have yet.</span>
         </h1>
         <p className="fc-lede">
-          Players log shots, watch a new skill drop every day, and challenge each other across teammates, rival teams, and rival clubs. The training piece that connects the entire hockey community — for the work that used to happen invisibly at home.
+          Players log shots and stickhandling reps, work through a growing skill library, and challenge each other across teammates, rival teams, and rival clubs. The training piece that connects the entire hockey community — for the work that used to happen invisibly at home.
         </p>
 
         <div className="fc-phone-wrap">
@@ -63,7 +63,7 @@ export default function ForClubsScreen() {
           <h2 className="fc-ninety-title">The 90-second version</h2>
           <dl className="fc-dl">
             <dt>What it is</dt>
-            <dd>An off-ice training platform built for youth hockey clubs and teams. Players ages 6–18 log their at-home shooting practice, watch a new skill video every day, and compete in challenges across teammates, rival teams, and rival clubs.</dd>
+            <dd>An off-ice training platform built for youth hockey clubs and teams. Players ages 6–18 log their at-home shots and stickhandling reps, access a growing skill video library, and compete in challenges across teammates, rival teams, and rival clubs.</dd>
 
             <dt>Why it exists</dt>
             <dd>Game stat apps cover what happens on the ice. Team management apps cover scheduling. Off-ice — the work kids do at home with a shooting pad, the daily skill development between practices — has been invisible until now. Coaches couldn't see it, kids didn't get credit for it, and clubs had no way to rally around it. We built the piece that was missing.</dd>
@@ -84,8 +84,8 @@ export default function ForClubsScreen() {
       </section>
 
       <section className="fc-section">
-        <h2 className="fc-h2">Three things, every day, every player.</h2>
-        <p className="fc-section-sub">A daily training rhythm built around the off-ice work kids were already (or should already be) doing.</p>
+        <h2 className="fc-h2">Three things. Every player.</h2>
+        <p className="fc-section-sub">A training rhythm built around the off-ice work kids were already (or should already be) doing.</p>
 
         <div className="fc-loop">
           <div className="fc-loop-card">
@@ -97,8 +97,8 @@ export default function ForClubsScreen() {
           <div className="fc-loop-card">
             <div className="fc-loop-icon">📺</div>
             <div className="fc-loop-verb">LEARN</div>
-            <h3 className="fc-loop-title">One new skill a day.</h3>
-            <p className="fc-loop-text">A short video — stickhandling drill, shooting tip, edge work — picked for the player's age. Try it tonight. Better tomorrow than yesterday.</p>
+            <h3 className="fc-loop-title">A growing skill library.</h3>
+            <p className="fc-loop-text">Short videos — stickhandling drills, shooting tips, edge work — matched to the player's age bracket. Pick what to work on tonight.</p>
           </div>
           <div className="fc-loop-card">
             <div className="fc-loop-icon">⚔️</div>
@@ -150,7 +150,7 @@ export default function ForClubsScreen() {
         <div className="fc-forward">
           <div className="fc-forward-label">SUGGESTED NEWSLETTER BLURB</div>
           <p className="fc-forward-text">
-            "A hockey parent in Ontario built a new off-ice training platform called <strong>Hockey Shot Challenge</strong>. Players log their off-ice shots, get a new skill video every day, and can challenge teammates, other teams, or even rival clubs head-to-head. It tracks the work kids do at home that nobody used to see, and gives whole associations a way to rally around it. Runs in a browser — no install. Worth a look if you want your team putting in real off-ice reps between practices. <strong>hockeyshotchallenge.com</strong>"
+            "A hockey parent in Ontario built a new off-ice training platform called <strong>Hockey Shot Challenge</strong>. Players log their off-ice shots and stickhandling reps, work through a skill video library, and can challenge teammates, other teams, or even rival clubs head-to-head. It tracks the work kids do at home that nobody used to see, and gives whole associations a way to rally around it. Runs in a browser — no install. Worth a look if you want your team putting in real off-ice reps between practices. <strong>hockeyshotchallenge.com</strong>"
           </p>
         </div>
       </section>
@@ -165,8 +165,8 @@ export default function ForClubsScreen() {
           </details>
 
           <details className="fc-faq">
-            <summary>Where do the daily skill videos come from?</summary>
-            <p>Curated from hockey coaches and skill creators. Every video is reviewed before it appears in the app, and videos are matched to the player's age bracket — a U8 sees different content than a U16. Over time we'll expand to include videos submitted by club coaches.</p>
+            <summary>Where do the skill videos come from?</summary>
+            <p>Curated from hockey coaches and skill creators. Every video is reviewed before it appears in the app, and videos are matched to the player's age bracket — a U8 sees different content than a U16. The library grows over time.</p>
           </details>
 
           <details className="fc-faq">

@@ -534,3 +534,98 @@ select
     as shots_this_week,
   coalesce(count(s.id) filter (where s.is_flagged = false), 0::bigint)
     as sessions_this_week,
+  max(s.started_at) filter (where s.is_flagged = false) as last_session_at,
+  coalesce((
+    select sum(dl.count) from public.drill_logs dl cross join current_monday cm2
+    where dl.player_id = p.id and dl.drill_type = 'Stickhandling'
+      and dl.log_date >= cm2.monday
+      and dl.log_date < (cm2.monday + interval '7 days')::date
+  ), 0)::bigint as stickhandling_reps_this_week,
+  coalesce((
+    select sum(dl.duration_minutes) from public.drill_logs dl cross join current_monday cm3
+    where dl.player_id = p.id and dl.drill_type = 'Stickhandling'
+      and dl.log_date >= cm3.monday
+      and dl.log_date < (cm3.monday + interval '7 days')::date
+  ), 0)::numeric as stickhandling_minutes_this_week
+from public.players p
+cross join current_monday cm
+left join public.sessions s on s.player_id = p.id
+  and s.started_at >= cm.monday::timestamptz
+  and s.started_at < (cm.monday + interval '7 days')::timestamptz
+group by p.id, p.username, p.display_name, p.team_id, p.club_id, cm.monday;
+
+-- 7. current_week_team_progress — preserve existing 11 columns, append 3
+create or replace view public.current_week_team_progress as
+with current_monday as (
+  select date_trunc('week'::text, (now() at time zone 'utc'::text))::date as monday
+),
+team_sessions_this_week as (
+  select p.team_id,
+    sum(case when s.is_flagged = false then coalesce(s.total_shots, 0) else 0 end) as shots_total,
+    count(*) filter (where s.is_flagged = false) as sessions_total,
+    count(distinct s.player_id) filter (where s.is_flagged = false) as active_players
+  from public.sessions s
+    join public.players p on p.id = s.player_id
+    cross join current_monday cm_1
+  where s.started_at >= cm_1.monday::timestamptz
+    and s.started_at < (cm_1.monday + interval '7 days')::timestamptz
+    and p.team_id is not null
+  group by p.team_id
+),
+team_drills_this_week as (
+  select p.team_id,
+    coalesce(sum(dl.count), 0)::bigint as stickhandling_reps_total,
+    coalesce(sum(dl.duration_minutes), 0)::numeric as stickhandling_minutes_total
+  from public.drill_logs dl
+    join public.players p on p.id = dl.player_id
+    cross join current_monday cm_2
+  where dl.drill_type = 'Stickhandling'
+    and dl.log_date >= cm_2.monday
+    and dl.log_date < (cm_2.monday + interval '7 days')::date
+    and p.team_id is not null
+  group by p.team_id
+)
+select
+  t.id as team_id,
+  t.name as team_name,
+  t.club_id,
+  cm.monday as week_starting,
+  coalesce(g.shot_target, 150) as shot_target,
+  coalesce(g.session_target, 3) as session_target,
+  coalesce(ts.shots_total, 0::bigint) as shots_total,
+  coalesce(ts.sessions_total, 0::bigint) as sessions_total,
+  coalesce(ts.active_players, 0::bigint) as active_players,
+  case when coalesce(g.shot_target, 150) = 0 then 0::numeric
+       else round(coalesce(ts.shots_total, 0::bigint)::numeric
+                  / coalesce(g.shot_target, 150)::numeric * 100::numeric)
+  end as pct_of_goal,
+  coalesce(g.set_by_default, true) as goal_is_default,
+  coalesce(td.stickhandling_reps_total, 0::bigint) as stickhandling_reps_total,
+  coalesce(td.stickhandling_minutes_total, 0::numeric) as stickhandling_minutes_total,
+  case when g.stickhandling_target is null or g.stickhandling_target = 0 then null::numeric
+       else round(coalesce(td.stickhandling_reps_total, 0::bigint)::numeric
+                  / g.stickhandling_target::numeric * 100::numeric)
+  end as pct_of_stickhandling_goal
+from public.teams t
+  cross join current_monday cm
+  left join public.weekly_team_goals g on g.team_id = t.id and g.week_starting = cm.monday
+  left join team_sessions_this_week ts on ts.team_id = t.id
+  left join team_drills_this_week td on td.team_id = t.id
+where t.is_active = true;
+```
+
+**Recommendation for the next thread:** consider running `pg_dump --schema-only` (or its Supabase equivalent) and saving the output as a real `002_production_snapshot.sql` file in the repo so the migrations folder finally reflects reality. Then keep new changes as proper sequential migration files (`003_*.sql`, etc.).
+
+---
+
+## End of Handoff
+
+When you (the next Claude) start the next thread, your first messages should be:
+
+1. Confirm you've read this entire document
+2. Ask Sam to run the verification queries in Section 8 and paste results
+3. Begin Phase A (Foundation) per Section 5
+
+Do not skip ahead. Do not assume earlier handoff docs are accurate without verifying. Trust the live database over any file in the repo.
+
+Good luck.
