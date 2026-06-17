@@ -508,6 +508,26 @@ export default function CoachAuthScreen() {
             <button className="c-text-btn" onClick={() => setShowCustomClub(true)}>
               My association isn't listed
             </button>
+            <button
+              className="c-text-btn"
+              onClick={async () => {
+                setError('')
+                setLoading(true)
+                try {
+                  const club = await getClubBySlug('independent')
+                  if (!club) throw new Error('Could not load independent teams. Try again.')
+                  setSelectedClub(club)
+                  setStep(3)
+                } catch (e) {
+                  setError(e?.message || 'Something went wrong. Try again.')
+                } finally {
+                  setLoading(false)
+                }
+              }}
+              disabled={loading}
+            >
+              {loading ? 'Loading…' : "I don't have an association — just my team"}
+            </button>
             <button className="c-text-btn" onClick={() => setStep(1)}>← Back</button>
           </>
         )}
@@ -571,13 +591,20 @@ export default function CoachAuthScreen() {
         {/* Step 3 — team age + tier */}
         {step === 3 && (
           <>
-            {selectedClub && (
+            {selectedClub && selectedClub.slug !== 'independent' && (
               <div className="c-clubchip">
                 <div className="c-clubchip-eyebrow">{selectedClub.governing_body || 'ASSOCIATION'}{selectedClub.city ? ` · ${selectedClub.city}` : ''}</div>
                 <div className="c-clubchip-name">{selectedClub.name}</div>
                 {!prekeyedClub && (
                   <button className="c-text-btn c-text-btn--inline" onClick={() => { setStep(2); setSelectedClub(null) }}>Change</button>
                 )}
+              </div>
+            )}
+            {selectedClub && selectedClub.slug === 'independent' && (
+              <div className="c-clubchip">
+                <div className="c-clubchip-eyebrow">NO ASSOCIATION</div>
+                <div className="c-clubchip-name">Just my team</div>
+                <button className="c-text-btn c-text-btn--inline" onClick={() => { setStep(2); setSelectedClub(null) }}>Change</button>
               </div>
             )}
             <h2 className="c-card-title">What team do you coach?</h2>
