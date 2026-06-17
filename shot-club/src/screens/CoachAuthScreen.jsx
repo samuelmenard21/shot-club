@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { signUpCoach, signInCoach } from '../lib/auth'
+import { signUpCoach, signInCoach, signInWithGoogle } from '../lib/auth'
+import { supabase } from '../lib/supabase'
 import {
   searchClubs,
   getClubBySlug,
@@ -44,6 +45,9 @@ export default function CoachAuthScreen() {
   const [ageDivision, setAgeDivision] = useState('')
   const [tier, setTier] = useState('')
 
+  // Google OAuth
+  const [isGoogleUser, setIsGoogleUser] = useState(false)
+
   // Sign-in
   const [signInEmail, setSignInEmail] = useState('')
   const [signInPassword, setSignInPassword] = useState('')
@@ -59,22 +63,37 @@ export default function CoachAuthScreen() {
     })
   }, [])
 
-  // If a coach is already signed in, send them to the dashboard
+  // If a coach is already signed in send them to dashboard.
+  // If they just came back from Google OAuth (session exists but no profile), start setup at step 2.
   useEffect(() => {
+    if (!slugChecked) return
     let cancelled = false
     ;(async () => {
       try {
         const profile = await getMyCoachProfile()
         if (cancelled) return
-        if (profile) {
-          nav('/coach/dashboard', { replace: true })
-        }
+        if (profile) { nav('/coach/dashboard', { replace: true }); return }
+
+        const { data: { session } } = await supabase.auth.getSession()
+        if (cancelled || !session?.user) return
+
+        const u = session.user
+        const isGoogle =
+          u.app_metadata?.provider === 'google' ||
+          (u.identities || []).some((i) => i.provider === 'google')
+        if (!isGoogle) return
+
+        setDisplayName(u.user_metadata?.full_name || u.user_metadata?.name || '')
+        setEmail(u.email || '')
+        setIsGoogleUser(true)
+        setMode('signup')
+        setStep(prekeyedClub ? 3 : 2)
       } catch (e) {
-        // Not signed in or no coach profile — fine, stay on the page
+        // not signed in — fine
       }
     })()
     return () => { cancelled = true }
-  }, [nav])
+  }, [slugChecked, nav, prekeyedClub])
 
   // Pre-key from /coach/join?club=<slug>
   useEffect(() => {
@@ -160,8 +179,10 @@ export default function CoachAuthScreen() {
 
     setLoading(true)
     try {
-      // 1) Create the auth user
-      await signUpCoach({ displayName: displayName.trim(), email: email.trim(), password })
+      // 1) Create the auth user (skip for Google — they're already authenticated)
+      if (!isGoogleUser) {
+        await signUpCoach({ displayName: displayName.trim(), email: email.trim(), password })
+      }
 
       // 2) Create the coach profile (the auth session is now active)
       await createCoachProfile({
@@ -319,6 +340,11 @@ export default function CoachAuthScreen() {
           <button className="c-cta" onClick={() => setMode('signup')}>
             Set up your team — free →
           </button>
+          <div className="c-divider"><span>or</span></div>
+          <button className="c-google-btn" onClick={signInWithGoogle}>
+            <GoogleIcon />
+            Continue with Google
+          </button>
           <button className="c-text-btn" onClick={() => setMode('signin')}>
             Already have a coach account? Sign in
           </button>
@@ -387,6 +413,11 @@ export default function CoachAuthScreen() {
           <button className="c-btn" onClick={handleSignIn} disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
+          <div className="c-divider"><span>or</span></div>
+          <button className="c-google-btn" onClick={signInWithGoogle}>
+            <GoogleIcon />
+            Continue with Google
+          </button>
           <button className="c-text-btn" onClick={() => { setMode('intro'); setError('') }}>← Back</button>
         </div>
         <style>{styles}</style>
@@ -403,11 +434,11 @@ export default function CoachAuthScreen() {
       <div className="c-card">
         <div className="c-card-brand">
           <BrandMark />
-          <span>Coach setup · Step {prekeyedClub && step === 3 ? 2 : step} of {prekeyedClub ? 2 : 3}</span>
+          <span>Coach setup · Step {isGoogleUser ? (step - 1) : (prekeyedClub && step === 3 ? 2 : step)} of {isGoogleUser || prekeyedClub ? 2 : 3}</span>
         </div>
 
-        {/* Step 1 — account */}
-        {step === 1 && (
+        {/* Step 1 — account (email/password only; Google users start at step 2) */}
+        {step === 1 && !isGoogleUser && (
           <>
             {selectedClub && (
               <div className="c-clubchip">
@@ -459,6 +490,11 @@ export default function CoachAuthScreen() {
             {error && <div className="c-error">{error}</div>}
 
             <button className="c-btn" onClick={handleAccountNext}>Continue →</button>
+            <div className="c-divider"><span>or</span></div>
+            <button className="c-google-btn" onClick={signInWithGoogle}>
+              <GoogleIcon />
+              Continue with Google
+            </button>
             <button className="c-text-btn" onClick={() => setMode('signin')}>Already have an account? Sign in</button>
             <button className="c-text-btn" onClick={() => { setMode('intro'); setError('') }}>← Back</button>
           </>
@@ -467,6 +503,12 @@ export default function CoachAuthScreen() {
         {/* Step 2 — find association (only when NOT pre-keyed) */}
         {step === 2 && !prekeyedClub && !showCustomClub && !selectedClub && (
           <>
+            {isGoogleUser && (
+              <div className="c-google-chip">
+                <GoogleIcon size={14} />
+                <span>{displayName || email}</span>
+              </div>
+            )}
             <h2 className="c-card-title">Find your association.</h2>
             <p className="c-card-sub">Search by city or team name.</p>
 
@@ -651,6 +693,17 @@ export default function CoachAuthScreen() {
       </div>
       <style>{styles}</style>
     </div>
+  )
+}
+
+function GoogleIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flexShrink: 0 }}>
+      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+      <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+      <path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
+    </svg>
   )
 }
 
@@ -945,5 +998,51 @@ const styles = `
   padding: 10px 12px;
   font-size: 13px;
   margin-bottom: 10px;
+}
+.c-google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: white;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  margin-bottom: 6px;
+}
+.c-google-btn:hover { background: #f8f9fa; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+.c-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+  color: var(--text-mute);
+  font-size: 12px;
+}
+.c-divider::before, .c-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-dim);
+}
+.c-google-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-raised);
+  border: 0.5px solid var(--border-dim);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--text-mute);
+  margin-bottom: 14px;
+  width: fit-content;
 }
 `

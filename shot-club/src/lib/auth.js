@@ -179,6 +179,14 @@ export async function signUpCoach({ email, password, displayName }) {
   return { userId, displayName }
 }
 
+export async function signInWithGoogle() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + '/coach' },
+  })
+  if (error) throw error
+}
+
 export async function signInCoach({ email, password }) {
   const cleanEmail = coachEmailToInternal(email)
   const { error } = await supabase.auth.signInWithPassword({
