@@ -5,6 +5,7 @@ import { pickLineStable } from '../lib/coachSam'
 import { getRank } from '../lib/ranks'
 import { claimAchievements } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
+import { getSkillVideos } from '../lib/videos'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
 import AchievementUnlockModal from './AchievementUnlockModal'
@@ -21,6 +22,7 @@ export default function HomeScreen() {
   const [toast, setToast] = useState('')
   const [unlockedCodes, setUnlockedCodes] = useState([])
   const [goalRefreshKey, setGoalRefreshKey] = useState(0)
+  const [videos, setVideos] = useState([])
 
   const shotTypes = player?.position === 'G' ? SHOT_TYPES_GOALIE : SHOT_TYPES_SHOOTER
 
@@ -28,6 +30,7 @@ export default function HomeScreen() {
     if (!player) return
     refreshStats()
     getTodayRival(player.team_id, player.id).then(setRival)
+    getSkillVideos().then(setVideos)
   }, [player])
 
   const refreshStats = async () => {
@@ -225,6 +228,37 @@ export default function HomeScreen() {
             {chasingSub && <div className="chase-sub">{chasingSub}</div>}
           </div>
           <div className={`chase-tag chase-tag--${chasingTagClass} tnum`}>{chasingTag}</div>
+        </div>
+      )}
+
+      {videos.length > 0 && (
+        <div className="videos-section">
+          <div className="label-sm" style={{ marginBottom: 8 }}>Skill Videos</div>
+          <div className="videos-scroll">
+            {videos.map((v) => (
+              <a
+                key={v.id}
+                href={`https://www.youtube.com/watch?v=${v.youtube_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="video-card"
+              >
+                <div className="video-thumb-wrap">
+                  <img
+                    src={`https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg`}
+                    alt={v.title}
+                    className="video-thumb"
+                    loading="lazy"
+                  />
+                  <div className="video-play">▶</div>
+                </div>
+                <div className="video-title">{v.title}</div>
+                <div className="video-badge">
+                  {v.skill_type === 'shooting' ? '🥅 Shooting' : '🏑 Stickhandling'}
+                </div>
+              </a>
+            ))}
+          </div>
         </div>
       )}
 
@@ -804,5 +838,65 @@ const styles = `
   font-size: 13px;
   z-index: 200;
   animation: fade-in 0.2s ease-out;
+}
+
+.videos-section { margin-bottom: 14px; }
+.videos-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+.videos-scroll::-webkit-scrollbar { display: none; }
+.video-card {
+  flex-shrink: 0;
+  width: 156px;
+  text-decoration: none;
+  color: var(--text);
+  display: block;
+}
+.video-thumb-wrap {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 6px;
+  aspect-ratio: 16 / 9;
+  background: var(--surface);
+}
+.video-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.video-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  color: white;
+  font-size: 22px;
+}
+.video-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  line-height: 1.25;
+  letter-spacing: 0.2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 3px;
+}
+.video-badge {
+  font-size: 10px;
+  color: var(--text-mute);
 }
 `
