@@ -113,7 +113,22 @@ export default function ClubScreen() {
   const coachSignupLink = `/coach?club=${slug}`
   const playerSignupLink = `/start`
 
-  const emailCoachesHref = `mailto:?subject=Set up your ${club.name} team on Hockey Shot Challenge&body=Hey coaches — set up your ${club.name} team on Hockey Shot Challenge. Sign in with Google, pick your age and tier, and you'll get a player invite link to send to your parents.%0A%0ATakes 2 minutes. Free:%0A${clubUrl}`
+  const emailBody = [
+    `Hey coaches,`,
+    ``,
+    `We're setting up Hockey Shot Challenge for ${club.name} this season. It's a free off-ice training tool for your players — they log shots at home (driveway, basement, wherever), follow skill videos, and compete on a team leaderboard. You can see who's putting in work between practices.`,
+    ``,
+    `To get your team on the platform:`,
+    `1. Go to ${clubUrl}`,
+    `2. Sign in with Google`,
+    `3. Pick your age group and tier`,
+    `4. Get your player invite link and send it to your parents`,
+    ``,
+    `Takes 2 minutes. Free for coaches, players, and parents.`,
+    ``,
+    `${clubUrl}`,
+  ].join('%0A')
+  const emailCoachesHref = `mailto:?subject=Set up your ${club.name} team — Hockey Shot Challenge&body=${emailBody}`
 
   // ===== INACTIVE CLUB — coach/director first =====
   if (!hasActivity) {
