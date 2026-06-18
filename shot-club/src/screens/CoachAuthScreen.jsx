@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { signUpCoach, signInCoach, signInWithGoogle } from '../lib/auth'
+import { signInCoach, signInWithGoogle } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 import {
   searchClubs,
@@ -20,10 +20,9 @@ export default function CoachAuthScreen() {
   const [mode, setMode] = useState('intro')
   const [step, setStep] = useState(1)
 
-  // Account fields
+  // Populated from Google session after OAuth
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
 
   // Club search
   const [clubQuery, setClubQuery] = useState('')
@@ -150,19 +149,6 @@ export default function CoachAuthScreen() {
 
   // ----- Step transitions -----
 
-  const handleAccountNext = () => {
-    setError('')
-    if (!displayName.trim()) return setError('Enter your name.')
-    if (!email.trim() || !email.includes('@')) return setError('Enter a valid email.')
-    if (password.length < 6) return setError('Password must be at least 6 characters.')
-    // If a club is already pre-keyed, skip step 2 and jump straight to team setup
-    if (prekeyedClub && selectedClub) {
-      setStep(3)
-    } else {
-      setStep(2)
-    }
-  }
-
   const handleClubNext = () => {
     setError('')
     if (!selectedClub) return setError('Pick your association from the list, or submit yours.')
@@ -179,12 +165,7 @@ export default function CoachAuthScreen() {
 
     setLoading(true)
     try {
-      // 1) Create the auth user (skip for Google — they're already authenticated)
-      if (!isGoogleUser) {
-        await signUpCoach({ displayName: displayName.trim(), email: email.trim(), password })
-      }
-
-      // 2) Create the coach profile (the auth session is now active)
+      // Create the coach profile (Google session is already active)
       await createCoachProfile({
         displayName: displayName.trim(),
         email: email.trim(),
@@ -433,7 +414,7 @@ export default function CoachAuthScreen() {
           <span>Coach setup · Step {isGoogleUser ? (step - 1) : (prekeyedClub && step === 3 ? 2 : step)} of {isGoogleUser || prekeyedClub ? 2 : 3}</span>
         </div>
 
-        {/* Step 1 — account (email/password only; Google users start at step 2) */}
+        {/* Step 1 — Google sign-in only */}
         {step === 1 && !isGoogleUser && (
           <>
             {selectedClub && (
@@ -442,54 +423,20 @@ export default function CoachAuthScreen() {
                 <div className="c-clubchip-name">{selectedClub.name}</div>
               </div>
             )}
-            <h2 className="c-card-title">{selectedClub ? `Coach signup` : 'Create your account.'}</h2>
+            <h2 className="c-card-title">
+              {selectedClub ? `Set up your team.` : 'Get started.'}
+            </h2>
             <p className="c-card-sub">
               {selectedClub
-                ? `Create your coach account for ${selectedClub.name}. We'll set up your team next.`
-                : "We'll use your email to send your weekly recap."}
+                ? `Sign in with Google to create your ${selectedClub.name} coach account. We'll pick your team next.`
+                : 'Sign in with Google to get started. No password needed.'}
             </p>
-
-            <label className="c-label">
-              <span>Your name</span>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Coach first name"
-                className="c-input"
-                autoFocus
-              />
-            </label>
-            <label className="c-label">
-              <span>Email</span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="coach@example.com"
-                autoCapitalize="none"
-                autoCorrect="off"
-                className="c-input"
-              />
-            </label>
-            <label className="c-label">
-              <span>Password</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                className="c-input"
-              />
-            </label>
 
             {error && <div className="c-error">{error}</div>}
 
-            <button className="c-btn" onClick={handleAccountNext}>Continue →</button>
-            <div className="c-divider"><span>or</span></div>
-            <button className="c-google-btn" onClick={signInWithGoogle}>
+            <button className="c-google-btn c-google-btn--hero" onClick={signInWithGoogle}>
               <GoogleIcon />
-              Continue with Google
+              Continue with Google — free
             </button>
             <button className="c-text-btn" onClick={() => setMode('signin')}>Already have an account? Sign in</button>
             <button className="c-text-btn" onClick={() => { setMode('intro'); setError('') }}>← Back</button>
@@ -683,7 +630,7 @@ export default function CoachAuthScreen() {
             <button className="c-btn" onClick={handleCreateTeam} disabled={loading}>
               {loading ? 'Setting up…' : 'Create my team →'}
             </button>
-            <button className="c-text-btn" onClick={() => setStep(prekeyedClub ? 1 : 2)}>← Back</button>
+            <button className="c-text-btn" onClick={() => setStep(2)}>← Back</button>
           </>
         )}
       </div>
