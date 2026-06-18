@@ -10,6 +10,7 @@ export default function LandingScreen() {
   const [clubResults, setClubResults] = useState([])
   const [searchingClubs, setSearchingClubs] = useState(false)
   const searchTimer = useRef(null)
+  const searchInputRef = useRef(null)
 
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current)
@@ -66,7 +67,7 @@ export default function LandingScreen() {
           <span>Hockey Shot Challenge</span>
         </button>
         <div className="land-nav-actions">
-          <button className="land-nav-link" onClick={() => nav('/clubs')}>Find your club</button>
+          <button className="land-nav-link" onClick={() => { searchInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => searchInputRef.current?.focus(), 300) }}>Find your club</button>
           <button className="land-nav-link" onClick={() => nav('/start')}>Sign in</button>
           <button className="land-nav-cta" onClick={() => nav('/start')}>Join free</button>
         </div>
@@ -89,6 +90,7 @@ export default function LandingScreen() {
         <div className="hero-pick">
           <div className="hero-search-wrap">
             <input
+              ref={searchInputRef}
               type="text"
               className="hero-search-input"
               placeholder="Search for your club or association..."
