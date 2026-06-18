@@ -390,13 +390,11 @@ export default function CoachAuthScreen() {
                 <div className="c-clubchip-name">{selectedClub.name}</div>
               </div>
             )}
-            <h2 className="c-card-title">
-              {selectedClub ? `Set up your team.` : 'Get started.'}
-            </h2>
+            <h2 className="c-card-title">Coach signup</h2>
             <p className="c-card-sub">
               {selectedClub
-                ? `Sign in with Google to create your ${selectedClub.name} coach account. We'll pick your team next.`
-                : 'Sign in with Google to get started. No password needed.'}
+                ? `Create your coach account for ${selectedClub.name}. We'll set up your team next.`
+                : 'Sign in with Google to get started. Free.'}
             </p>
 
             {error && <div className="c-error">{error}</div>}
