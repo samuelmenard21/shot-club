@@ -8,6 +8,8 @@ export default function ClubsScreen() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [nativeShared, setNativeShared] = useState(false)
   const timerRef = useRef(null)
   const searchRef = useRef(null)
 
@@ -39,6 +41,28 @@ export default function ClubsScreen() {
     }, 200)
     return () => { if (timerRef.current) clearTimeout(timerRef.current) }
   }, [query])
+
+  const shareUrl = `${CANONICAL_URL}/clubs`
+  const socialText = `We're setting up Hockey Shot Challenge for our players this season. Free off-ice training — shot tracking, skill videos, and team leaderboards. Coaches: set up your team here 👇`
+
+  const copyPost = async () => {
+    try {
+      await navigator.clipboard.writeText(`${socialText}\n${shareUrl}`)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2500)
+    } catch (e) {}
+  }
+
+  const nativeShare = async () => {
+    try {
+      await navigator.share({ title: 'Hockey Shot Challenge', text: socialText, url: shareUrl })
+      setNativeShared(true)
+      setTimeout(() => setNativeShared(false), 2500)
+    } catch (e) {}
+  }
+
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(socialText)}&url=${encodeURIComponent(shareUrl)}`
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
 
   const scrollToSearch = () => {
     searchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -93,6 +117,30 @@ export default function ClubsScreen() {
             <div className="cs-zero-title">Players sign up themselves</div>
             <div className="cs-zero-text">No app to install. No email needed. Kids are signed up in 30 seconds.</div>
           </div>
+        </div>
+      </section>
+
+      {/* Share on social */}
+      <section className="cs-section cs-social">
+        <div className="cs-eyebrow-left">SHARE WITH YOUR COACHES & COMMUNITY</div>
+        <h2 className="cs-h2">Spread the word in one tap.</h2>
+        <p className="cs-body" style={{ marginBottom: 20 }}>Post it to your association's social channels. Copy the text below and use it as-is, or make it your own.</p>
+        <div className="cs-post-preview">
+          <div className="cs-post-text">{socialText}<br /><span className="cs-post-url">{shareUrl}</span></div>
+        </div>
+        <div className="cs-social-btns">
+          <button className="cs-social-btn cs-social-btn--copy" onClick={copyPost}>
+            <span>📋</span> {copied ? 'Copied!' : 'Copy post'}
+          </button>
+          <button className="cs-social-btn cs-social-btn--share" onClick={nativeShare}>
+            <span>↗</span> {nativeShared ? 'Shared!' : 'Share'}
+          </button>
+          <a className="cs-social-btn cs-social-btn--x" href={twitterUrl} target="_blank" rel="noopener noreferrer">
+            <XIcon /> Post on X
+          </a>
+          <a className="cs-social-btn cs-social-btn--fb" href={facebookUrl} target="_blank" rel="noopener noreferrer">
+            <FbIcon /> Share on Facebook
+          </a>
         </div>
       </section>
 
@@ -241,6 +289,22 @@ export default function ClubsScreen() {
   )
 }
 
+function XIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ display: 'block', flexShrink: 0 }}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+  )
+}
+
+function FbIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ display: 'block', flexShrink: 0 }}>
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    </svg>
+  )
+}
+
 function BrandMark() {
   return (
     <svg width="22" height="22" viewBox="0 0 40 40" style={{ display: 'block', flexShrink: 0 }}>
@@ -311,6 +375,27 @@ const styles = `
   padding: 44px clamp(16px, 5vw, 24px);
   border-top: 0.5px solid var(--border-dim);
 }
+
+/* Social share */
+.cs-social { }
+.cs-post-preview {
+  background: var(--surface); border: 0.5px solid var(--border-dim);
+  border-radius: 12px; padding: 18px; margin-bottom: 16px;
+}
+.cs-post-text { font-size: 14px; color: var(--text-soft); line-height: 1.6; white-space: pre-wrap; }
+.cs-post-url { color: var(--accent); font-size: 13px; }
+.cs-social-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+.cs-social-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  border-radius: 10px; padding: 11px 16px;
+  font-size: 13px; font-weight: 700; font-family: var(--font-body);
+  cursor: pointer; text-decoration: none; transition: opacity 0.15s;
+}
+.cs-social-btn:hover { opacity: 0.85; }
+.cs-social-btn--copy { background: var(--surface); border: 0.5px solid var(--border); color: var(--text-soft); }
+.cs-social-btn--share { background: var(--surface); border: 0.5px solid var(--border); color: var(--text-soft); }
+.cs-social-btn--x { background: #000; color: white; border: none; }
+.cs-social-btn--fb { background: #1877F2; color: white; border: none; }
 
 /* Zero work cards */
 .cs-zero-cards { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
