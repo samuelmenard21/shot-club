@@ -278,53 +278,20 @@ export default function CoachAuthScreen() {
   // ===== INTRO =====
   if (mode === 'intro') {
     return (
-      <div className="coach-wrap">
-        <nav className="c-nav">
-          <div className="c-brand" onClick={() => nav('/')}>
+      <div className="coach-wrap c-centered">
+        <div className="c-card">
+          <div className="c-card-brand">
             <BrandMark />
             <span>Hockey Shot Challenge</span>
           </div>
-          <button className="c-nav-link" onClick={() => setMode('signin')}>Sign in</button>
-        </nav>
-
-        <div className="c-hero">
-          <div className="c-eyebrow">FOR COACHES & CLUBS</div>
-          <h1 className="c-title">Set up your team in 90 seconds.</h1>
-          <p className="c-sub">
-            Find your association. Pick your age and tier. Get a link to invite your players. Free.
-          </p>
-
-          <div className="c-how">
-            <div className="c-how-item">
-              <div className="c-how-num">1</div>
-              <div>
-                <div className="c-how-title">Find your association</div>
-                <div className="c-how-text">Burlington Eagles, Mississauga Reps, etc.</div>
-              </div>
-            </div>
-            <div className="c-how-item">
-              <div className="c-how-num">2</div>
-              <div>
-                <div className="c-how-title">Pick your team</div>
-                <div className="c-how-text">U12 AAA, U15 A, etc.</div>
-              </div>
-            </div>
-            <div className="c-how-item">
-              <div className="c-how-num">3</div>
-              <div>
-                <div className="c-how-title">Send the invite link</div>
-                <div className="c-how-text">Players sign up in 30 seconds.</div>
-              </div>
-            </div>
-          </div>
-
+          <h2 className="c-card-title">Set up your team.</h2>
+          <p className="c-card-sub">Free for coaches and players. Takes 2 minutes.</p>
           <button className="c-google-btn c-google-btn--hero" onClick={signInWithGoogle}>
             <GoogleIcon />
             Continue with Google — free
           </button>
-          <button className="c-text-btn" onClick={() => setMode('signin')}>
-            Sign in with email instead
-          </button>
+          <button className="c-text-btn" onClick={() => setMode('signin')}>Already have an account? Sign in</button>
+          <button className="c-text-btn" onClick={() => nav('/')}>← Back</button>
         </div>
         <style>{styles}</style>
       </div>
@@ -670,90 +637,6 @@ const styles = `
 .c-centered {
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
-}
-.c-nav {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 18px clamp(16px, 5vw, 40px);
-  max-width: 1100px; margin: 0 auto;
-}
-.c-brand {
-  display: flex; align-items: center; gap: 10px;
-  font-family: var(--font-display);
-  font-weight: 800; font-size: 15px;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-}
-.c-nav-link {
-  color: var(--ice);
-  padding: 8px 14px;
-  font-size: 14px;
-  font-weight: 500;
-}
-.c-hero {
-  max-width: 660px;
-  margin: 0 auto;
-  padding: 40px clamp(16px, 5vw, 40px) 60px;
-}
-.c-eyebrow {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ice);
-  letter-spacing: 2px;
-  background: var(--accent-bg);
-  padding: 6px 12px;
-  border-radius: 999px;
-  display: inline-block;
-  margin-bottom: 18px;
-}
-.c-title {
-  font-family: var(--font-display);
-  font-size: clamp(32px, 6vw, 48px);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.5px;
-  color: white;
-  margin-bottom: 18px;
-}
-.c-sub {
-  font-size: clamp(15px, 2vw, 17px);
-  color: var(--text-soft);
-  line-height: 1.5;
-  margin-bottom: 32px;
-}
-.c-how {
-  display: flex; flex-direction: column; gap: 12px;
-  margin-bottom: 32px;
-}
-.c-how-item {
-  display: flex; gap: 14px; align-items: center;
-  background: var(--surface);
-  border: 0.5px solid var(--border-dim);
-  border-radius: 12px;
-  padding: 14px 16px;
-}
-.c-how-num {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: white;
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.c-how-title {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  line-height: 1.1;
-}
-.c-how-text {
-  font-size: 12px;
-  color: var(--text-mute);
-  margin-top: 3px;
 }
 .c-cta {
   width: 100%;
