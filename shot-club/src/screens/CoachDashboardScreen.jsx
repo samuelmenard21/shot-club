@@ -261,6 +261,48 @@ export default function CoachDashboardScreen() {
                       </div>
                     </div>
 
+                    {/* Email template */}
+                    <div className="dash-section">
+                      <div className="dash-section-head">
+                        <div className="dash-label">Email to parents</div>
+                        <button
+                          className={`dash-copy ${copied === 'email' ? 'dash-copy--done' : ''}`}
+                          onClick={() => {
+                            const teamName = `${coach.club.name}${activeTeam ? ` ${activeTeam.age_division} ${activeTeam.tier}` : ''}`
+                            const emailText = [
+                              `Hi ${teamName} parents,`,
+                              ``,
+                              `We're using Hockey Shot Challenge this season to track off-ice training. Players log their shots at home — driveway, basement, wherever — and compete on a team leaderboard. It keeps them motivated between practices.`,
+                              ``,
+                              `Sign up here: ${teamJoinUrl}`,
+                              ``,
+                              `Takes 30 seconds. No app to install. Free.`,
+                              ``,
+                              `— ${coach.display_name || 'Coach'}`,
+                            ].join('\n')
+                            copyText(emailText, 'email')
+                          }}
+                        >
+                          {copied === 'email' ? '✓ Copied' : 'Copy'}
+                        </button>
+                      </div>
+                      <div className="dash-email-preview">
+                        <div className="dash-email-line dash-email-to">
+                          <span className="dash-email-field">To:</span> {coach.club.name} parents
+                        </div>
+                        <div className="dash-email-line dash-email-sub-line">
+                          <span className="dash-email-field">Subject:</span> Join us on Hockey Shot Challenge
+                        </div>
+                        <div className="dash-email-body">
+                          <p>Hi {coach.club.name}{activeTeam ? ` ${activeTeam.age_division} ${activeTeam.tier}` : ''} parents,</p>
+                          <p>We're using Hockey Shot Challenge this season to track off-ice training. Players log their shots at home — driveway, basement, wherever — and compete on a team leaderboard. It keeps them motivated between practices.</p>
+                          <p>Sign up here: <span className="dash-email-link">{teamJoinUrl}</span></p>
+                          <p>Takes 30 seconds. No app to install. Free.</p>
+                          <p>— {coach.display_name || 'Coach'}</p>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Tips */}
                     <div className="dash-section">
                       <div className="dash-label">Tips for coaches</div>
@@ -795,6 +837,39 @@ const styles = `
   font-size: 16px; font-weight: 800;
   color: white;
 }
+
+/* Email template */
+.dash-email-preview {
+  background: var(--bg);
+  border: 0.5px solid var(--border-dim);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-size: 13px;
+}
+.dash-email-line {
+  display: flex; gap: 6px; align-items: baseline;
+  padding: 8px 14px;
+  border-bottom: 0.5px solid var(--border-dim);
+  color: var(--text-mute);
+  font-size: 12px;
+}
+.dash-email-field {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.dash-email-body {
+  padding: 14px;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+.dash-email-body p { margin: 0 0 10px; }
+.dash-email-body p:last-child { margin-bottom: 0; }
+.dash-email-link { color: var(--ice); word-break: break-all; }
 
 /* QR */
 .dash-qr-box {
