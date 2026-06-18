@@ -11,7 +11,6 @@ export default function ClubsScreen() {
   const [copied, setCopied] = useState(false)
   const [nativeShared, setNativeShared] = useState(false)
   const timerRef = useRef(null)
-  const searchRef = useRef(null)
 
   useEffect(() => {
     setSEO({
@@ -64,11 +63,6 @@ export default function ClubsScreen() {
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(socialText)}&url=${encodeURIComponent(shareUrl)}`
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
 
-  const scrollToSearch = () => {
-    searchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    setTimeout(() => searchRef.current?.querySelector('input')?.focus(), 300)
-  }
-
   return (
     <div className="cs-wrap">
       <nav className="cs-nav">
@@ -86,14 +80,48 @@ export default function ClubsScreen() {
         <p className="cs-sub">
           Hockey Shot Challenge is a free training tool for your whole association. Coaches set up their own teams. Players track their shots at home. You get the numbers to talk about all season.
         </p>
-        <div className="cs-hero-ctas">
-          <button className="cs-cta-primary" onClick={scrollToSearch}>
-            Find my association →
-          </button>
-          <button className="cs-cta-ghost" onClick={() => nav('/coach')}>
-            I'm a coach
-          </button>
+
+        {/* Search lives in the hero */}
+        <div className="cs-hero-search">
+          <div className="cs-search-wrap">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by city or club name…"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
+              className="cs-input"
+            />
+            {query.length >= 2 && (
+              <div className="cs-results">
+                {searching && <div className="cs-status">Searching…</div>}
+                {!searching && results.length === 0 && (
+                  <div className="cs-status">
+                    No clubs found.{' '}
+                    <button className="cs-link" onClick={() => nav('/coach')}>Add yours →</button>
+                  </div>
+                )}
+                {results.map((c) => (
+                  <button key={c.id} className="cs-result" onClick={() => nav(`/clubs/${c.slug}`)}>
+                    <div>
+                      <div className="cs-result-name">{c.name}</div>
+                      <div className="cs-result-meta">
+                        {[c.city, c.governing_body, c.gender_type === 'girls' ? 'Girls' : null].filter(Boolean).join(' · ')}
+                      </div>
+                    </div>
+                    <span className="cs-result-arrow">→</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
+        <button className="cs-cta-ghost" onClick={() => nav('/coach')}>
+          I'm a coach →
+        </button>
       </section>
 
       {/* Zero work for you */}
@@ -234,48 +262,6 @@ export default function ClubsScreen() {
         </div>
       </section>
 
-      {/* Search */}
-      <section className="cs-section cs-search-section" ref={searchRef}>
-        <div className="cs-eyebrow-left">GET STARTED</div>
-        <h2 className="cs-h2">Find your association.</h2>
-        <p className="cs-body" style={{ marginBottom: 20 }}>Search below. Share the page with your coaches. They take it from there.</p>
-
-        <div className="cs-search-wrap">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by city or club name…"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck="false"
-            className="cs-input"
-          />
-          {query.length >= 2 && (
-            <div className="cs-results">
-              {searching && <div className="cs-status">Searching…</div>}
-              {!searching && results.length === 0 && (
-                <div className="cs-status">
-                  No clubs found.{' '}
-                  <button className="cs-link" onClick={() => nav('/coach')}>Add yours →</button>
-                </div>
-              )}
-              {results.map((c) => (
-                <button key={c.id} className="cs-result" onClick={() => nav(`/clubs/${c.slug}`)}>
-                  <div>
-                    <div className="cs-result-name">{c.name}</div>
-                    <div className="cs-result-meta">
-                      {[c.city, c.governing_body, c.gender_type === 'girls' ? 'Girls' : null].filter(Boolean).join(' · ')}
-                    </div>
-                  </div>
-                  <span className="cs-result-arrow">→</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
       <footer className="cs-footer">
         <button className="cs-brand" onClick={() => nav('/')}>
           <BrandMark />
@@ -350,6 +336,7 @@ const styles = `
 }
 .cs-sub { font-size: 17px; color: var(--text-soft); line-height: 1.6; margin: 0 0 28px; }
 .cs-hero-ctas { display: flex; gap: 10px; flex-wrap: wrap; }
+.cs-hero-search { width: 100%; margin-bottom: 16px; text-align: left; }
 .cs-cta-primary {
   background: var(--accent); color: white; border-radius: 10px; padding: 14px 22px;
   font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: 0.4px;
@@ -456,7 +443,6 @@ const styles = `
 }
 
 /* Search */
-.cs-search-section { }
 .cs-search-wrap { position: relative; }
 .cs-input {
   width: 100%; background: var(--surface); border: 1.5px solid var(--accent);

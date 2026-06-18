@@ -142,6 +142,29 @@ export default function ClubScreen() {
           </button>
         </section>
 
+        {/* For directors — right below hero */}
+        <section className="club-section club-director">
+          <div className="club-eyebrow-left">FOR DIRECTORS & ADMINS</div>
+          <h2 className="club-h2">Running {club.name}?</h2>
+          <p className="club-section-text">
+            Send this page to each of your coaches. Every team sets up on their own — coaches sign in with Google, pick their age group and tier, and get a player invite link. You don't need to do anything after that.
+          </p>
+          <div className="club-share-row">
+            <button className="club-share-btn" onClick={sharePageWithCoaches}>
+              <span>💬</span>
+              {shared ? 'Shared!' : 'Share via messages'}
+            </button>
+            <a className="club-share-btn" href={emailCoachesHref}>
+              <span>✉️</span>
+              Email coaches
+            </a>
+            <button className="club-share-btn" onClick={copyLink}>
+              <span>📋</span>
+              {copied ? 'Copied!' : 'Copy link'}
+            </button>
+          </div>
+        </section>
+
         {/* How it works — 3 steps */}
         <section className="club-section">
           <div className="club-eyebrow-left">HOW IT WORKS</div>
@@ -167,29 +190,6 @@ export default function ClubScreen() {
                 <div className="club-step-text">Send it to your players and parents. They sign up in 30 seconds.</div>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* For directors */}
-        <section className="club-section club-director">
-          <div className="club-eyebrow-left">FOR DIRECTORS & ADMINS</div>
-          <h2 className="club-h2">Running {club.name}?</h2>
-          <p className="club-section-text">
-            Send this page to each of your coaches. Every team sets up independently — coaches sign in with their own Google account, pick their team, and get a player link. You don't need to be involved after that.
-          </p>
-          <div className="club-share-row">
-            <button className="club-share-btn" onClick={sharePageWithCoaches}>
-              <span>💬</span>
-              {shared ? 'Shared!' : 'Share via messages'}
-            </button>
-            <a className="club-share-btn" href={emailCoachesHref}>
-              <span>✉️</span>
-              Email coaches
-            </a>
-            <button className="club-share-btn" onClick={copyLink}>
-              <span>📋</span>
-              {copied ? 'Copied!' : 'Copy link'}
-            </button>
           </div>
         </section>
 
@@ -225,15 +225,6 @@ export default function ClubScreen() {
           <p className="club-section-text">
             Once your coach sets up the team, they'll send you an invite link. Your player signs up in 30 seconds — no app to install, no email required, no password to remember.
           </p>
-        </section>
-
-        <section className="club-section club-final">
-          <h2 className="club-h2">Ready to set up {club.name}?</h2>
-          <button className="club-google-btn" onClick={() => nav(coachSignupLink)}>
-            <GoogleIcon />
-            Set up my team — free
-          </button>
-          <div className="club-final-sub">Free for coaches, players, and parents. Always.</div>
         </section>
 
         <ContactSection />
@@ -595,10 +586,6 @@ body:has(.club-screen) { background: var(--bg) !important; }
 .club-coach-sub { font-size: 14px; color: var(--text-soft); line-height: 1.5; margin: 0; }
 .club-coach-actions { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
 .club-coach-dash { color: var(--accent); font-size: 13px; font-weight: 600; background: transparent; padding: 4px 0; cursor: pointer; text-align: left; }
-
-/* Final CTA */
-.club-final { text-align: center; background: linear-gradient(180deg, var(--bg), rgba(41,121,255,0.08)); }
-.club-final-sub { font-size: 13px; color: var(--text-mute); margin-top: 14px; }
 
 /* Footer */
 .club-footer {
