@@ -121,47 +121,46 @@ export default function ClubScreen() {
       <div className="club-screen">
         <ClubNav nav={nav} />
 
-        {/* Hero — speaks to coaches */}
+        {/* Top — two paths: coach and director */}
         <section className="club-hero">
-          <div className="club-eyebrow">FOR COACHES & DIRECTORS</div>
           <h1 className="club-h1">
             <span className="club-h1-name">{club.name}</span>
-            <span className="club-h1-em">Set up your team.</span>
+            <span className="club-h1-em">isn't set up yet.</span>
           </h1>
           <p className="club-lede">
-            Sign in with Google, pick your age group and tier, and get a player invite link to send to parents. Takes 2 minutes. Free.
+            Are you a coach or a director? Pick your path below.
           </p>
-          <div className="club-ctas">
-            <button className="club-google-btn" onClick={() => nav(coachSignupLink)}>
-              <GoogleIcon />
-              Set up my team — free
-            </button>
-          </div>
-          <button className="club-share-link" onClick={sharePageWithCoaches}>
-            {shared ? '✓ Shared!' : '↗ Share this page with your coaches'}
-          </button>
-        </section>
-
-        {/* For directors — right below hero */}
-        <section className="club-section club-director">
-          <div className="club-eyebrow-left">FOR DIRECTORS & ADMINS</div>
-          <h2 className="club-h2">Running {club.name}?</h2>
-          <p className="club-section-text">
-            Send this page to each of your coaches. Every team sets up on their own — coaches sign in with Google, pick their age group and tier, and get a player invite link. You don't need to do anything after that.
-          </p>
-          <div className="club-share-row">
-            <button className="club-share-btn" onClick={sharePageWithCoaches}>
-              <span>💬</span>
-              {shared ? 'Shared!' : 'Share via messages'}
-            </button>
-            <a className="club-share-btn" href={emailCoachesHref}>
-              <span>✉️</span>
-              Email coaches
-            </a>
-            <button className="club-share-btn" onClick={copyLink}>
-              <span>📋</span>
-              {copied ? 'Copied!' : 'Copy link'}
-            </button>
+          <div className="club-paths">
+            {/* Coach card */}
+            <div className="club-path-card">
+              <div className="club-path-eyebrow">I'M A COACH</div>
+              <h2 className="club-path-title">Set up my team</h2>
+              <p className="club-path-text">Sign in with Google, pick your age group and tier, get a player invite link. Takes 2 minutes. Free.</p>
+              <button className="club-google-btn" onClick={() => nav(coachSignupLink)}>
+                <GoogleIcon />
+                Set up my team — free
+              </button>
+            </div>
+            {/* Director card */}
+            <div className="club-path-card">
+              <div className="club-path-eyebrow">I'M A DIRECTOR</div>
+              <h2 className="club-path-title">Send to my coaches</h2>
+              <p className="club-path-text">Share this page. Each coach sets up their own team independently. You don't need to do anything after that.</p>
+              <div className="club-share-row">
+                <button className="club-share-btn" onClick={sharePageWithCoaches}>
+                  <span>💬</span>
+                  {shared ? 'Shared!' : 'Messages'}
+                </button>
+                <a className="club-share-btn" href={emailCoachesHref}>
+                  <span>✉️</span>
+                  Email
+                </a>
+                <button className="club-share-btn" onClick={copyLink}>
+                  <span>📋</span>
+                  {copied ? 'Copied!' : 'Copy link'}
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -219,11 +218,12 @@ export default function ClubScreen() {
           </div>
         </section>
 
-        {/* For parents */}
-        <section className="club-section club-families">
-          <h2 className="club-h2">For {club.name} parents</h2>
+        {/* Player notice */}
+        <section className="club-section club-player-notice">
+          <div className="club-eyebrow-left">FOR PLAYERS & PARENTS</div>
+          <h2 className="club-h2">Player at {club.name}?</h2>
           <p className="club-section-text">
-            Once your coach sets up the team, they'll send you an invite link. Your player signs up in 30 seconds — no app to install, no email required, no password to remember.
+            Your coach needs to set up the team first. Ask them to visit this page — it takes 2 minutes. Once they're set up, they'll send you an invite link and you're in.
           </p>
         </section>
 
@@ -447,7 +447,7 @@ body:has(.club-screen) { background: var(--bg) !important; }
 
 .club-hero {
   padding: 40px clamp(16px, 5vw, 24px) 32px;
-  text-align: center;
+  text-align: left;
 }
 .club-eyebrow {
   display: inline-block;
@@ -518,6 +518,25 @@ body:has(.club-screen) { background: var(--bg) !important; }
 }
 .club-step-title { font-family: var(--font-display); font-weight: 800; font-size: 15px; color: white; margin-bottom: 3px; }
 .club-step-text { font-size: 13px; color: var(--text-mute); line-height: 1.4; }
+
+/* Two-path cards */
+.club-paths { display: grid; grid-template-columns: 1fr; gap: 16px; width: 100%; text-align: left; }
+@media (min-width: 600px) { .club-paths { grid-template-columns: 1fr 1fr; } }
+.club-path-card {
+  background: var(--surface); border: 0.5px solid var(--border-dim);
+  border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 12px;
+}
+.club-path-eyebrow {
+  font-family: var(--font-display); font-size: 10px; font-weight: 700;
+  color: var(--accent); letter-spacing: 2px;
+}
+.club-path-title {
+  font-family: var(--font-display); font-size: 20px; font-weight: 800; color: white; margin: 0;
+}
+.club-path-text { font-size: 14px; color: var(--text-soft); line-height: 1.5; margin: 0; }
+
+/* Player notice */
+.club-player-notice { background: linear-gradient(180deg, var(--bg), rgba(41,121,255,0.03)); }
 
 /* Share row */
 .club-director { background: linear-gradient(180deg, var(--bg), rgba(41,121,255,0.04)); }
