@@ -337,16 +337,12 @@ export default function CoachAuthScreen() {
             </div>
           </div>
 
-          <button className="c-cta" onClick={() => setMode('signup')}>
-            Set up your team — free →
-          </button>
-          <div className="c-divider"><span>or</span></div>
-          <button className="c-google-btn" onClick={signInWithGoogle}>
+          <button className="c-google-btn c-google-btn--hero" onClick={signInWithGoogle}>
             <GoogleIcon />
-            Continue with Google
+            Continue with Google — free
           </button>
           <button className="c-text-btn" onClick={() => setMode('signin')}>
-            Already have a coach account? Sign in
+            Sign in with email instead
           </button>
         </div>
         <style>{styles}</style>
@@ -1018,6 +1014,7 @@ const styles = `
   margin-bottom: 6px;
 }
 .c-google-btn:hover { background: #f8f9fa; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+.c-google-btn--hero { padding: 16px 20px; font-size: 16px; margin-bottom: 8px; }
 .c-divider {
   display: flex;
   align-items: center;
