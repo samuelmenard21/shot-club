@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth'
 import LandingScreen from './screens/LandingScreen'
 import ForClubsScreen from './screens/ForClubsScreen'
 import ClubScreen from './screens/ClubScreen'
+import ClubsScreen from './screens/ClubsScreen'
 import ClubJoinScreen from './screens/ClubJoinScreen'
 import CardPublicScreen from './screens/CardPublicScreen'
 import AuthScreen from './screens/AuthScreen'
@@ -94,6 +95,7 @@ function ShellWrapper() {
         {/* Public */}
         <Route path="/" element={<RootRoute />} />
         <Route path="/for-clubs" element={<ForClubsScreen />} />
+        <Route path="/clubs" element={<ClubsScreen />} />
         <Route path="/clubs/:slug" element={<ClubScreen />} />
         <Route path="/start" element={<AuthScreen />} />
         <Route path="/join/:slug" element={<ClubJoinScreen />} />
