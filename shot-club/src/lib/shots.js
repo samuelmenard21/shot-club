@@ -50,39 +50,42 @@ export async function getLifetimeBreakdown(playerId) {
   return totals
 }
 
+// Deterministic index from a string seed — same output every time for the same input
+function stableIndex(seed, length) {
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = Math.imul(hash * 31 + seed.charCodeAt(i), 1) >>> 0
+  }
+  return hash % length
+}
+
 export async function getTodayRival(teamId, excludePlayerId) {
   if (!teamId) return null
   const today = new Date().toISOString().slice(0, 10)
+  const weekStart = getWeekStart()
 
   const { data: teammates } = await supabase
     .from('players')
     .select('id, display_name, lifetime_shots')
     .eq('team_id', teamId)
     .neq('id', excludePlayerId)
+    .order('id') // stable sort so index maps to the same player on every device
   if (!teammates || teammates.length === 0) return null
 
-  const ids = teammates.map(t => t.id)
-  const { data: todayLogs } = await supabase
-    .from('shot_logs')
-    .select('player_id, count')
-    .in('player_id', ids)
-    .eq('log_date', today)
+  // Pick a weekly rival deterministically — same opponent all week, reshuffles Sunday
+  const seed = excludePlayerId + weekStart
+  const rival = teammates[stableIndex(seed, teammates.length)]
 
-  const todayByPlayer = {}
-  ;(todayLogs || []).forEach(r => {
-    todayByPlayer[r.player_id] = (todayByPlayer[r.player_id] || 0) + r.count
-  })
+  // Fetch rival's shots today and this week for chasing text
+  const [{ data: todayLogs }, { data: weekLogs }] = await Promise.all([
+    supabase.from('shot_logs').select('count').eq('player_id', rival.id).eq('log_date', today),
+    supabase.from('shot_logs').select('count').eq('player_id', rival.id).gte('log_date', weekStart),
+  ])
 
-  const activeTeammates = teammates
-    .map(t => ({ ...t, today_shots: todayByPlayer[t.id] || 0 }))
-    .filter(t => t.today_shots > 0)
+  const today_shots = (todayLogs || []).reduce((s, r) => s + r.count, 0)
+  const week_shots = (weekLogs || []).reduce((s, r) => s + r.count, 0)
 
-  if (activeTeammates.length > 0) {
-    return activeTeammates[Math.floor(Math.random() * activeTeammates.length)]
-  }
-
-  const shuffled = [...teammates].sort(() => Math.random() - 0.5)
-  return { ...shuffled[0], today_shots: 0 }
+  return { ...rival, today_shots, week_shots }
 }
 
 export async function getRandomTeammate(teamId, excludePlayerId) {

@@ -148,24 +148,27 @@ export default function HomeScreen() {
   let chasingTagClass = 'neutral'
   if (rival) {
     const rivalToday = rival.today_shots || 0
-    const gap = stats.todayTotal - rivalToday
+    const rivalWeek = rival.week_shots || 0
+    const gapToday = stats.todayTotal - rivalToday
+    const gapWeek = stats.weekTotal - rivalWeek
+    const weekLabel = rivalWeek > 0 ? `${rivalWeek.toLocaleString()} this week` : 'no shots this week'
     if (rivalToday === 0) {
-      chasingText = `${rival.display_name} hasn't shot today`
-      chasingSub = 'Set the pace'
+      chasingText = `${rival.display_name} — ${weekLabel}`
+      chasingSub = 'Your rival this week'
       chasingTag = '—'
-    } else if (gap > 0) {
+    } else if (gapToday > 0) {
       chasingText = `${rival.display_name} · ${rivalToday} today`
-      chasingSub = 'Leading by'
-      chasingTag = `+${gap}`
+      chasingSub = `+${gapWeek >= 0 ? gapWeek : gapWeek} on them this week`
+      chasingTag = `+${gapToday}`
       chasingTagClass = 'lead'
-    } else if (gap < 0) {
+    } else if (gapToday < 0) {
       chasingText = `${rival.display_name} · ${rivalToday} today`
-      chasingSub = 'Catch them'
-      chasingTag = `${gap}`
+      chasingSub = `${Math.abs(gapToday)} shots to catch up today`
+      chasingTag = `${gapToday}`
       chasingTagClass = 'chase'
     } else {
       chasingText = `${rival.display_name} · ${rivalToday} today`
-      chasingSub = 'Tied'
+      chasingSub = 'Tied today'
       chasingTag = '='
     }
   }
@@ -288,7 +291,7 @@ export default function HomeScreen() {
       {rival && (
         <div className={`chase chase--${chasingTagClass}`}>
           <div>
-            <div className="label-sm">Chasing today</div>
+            <div className="label-sm">Rival this week 🏒</div>
             <div className="chase-name">{chasingText}</div>
             {chasingSub && <div className="chase-sub">{chasingSub}</div>}
           </div>
