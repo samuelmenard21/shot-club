@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getMyCoachProfile, getClubStats, getClubTeams, getClubPlayers } from '../lib/clubs'
+import { getMyCoachProfile, getClubStats, getClubTeams, getClubPlayers, getClubTeamRankings } from '../lib/clubs'
 import { getMyTeams, getOrCreateTeamInvite, getPendingCoachesForOwnedTeams, approveTeamCoach } from '../lib/teams'
 import { getClubDrillStats } from '../lib/clubs'
 import { getTeamChallenge, setTeamChallenge, getTeamWeeklyShots } from '../lib/challenges'
@@ -19,6 +19,7 @@ export default function CoachDashboardScreen() {
   const [activeTeamCode, setActiveTeamCode] = useState(null)
   const [pendingCoaches, setPendingCoaches] = useState([])
   const [drillStats, setDrillStats] = useState([])
+  const [teamRankings, setTeamRankings] = useState([])
   const [challenge, setChallenge] = useState(null)
   const [teamWeekShots, setTeamWeekShots] = useState(0)
   const [goalInput, setGoalInput] = useState('')
@@ -37,13 +38,14 @@ export default function CoachDashboardScreen() {
       }
       setCoach(profile)
       if (profile.club?.id) {
-        const [s, t, p, mine, pending, drills] = await Promise.all([
+        const [s, t, p, mine, pending, drills, rankings] = await Promise.all([
           getClubStats(profile.club.id),
           getClubTeams(profile.club.id),
           getClubPlayers(profile.club.id),
           getMyTeams(profile.id),
           getPendingCoachesForOwnedTeams(profile.id),
           getClubDrillStats(profile.club.id),
+          getClubTeamRankings(profile.club.id),
         ])
         setStats(s)
         setTeams(t)
@@ -51,6 +53,7 @@ export default function CoachDashboardScreen() {
         setMyTeams(mine)
         setPendingCoaches(pending)
         setDrillStats(drills)
+        setTeamRankings(rankings)
         // Default the active team to the first one the coach belongs to
         if (mine.length > 0) {
           const first = mine[0]
@@ -368,6 +371,30 @@ export default function CoachDashboardScreen() {
                 <div className="dash-stat-label">Shots logged</div>
               </div>
             </div>
+
+            {teamRankings.filter((t) => t.week_shots > 0).length > 0 && (
+              <div className="dash-section">
+                <div className="dash-label" style={{ marginBottom: 10 }}>Team rankings — this week</div>
+                <div className="tr-list">
+                  {teamRankings.map((t, i) => {
+                    const isMyTeam = myTeams.some((m) => m.id === t.id)
+                    const medals = ['🥇', '🥈', '🥉']
+                    return (
+                      <div key={t.id} className={`tr-row${isMyTeam ? ' tr-row--mine' : ''}`}>
+                        <div className="tr-rank">
+                          {t.week_shots > 0 && medals[i] ? medals[i] : <span className="tr-rank-num">#{i + 1}</span>}
+                        </div>
+                        <div className="tr-info">
+                          <div className="tr-name">{t.age_division} {t.tier}{isMyTeam ? <span className="tr-you"> YOU</span> : ''}</div>
+                          <div className="tr-players">{t.player_count} player{t.player_count !== 1 ? 's' : ''}</div>
+                        </div>
+                        <div className="tr-shots tnum">{t.week_shots.toLocaleString()}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="dash-section">
               <div className="dash-section-head">
@@ -1003,6 +1030,28 @@ const styles = `
   line-height: 1.6;
 }
 .dash-tips li { margin-bottom: 6px; }
+
+.tr-list { display: flex; flex-direction: column; gap: 6px; }
+.tr-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-2, rgba(255,255,255,0.04));
+  border: 1px solid var(--border-dim);
+}
+.tr-row--mine {
+  border-color: #2563eb;
+  background: rgba(37,99,235,0.08);
+}
+.tr-rank { width: 28px; text-align: center; font-size: 18px; flex-shrink: 0; }
+.tr-rank-num { font-size: 12px; font-weight: 600; color: var(--text-soft); }
+.tr-info { flex: 1; min-width: 0; }
+.tr-name { font-size: 14px; font-weight: 700; }
+.tr-you { font-size: 10px; font-weight: 700; color: #2563eb; margin-left: 6px; letter-spacing: 0.5px; }
+.tr-players { font-size: 11px; color: var(--text-soft); margin-top: 1px; }
+.tr-shots { font-size: 16px; font-weight: 800; color: var(--ice, #67e8f9); flex-shrink: 0; }
 
 .ch-progress-wrap { margin-bottom: 14px; }
 .ch-progress-bar {

@@ -242,6 +242,55 @@ export async function getClubPlayers(clubId) {
   return data || []
 }
 
+export async function getClubTeamRankings(clubId) {
+  if (!clubId) return []
+  const { getWeekStart } = await import('./shots')
+  const weekStart = getWeekStart()
+
+  // Get all teams in club
+  const { data: teamRows } = await supabase
+    .from('teams')
+    .select('id, name, age_division, tier')
+    .eq('club_id', clubId)
+    .eq('is_active', true)
+  if (!teamRows?.length) return []
+
+  // Get all players in club grouped by team
+  const { data: playerRows } = await supabase
+    .from('players')
+    .select('id, team_id')
+    .eq('club_id', clubId)
+    .not('team_id', 'is', null)
+  if (!playerRows?.length) return teamRows.map((t) => ({ ...t, week_shots: 0, player_count: 0 }))
+
+  const playerIds = playerRows.map((p) => p.id)
+
+  const { data: logs } = await supabase
+    .from('shot_logs')
+    .select('player_id, count')
+    .in('player_id', playerIds)
+    .gte('log_date', weekStart)
+
+  const shotsByPlayer = {}
+  for (const log of logs || []) {
+    shotsByPlayer[log.player_id] = (shotsByPlayer[log.player_id] || 0) + log.count
+  }
+
+  const playersByTeam = {}
+  for (const p of playerRows) {
+    if (!playersByTeam[p.team_id]) playersByTeam[p.team_id] = []
+    playersByTeam[p.team_id].push(p.id)
+  }
+
+  return teamRows
+    .map((t) => {
+      const members = playersByTeam[t.id] || []
+      const week_shots = members.reduce((sum, pid) => sum + (shotsByPlayer[pid] || 0), 0)
+      return { ...t, week_shots, player_count: members.length }
+    })
+    .sort((a, b) => b.week_shots - a.week_shots)
+}
+
 export async function getAssociationRankings() {
   const { data, error } = await supabase
     .from('players')
