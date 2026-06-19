@@ -231,36 +231,75 @@ export default function HomeScreen() {
         </div>
       )}
 
-      {videos.length > 0 && (
-        <div className="videos-section">
-          <div className="label-sm" style={{ marginBottom: 8 }}>Skill Videos</div>
-          <div className="videos-scroll">
-            {videos.map((v) => (
+      {videos.length > 0 && (() => {
+        const dayIndex = Math.floor(Date.now() / 86400000)
+        const featured = videos[dayIndex % videos.length]
+        const rest = videos.filter((v) => v.id !== featured.id)
+        const featuredHref = `https://www.youtube.com/watch?v=${featured.youtube_id}`
+        return (
+          <>
+            {/* Drill of the Day — featured full-width */}
+            <div className="drill-section">
+              <div className="label-sm" style={{ marginBottom: 8 }}>Drill of the day</div>
               <a
-                key={v.id}
-                href={`https://www.youtube.com/watch?v=${v.youtube_id}`}
+                href={featuredHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="video-card"
+                className="drill-card"
               >
-                <div className="video-thumb-wrap">
+                <div className="drill-thumb-wrap">
                   <img
-                    src={`https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg`}
-                    alt={v.title}
-                    className="video-thumb"
+                    src={`https://img.youtube.com/vi/${featured.youtube_id}/mqdefault.jpg`}
+                    alt={featured.title}
+                    className="drill-thumb"
                     loading="lazy"
                   />
-                  <div className="video-play">▶</div>
+                  <div className="drill-play">▶</div>
                 </div>
-                <div className="video-title">{v.title}</div>
-                <div className="video-badge">
-                  {v.skill_type === 'shooting' ? '🥅 Shooting' : '🏑 Stickhandling'}
+                <div className="drill-info">
+                  <div className="drill-badge">
+                    {featured.skill_type === 'shooting' ? '🥅 Shooting' : '🏑 Stickhandling'}
+                  </div>
+                  <div className="drill-title">{featured.title}</div>
+                  <div className="drill-cta">Watch drill →</div>
                 </div>
               </a>
-            ))}
-          </div>
-        </div>
-      )}
+            </div>
+
+            {/* More drills — horizontal scroll */}
+            {rest.length > 0 && (
+              <div className="videos-section">
+                <div className="label-sm" style={{ marginBottom: 8 }}>More drills</div>
+                <div className="videos-scroll">
+                  {rest.map((v) => (
+                    <a
+                      key={v.id}
+                      href={`https://www.youtube.com/watch?v=${v.youtube_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="video-card"
+                    >
+                      <div className="video-thumb-wrap">
+                        <img
+                          src={`https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg`}
+                          alt={v.title}
+                          className="video-thumb"
+                          loading="lazy"
+                        />
+                        <div className="video-play">▶</div>
+                      </div>
+                      <div className="video-title">{v.title}</div>
+                      <div className="video-badge">
+                        {v.skill_type === 'shooting' ? '🥅 Shooting' : '🏑 Stickhandling'}
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )
+      })()}
 
       {!player.team_id && <JoinTeamPanel playerId={player.id} onJoined={refresh} />}
 
@@ -838,6 +877,52 @@ const styles = `
   font-size: 13px;
   z-index: 200;
   animation: fade-in 0.2s ease-out;
+}
+
+/* Drill of the Day */
+.drill-section { margin-bottom: 14px; }
+.drill-card {
+  display: flex; gap: 12px; align-items: center;
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: 14px;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+.drill-card:active { border-color: var(--accent); }
+.drill-thumb-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 120px; height: 80px;
+  background: var(--bg);
+}
+.drill-thumb {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+.drill-play {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.4);
+  color: white; font-size: 20px;
+}
+.drill-info {
+  flex: 1; min-width: 0;
+  padding: 12px 12px 12px 0;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.drill-badge { font-size: 10px; color: var(--text-mute); }
+.drill-title {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  color: white; letter-spacing: 0.2px;
+  line-height: 1.25;
+}
+.drill-cta {
+  font-size: 12px; font-weight: 600;
+  color: var(--ice); margin-top: 2px;
 }
 
 .videos-section { margin-bottom: 14px; }
