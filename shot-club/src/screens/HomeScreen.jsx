@@ -12,6 +12,7 @@ import AchievementUnlockModal from './AchievementUnlockModal'
 
 const SHOT_TYPES_SHOOTER = ['Wrist', 'Snap', 'Slap', 'Backhand']
 const SHOT_TYPES_GOALIE = ['Saves']
+const STICK_TYPES = ['Toe Drag', 'Figure 8', 'Lateral', 'One-Hand']
 
 export default function HomeScreen() {
   const { player, refresh } = useAuth()
@@ -193,6 +194,24 @@ export default function HomeScreen() {
             </button>
           )
         })}
+      </div>
+
+      <div className="stick-section">
+        <div className="stick-header">
+          <div className="label-sm">Stickhandling</div>
+          <div className="stick-hint">reps today</div>
+        </div>
+        <div className="stick-grid">
+          {STICK_TYPES.map((t) => {
+            const todayCount = stats.todayByType[t] || 0
+            return (
+              <button key={t} className="stick-card" onClick={() => setEntryType(t)}>
+                <div className="stick-name">{t}</div>
+                <div className="stick-value tnum">{todayCount || '—'}</div>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {hasRecentLog && (
@@ -550,6 +569,45 @@ const styles = `
   font-size: 10px; color: var(--text-mute);
   letter-spacing: 1px; margin-top: 6px;
   text-transform: uppercase; opacity: 0.7;
+}
+
+/* Stickhandling drills */
+.stick-section { margin-bottom: 14px; }
+.stick-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 8px;
+}
+.stick-hint { font-size: 10px; color: var(--text-mute); letter-spacing: 0.5px; }
+.stick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.stick-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: 14px;
+  padding: 12px 8px;
+  text-align: center;
+  transition: transform 0.1s, border-color 0.15s;
+  -webkit-user-select: none; user-select: none;
+}
+.stick-card:active {
+  transform: scale(0.96);
+  border-color: var(--ice);
+}
+.stick-name {
+  font-family: var(--font-display);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--text-soft);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.stick-value {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 800;
+  color: var(--ice); line-height: 1;
 }
 
 .undo-btn {

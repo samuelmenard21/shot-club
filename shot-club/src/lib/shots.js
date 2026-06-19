@@ -33,7 +33,7 @@ export async function getStats(playerId) {
   const todayTotal = todayRows.reduce((s, r) => s + r.count, 0)
   const weekTotal = (rows || []).reduce((s, r) => s + r.count, 0)
 
-  const todayByType = { Wrist: 0, Snap: 0, Slap: 0, Backhand: 0, Saves: 0 }
+  const todayByType = { Wrist: 0, Snap: 0, Slap: 0, Backhand: 0, Saves: 0, 'Toe Drag': 0, 'Figure 8': 0, Lateral: 0, 'One-Hand': 0 }
   todayRows.forEach(r => { todayByType[r.shot_type] = (todayByType[r.shot_type] || 0) + r.count })
 
   return { todayTotal, weekTotal, todayByType }
