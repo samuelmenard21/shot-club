@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getMyCoachProfile, getClubStats, getClubTeams, getClubPlayers } from '../lib/clubs'
 import { getMyTeams, getOrCreateTeamInvite, getPendingCoachesForOwnedTeams, approveTeamCoach } from '../lib/teams'
 import { getClubDrillStats } from '../lib/clubs'
+import { getTeamChallenge, setTeamChallenge, getTeamWeeklyShots } from '../lib/challenges'
 import { signOut } from '../lib/auth'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
 
@@ -18,6 +19,10 @@ export default function CoachDashboardScreen() {
   const [activeTeamCode, setActiveTeamCode] = useState(null)
   const [pendingCoaches, setPendingCoaches] = useState([])
   const [drillStats, setDrillStats] = useState([])
+  const [challenge, setChallenge] = useState(null)
+  const [teamWeekShots, setTeamWeekShots] = useState(0)
+  const [goalInput, setGoalInput] = useState('')
+  const [savingGoal, setSavingGoal] = useState(false)
   const [tab, setTab] = useState('invite') // default to 'invite' since that's the main job
   const [copied, setCopied] = useState('')
   const [shared, setShared] = useState(false)
@@ -61,7 +66,7 @@ export default function CoachDashboardScreen() {
     })()
   }, [nav])
 
-  // When active team changes, fetch its invite
+  // When active team changes, fetch its invite + challenge
   useEffect(() => {
     if (!activeTeamId || !coach?.id) return
     ;(async () => {
@@ -71,6 +76,13 @@ export default function CoachDashboardScreen() {
       } catch (e) {
         setActiveTeamCode(null)
       }
+      const [ch, wk] = await Promise.all([
+        getTeamChallenge(activeTeamId),
+        getTeamWeeklyShots(activeTeamId),
+      ])
+      setChallenge(ch)
+      setTeamWeekShots(wk)
+      setGoalInput(ch?.goal_shots ? String(ch.goal_shots) : '')
     })()
   }, [activeTeamId, coach])
 
@@ -90,6 +102,19 @@ export default function CoachDashboardScreen() {
   const clubJoinUrl = `${CANONICAL_URL}/join/${coach.club.slug}`
   const teamJoinUrl = activeTeamCode ? `${CANONICAL_URL}/j/${activeTeamCode}` : null
   const activeTeam = myTeams.find((t) => t.id === activeTeamId)
+
+  const handleSaveGoal = async () => {
+    const shots = parseInt(goalInput, 10)
+    if (!shots || shots < 1 || !activeTeamId) return
+    setSavingGoal(true)
+    try {
+      const ch = await setTeamChallenge(activeTeamId, shots)
+      setChallenge(ch)
+    } catch (e) {
+      console.warn('setTeamChallenge error:', e)
+    }
+    setSavingGoal(false)
+  }
 
   const copyText = async (text, key) => {
     try {
@@ -373,6 +398,50 @@ export default function CoachDashboardScreen() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {activeTeamId && (
+              <div className="dash-section">
+                <div className="dash-section-head">
+                  <div className="dash-label">Team Challenge — this week</div>
+                </div>
+                {challenge && (
+                  <div className="ch-progress-wrap">
+                    <div className="ch-progress-bar">
+                      <div
+                        className="ch-progress-fill"
+                        style={{ width: `${Math.min(100, Math.round((teamWeekShots / challenge.goal_shots) * 100))}%` }}
+                      />
+                    </div>
+                    <div className="ch-progress-meta">
+                      <span className="ch-shots-done">{teamWeekShots.toLocaleString()} shots</span>
+                      <span className="ch-shots-goal">goal: {challenge.goal_shots.toLocaleString()}</span>
+                    </div>
+                    {teamWeekShots >= challenge.goal_shots && (
+                      <div className="ch-complete">🏆 Goal crushed! Update it to keep the momentum going.</div>
+                    )}
+                  </div>
+                )}
+                <div className="ch-set-goal">
+                  <input
+                    className="ch-goal-input"
+                    type="number"
+                    min="1"
+                    placeholder="Set a shot goal (e.g. 500)"
+                    value={goalInput}
+                    onChange={(e) => setGoalInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveGoal()}
+                  />
+                  <button
+                    className="ch-goal-btn"
+                    onClick={handleSaveGoal}
+                    disabled={savingGoal || !goalInput}
+                  >
+                    {savingGoal ? '…' : challenge ? 'Update' : 'Set goal'}
+                  </button>
+                </div>
+                <div className="dash-hint">Players will see a progress bar on their home screen.</div>
               </div>
             )}
           </>
@@ -934,4 +1003,64 @@ const styles = `
   line-height: 1.6;
 }
 .dash-tips li { margin-bottom: 6px; }
+
+.ch-progress-wrap { margin-bottom: 14px; }
+.ch-progress-bar {
+  height: 12px;
+  background: var(--border, #e5e7eb);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.ch-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #06b6d4);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+.ch-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.ch-shots-done { font-weight: 700; color: var(--text); }
+.ch-shots-goal { color: var(--text-soft); }
+.ch-complete {
+  margin-top: 10px;
+  background: rgba(251,191,36,0.12);
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+}
+.ch-set-goal {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ch-goal-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--text);
+}
+.ch-goal-input:focus { outline: 2px solid #2563eb; border-color: transparent; }
+.ch-goal-btn {
+  padding: 10px 18px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ch-goal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 `

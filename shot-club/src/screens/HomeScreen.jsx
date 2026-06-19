@@ -6,6 +6,7 @@ import { getRank } from '../lib/ranks'
 import { claimAchievements } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
 import { getSkillVideos } from '../lib/videos'
+import { getTeamChallenge, getTeamWeeklyShots } from '../lib/challenges'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
 import AchievementUnlockModal from './AchievementUnlockModal'
@@ -26,6 +27,8 @@ export default function HomeScreen() {
   const [videos, setVideos] = useState([])
   const [personalBest, setPersonalBest] = useState(0)
   const [newPB, setNewPB] = useState(false)
+  const [teamChallenge, setTeamChallenge] = useState(null)
+  const [teamWeekShots, setTeamWeekShots] = useState(0)
 
   const shotTypes = player?.position === 'G' ? SHOT_TYPES_GOALIE : SHOT_TYPES_SHOOTER
 
@@ -35,6 +38,11 @@ export default function HomeScreen() {
     getTodayRival(player.team_id, player.id).then(setRival)
     getSkillVideos().then(setVideos)
     getPersonalBest(player.id).then(setPersonalBest)
+    if (player.team_id) {
+      Promise.all([getTeamChallenge(player.team_id), getTeamWeeklyShots(player.team_id)]).then(
+        ([ch, wk]) => { setTeamChallenge(ch); setTeamWeekShots(wk) }
+      )
+    }
   }, [player])
 
   const refreshStats = async () => {
@@ -258,6 +266,24 @@ export default function HomeScreen() {
           <div className="stat-value tnum" style={{ color: 'var(--ice)' }}>{personalBest || '—'}</div>
         </div>
       </div>
+
+      {teamChallenge && (
+        <div className="team-ch-bar">
+          <div className="team-ch-header">
+            <span className="team-ch-label">Team goal this week</span>
+            <span className="team-ch-fraction">{teamWeekShots.toLocaleString()} / {teamChallenge.goal_shots.toLocaleString()} shots</span>
+          </div>
+          <div className="team-ch-track">
+            <div
+              className="team-ch-fill"
+              style={{ width: `${Math.min(100, Math.round((teamWeekShots / teamChallenge.goal_shots) * 100))}%` }}
+            />
+          </div>
+          {teamWeekShots >= teamChallenge.goal_shots && (
+            <div className="team-ch-done">🏒 Goal reached! Keep it going.</div>
+          )}
+        </div>
+      )}
 
       {rival && (
         <div className={`chase chase--${chasingTagClass}`}>
@@ -702,6 +728,52 @@ const styles = `
   font-family: var(--font-display);
   font-size: 22px; font-weight: 800;
   line-height: 1; margin-top: 4px;
+}
+
+.team-ch-bar {
+  margin: 0 20px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.team-ch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.team-ch-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+.team-ch-fraction {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.team-ch-track {
+  height: 8px;
+  background: var(--border-dim);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.team-ch-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #06b6d4);
+  border-radius: 99px;
+  transition: width 0.5s ease;
+  min-width: 4px;
+}
+.team-ch-done {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ice);
 }
 
 .chase {
