@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMyCoachProfile, getClubStats, getClubTeams, getClubPlayers } from '../lib/clubs'
 import { getMyTeams, getOrCreateTeamInvite, getPendingCoachesForOwnedTeams, approveTeamCoach } from '../lib/teams'
+import { getClubDrillStats } from '../lib/clubs'
 import { signOut } from '../lib/auth'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
 
@@ -16,6 +17,7 @@ export default function CoachDashboardScreen() {
   const [activeTeamId, setActiveTeamId] = useState(null)
   const [activeTeamCode, setActiveTeamCode] = useState(null)
   const [pendingCoaches, setPendingCoaches] = useState([])
+  const [drillStats, setDrillStats] = useState([])
   const [tab, setTab] = useState('invite') // default to 'invite' since that's the main job
   const [copied, setCopied] = useState('')
   const [shared, setShared] = useState(false)
@@ -30,18 +32,20 @@ export default function CoachDashboardScreen() {
       }
       setCoach(profile)
       if (profile.club?.id) {
-        const [s, t, p, mine, pending] = await Promise.all([
+        const [s, t, p, mine, pending, drills] = await Promise.all([
           getClubStats(profile.club.id),
           getClubTeams(profile.club.id),
           getClubPlayers(profile.club.id),
           getMyTeams(profile.id),
           getPendingCoachesForOwnedTeams(profile.id),
+          getClubDrillStats(profile.club.id),
         ])
         setStats(s)
         setTeams(t)
         setPlayers(p)
         setMyTeams(mine)
         setPendingCoaches(pending)
+        setDrillStats(drills)
         // Default the active team to the first one the coach belongs to
         if (mine.length > 0) {
           const first = mine[0]
@@ -177,6 +181,9 @@ export default function CoachDashboardScreen() {
           </button>
           <button className={`dash-tab ${tab === 'roster' ? 'dash-tab--active' : ''}`} onClick={() => setTab('roster')}>
             Roster
+          </button>
+          <button className={`dash-tab ${tab === 'drills' ? 'dash-tab--active' : ''}`} onClick={() => setTab('drills')}>
+            Drills
           </button>
         </div>
 
@@ -398,6 +405,39 @@ export default function CoachDashboardScreen() {
                       <div className="dash-player-streak">🔥 {p.current_streak}</div>
                     )}
                     <div className="dash-player-shots tnum">{p.lifetime_shots.toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === 'drills' && (
+          <>
+            <div className="dash-label" style={{ marginBottom: 10 }}>
+              Stickhandling this week — {drillStats.length} player{drillStats.length === 1 ? '' : 's'} active
+            </div>
+            {drillStats.length === 0 ? (
+              <div className="dash-empty">
+                <div className="dash-empty-title">No drills logged yet</div>
+                <div className="dash-empty-sub">Players will appear here once they log stickhandling reps on the home screen.</div>
+              </div>
+            ) : (
+              <div className="dash-roster">
+                {drillStats.map((p, i) => (
+                  <div key={p.id} className="dash-player">
+                    <div className="dash-player-rank">{i + 1}</div>
+                    <div className="dash-player-avatar">{p.display_name[0]?.toUpperCase()}</div>
+                    <div className="dash-player-info">
+                      <div className="dash-player-name">{p.display_name}</div>
+                      <div className="dash-player-sub">
+                        {['Toe Drag', 'Figure 8', 'Lateral', 'One-Hand']
+                          .filter((d) => p.drills[d])
+                          .map((d) => `${d} ${p.drills[d]}`)
+                          .join(' · ')}
+                      </div>
+                    </div>
+                    <div className="dash-player-shots tnum">{p.drills.total}</div>
                   </div>
                 ))}
               </div>

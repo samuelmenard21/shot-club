@@ -241,3 +241,42 @@ export async function getClubPlayers(clubId) {
     .order('lifetime_shots', { ascending: false })
   return data || []
 }
+
+export async function getClubDrillStats(clubId) {
+  if (!clubId) return []
+  // Get all players in this club
+  const { data: playerRows } = await supabase
+    .from('players')
+    .select('id, display_name, team:teams(name)')
+    .eq('club_id', clubId)
+  if (!playerRows?.length) return []
+
+  const playerIds = playerRows.map((p) => p.id)
+  const weekStart = (() => {
+    const now = new Date()
+    const day = now.getUTCDay()
+    const d = new Date(now)
+    d.setUTCDate(now.getUTCDate() - ((day + 6) % 7))
+    return d.toISOString().slice(0, 10)
+  })()
+
+  const drillTypes = ['Toe Drag', 'Figure 8', 'Lateral', 'One-Hand']
+  const { data: logs } = await supabase
+    .from('shot_logs')
+    .select('player_id, shot_type, count')
+    .in('player_id', playerIds)
+    .in('shot_type', drillTypes)
+    .gte('log_date', weekStart)
+
+  const byPlayer = {}
+  for (const log of logs || []) {
+    if (!byPlayer[log.player_id]) byPlayer[log.player_id] = { total: 0 }
+    byPlayer[log.player_id].total += log.count
+    byPlayer[log.player_id][log.shot_type] = (byPlayer[log.player_id][log.shot_type] || 0) + log.count
+  }
+
+  return playerRows
+    .map((p) => ({ ...p, drills: byPlayer[p.id] || { total: 0 } }))
+    .filter((p) => p.drills.total > 0)
+    .sort((a, b) => b.drills.total - a.drills.total)
+}

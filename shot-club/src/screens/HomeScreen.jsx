@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { logShots, getStats, getTodayRival } from '../lib/shots'
+import { logShots, getStats, getTodayRival, getPersonalBest } from '../lib/shots'
 import { pickLineStable } from '../lib/coachSam'
 import { getRank } from '../lib/ranks'
 import { claimAchievements } from '../lib/progress'
@@ -24,6 +24,8 @@ export default function HomeScreen() {
   const [unlockedCodes, setUnlockedCodes] = useState([])
   const [goalRefreshKey, setGoalRefreshKey] = useState(0)
   const [videos, setVideos] = useState([])
+  const [personalBest, setPersonalBest] = useState(0)
+  const [newPB, setNewPB] = useState(false)
 
   const shotTypes = player?.position === 'G' ? SHOT_TYPES_GOALIE : SHOT_TYPES_SHOOTER
 
@@ -32,6 +34,7 @@ export default function HomeScreen() {
     refreshStats()
     getTodayRival(player.team_id, player.id).then(setRival)
     getSkillVideos().then(setVideos)
+    getPersonalBest(player.id).then(setPersonalBest)
   }, [player])
 
   const refreshStats = async () => {
@@ -74,6 +77,17 @@ export default function HomeScreen() {
       await logShots({ playerId: player.id, shotType: type, count })
       setTimeout(refreshStats, 400)
       setGoalRefreshKey((k) => k + 1)
+
+      // Check for new personal best (shot types only, not stickhandling)
+      const shotTypes = ['Wrist', 'Snap', 'Slap', 'Backhand', 'Saves']
+      if (shotTypes.includes(type)) {
+        const newTotal = stats.todayTotal + count
+        if (newTotal > personalBest && personalBest > 0) {
+          setPersonalBest(newTotal)
+          setNewPB(true)
+          setTimeout(() => setNewPB(false), 4000)
+        }
+      }
 
       // Claim any newly-earned achievements (idempotent server-side)
       const newCodes = await claimAchievements(player.id)
@@ -224,6 +238,12 @@ export default function HomeScreen() {
         </button>
       )}
 
+      {newPB && (
+        <div className="pb-banner">
+          🏆 New personal best — {stats.todayTotal} shots today!
+        </div>
+      )}
+
       <div className="stats-row">
         <div className="stat">
           <div className="label-sm">Today</div>
@@ -234,8 +254,8 @@ export default function HomeScreen() {
           <div className="stat-value tnum">{stats.weekTotal}</div>
         </div>
         <div className="stat">
-          <div className="label-sm">Lifetime</div>
-          <div className="stat-value tnum" style={{ color: 'var(--ice)' }}>{player.lifetime_shots.toLocaleString()}</div>
+          <div className="label-sm">Best day</div>
+          <div className="stat-value tnum" style={{ color: 'var(--ice)' }}>{personalBest || '—'}</div>
         </div>
       </div>
 
@@ -650,6 +670,20 @@ const styles = `
   font-size: 11px;
   color: var(--text-mute);
   margin-top: 1px;
+}
+
+.pb-banner {
+  background: linear-gradient(135deg, rgba(41,121,255,0.2), rgba(168,212,245,0.1));
+  border: 0.5px solid var(--ice);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  color: var(--ice);
+  letter-spacing: 0.3px;
+  text-align: center;
+  margin-bottom: 10px;
+  animation: fade-in 0.3s ease-out;
 }
 
 .stats-row {

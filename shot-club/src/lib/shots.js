@@ -141,6 +141,17 @@ export async function getLeaderboardWeekly({ teamId, clubName, limit = 50 }) {
     .slice(0, limit)
 }
 
+export async function getPersonalBest(playerId) {
+  const { data } = await supabase
+    .from('daily_progress')
+    .select('shots_total')
+    .eq('player_id', playerId)
+    .order('shots_total', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data?.shots_total ?? 0
+}
+
 export async function getTeamSize(teamId) {
   if (!teamId) return 0
   const { count } = await supabase
