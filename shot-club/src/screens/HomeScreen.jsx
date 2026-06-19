@@ -3,12 +3,13 @@ import { useAuth } from '../hooks/useAuth'
 import { logShots, getStats, getTodayRival, getPersonalBest } from '../lib/shots'
 import { pickLineStable } from '../lib/coachSam'
 import { getRank } from '../lib/ranks'
-import { claimAchievements } from '../lib/progress'
+import { claimAchievements, isStreakInRecovery } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
 import { getSkillVideos } from '../lib/videos'
 import { getTeamChallenge, getTeamWeeklyShots } from '../lib/challenges'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
+import StreakRecoveryBanner from '../components/StreakRecoveryBanner'
 import AchievementUnlockModal from './AchievementUnlockModal'
 
 const SHOT_TYPES_SHOOTER = ['Wrist', 'Snap', 'Slap', 'Backhand']
@@ -191,7 +192,10 @@ export default function HomeScreen() {
         )}
       </header>
 
-      <StreakRiskBanner player={player} />
+      {isStreakInRecovery(player)
+        ? <StreakRecoveryBanner player={player} todayShots={stats.todayTotal} />
+        : <StreakRiskBanner player={player} />
+      }
 
       <DailyGoalRing
         playerId={player.id}

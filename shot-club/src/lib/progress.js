@@ -133,11 +133,39 @@ export async function claimAchievements(playerId) {
 }
 
 // ---------------------------------------------------------------------------
+// Streak recovery
+// ---------------------------------------------------------------------------
+
+export function isStreakInRecovery(player) {
+  if (!player) return false
+  // Only applies when streak is dead and they had recent activity
+  if ((player.current_streak ?? 0) > 0) return false
+  if (!player.last_shot_date) return false
+  // Comeback window: they shot exactly 2 days ago (missed yesterday only)
+  // last_shot_date === 2 days ago means they shot Mon, missed Tue, today is Wed
+  return player.last_shot_date === yesterdayLocalISO(2)
+}
+
+export function comebackTarget(player) {
+  return Math.max(20, (player?.daily_goal || 50) * 2)
+}
+
+// ---------------------------------------------------------------------------
 // Date helpers (local time, matches the trigger's America/Toronto)
 // ---------------------------------------------------------------------------
 
-function todayLocalISO() {
+export function todayLocalISO() {
   const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+// daysBack: 1 = yesterday, 2 = two days ago, etc.
+function yesterdayLocalISO(daysBack = 1) {
+  const d = new Date()
+  d.setDate(d.getDate() - daysBack)
   const yyyy = d.getFullYear()
   const mm = String(d.getMonth() + 1).padStart(2, '0')
   const dd = String(d.getDate()).padStart(2, '0')
