@@ -51,10 +51,22 @@ export default function ForClubsScreen() {
         </div>
 
         <div className="fc-ctas">
-          <button className="fc-btn-primary" onClick={() => nav('/coach')}>
-            Get your club's link →
-          </button>
-          <a className="fc-btn-ghost" href="#what-to-forward">What to forward to coaches</a>
+          <a className="fc-btn-primary" href="#what-to-forward">Forward to your coaches →</a>
+          <button className="fc-btn-ghost" onClick={() => nav('/coach')}>Set up your own team</button>
+        </div>
+      </section>
+
+      <section className="fc-section" id="what-to-forward">
+        <h2 className="fc-h2">What to forward to your coaches</h2>
+        <p className="fc-section-sub">
+          If this looks like something your member clubs would benefit from, copy and paste this into your next coaches' newsletter or email. No edits needed.
+        </p>
+
+        <div className="fc-forward">
+          <div className="fc-forward-label">SUGGESTED NEWSLETTER BLURB</div>
+          <p className="fc-forward-text">
+            "A hockey parent in Ontario built a new off-ice training platform called <strong>Hockey Shot Challenge</strong>. Players log their off-ice shots and stickhandling reps, work through a skill video library, and can challenge teammates, other teams, or even rival clubs head-to-head. It tracks the work kids do at home that nobody used to see, and gives whole associations a way to rally around it. Runs in a browser — no install. Worth a look if you want your team putting in real off-ice reps between practices. <strong>hockeyshotchallenge.com</strong>"
+          </p>
         </div>
       </section>
 
@@ -141,20 +153,6 @@ export default function ForClubsScreen() {
         </div>
       </section>
 
-      <section className="fc-section" id="what-to-forward">
-        <h2 className="fc-h2">What to forward to your coaches</h2>
-        <p className="fc-section-sub">
-          If this looks like something your member clubs would benefit from, copy and paste this into your next coaches' newsletter or email. No edits needed.
-        </p>
-
-        <div className="fc-forward">
-          <div className="fc-forward-label">SUGGESTED NEWSLETTER BLURB</div>
-          <p className="fc-forward-text">
-            "A hockey parent in Ontario built a new off-ice training platform called <strong>Hockey Shot Challenge</strong>. Players log their off-ice shots and stickhandling reps, work through a skill video library, and can challenge teammates, other teams, or even rival clubs head-to-head. It tracks the work kids do at home that nobody used to see, and gives whole associations a way to rally around it. Runs in a browser — no install. Worth a look if you want your team putting in real off-ice reps between practices. <strong>hockeyshotchallenge.com</strong>"
-          </p>
-        </div>
-      </section>
-
       <section className="fc-section">
         <h2 className="fc-h2">Questions you're probably asking</h2>
 
@@ -207,11 +205,14 @@ export default function ForClubsScreen() {
       </section>
 
       <section className="fc-section fc-final">
-        <h2 className="fc-h2">Want a signup link for your league or club?</h2>
+        <h2 className="fc-h2">Ready to bring your association on board?</h2>
         <p className="fc-section-sub">
-          Reach out and I'll send a personalized signup link for your association — yours to share with member clubs whenever you're ready.
+          Forward the blurb above to your coaches, or set up your own team right now and see the dashboard for yourself.
         </p>
-        <button className="fc-btn-primary" onClick={() => nav('/coach')}>Start your club</button>
+        <div className="fc-ctas">
+          <a className="fc-btn-primary" href="#what-to-forward">Forward to coaches →</a>
+          <button className="fc-btn-ghost" onClick={() => nav('/coach')}>Set up a team yourself</button>
+        </div>
       </section>
 
       <ContactSection />

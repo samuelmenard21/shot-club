@@ -86,6 +86,7 @@ export default function LandingScreen() {
           Log your shots and stickhandling reps. Climb the team leaderboard.
           Beat your rivals.
         </p>
+        <p className="hero-origin">Built by a hockey parent in Burlington, ON. Free for players, coaches, and clubs.</p>
 
         <div className="hero-pick">
           <div className="hero-search-wrap">
@@ -130,26 +131,15 @@ export default function LandingScreen() {
           <div className="hero-pick-label">WHO ARE YOU?</div>
 
           <div className="hero-cards">
-            <button className="hero-card hero-card--association" onClick={() => nav('/for-clubs')}>
-              <div className="hero-card-icon">🏒</div>
-              <div className="hero-card-eyebrow">FOR LEAGUES & ASSOCIATIONS</div>
-              <h2 className="hero-card-title">Bring your whole league on board.</h2>
-              <p className="hero-card-text">
-                Get every club in your league training off-ice. Free to start.
-                Three minutes to set up.
-              </p>
-              <span className="hero-card-cta">See the pitch →</span>
-            </button>
-
             <button className="hero-card hero-card--coach" onClick={() => nav('/coach')}>
               <div className="hero-card-icon">📋</div>
               <div className="hero-card-eyebrow">FOR COACHES</div>
-              <h2 className="hero-card-title">Get your team's invite link.</h2>
+              <h2 className="hero-card-title">See who's actually putting in the reps.</h2>
               <p className="hero-card-text">
-                Send one link to parents. Watch your team show up on the board.
-                See who's putting in the reps.
+                Send one link to parents. Your team shows up on the board.
+                You get a dashboard with weekly stats and a team challenge tool.
               </p>
-              <span className="hero-card-cta">Set up your team →</span>
+              <span className="hero-card-cta">Set up your team — free →</span>
             </button>
 
             <button className="hero-card hero-card--player" onClick={() => nav('/start')}>
@@ -161,6 +151,17 @@ export default function LandingScreen() {
                 Climb your team's leaderboard.
               </p>
               <span className="hero-card-cta">Start shooting →</span>
+            </button>
+
+            <button className="hero-card hero-card--association" onClick={() => nav('/for-clubs')}>
+              <div className="hero-card-icon">🏒</div>
+              <div className="hero-card-eyebrow">FOR LEAGUES & ASSOCIATIONS</div>
+              <h2 className="hero-card-title">Bring your whole league on board.</h2>
+              <p className="hero-card-text">
+                Get every club in your league training off-ice. Free to start.
+                Three minutes to set up.
+              </p>
+              <span className="hero-card-cta">See the pitch →</span>
             </button>
           </div>
         </div>
@@ -193,12 +194,12 @@ export default function LandingScreen() {
             <div className="track-card-icon">🏑</div>
             <h3 className="track-card-title">Stickhandling drills</h3>
             <p className="track-card-text">
-              Log your reps or your minutes. Toe drags, figure eights, quick hands —
-              every touch counts toward your streak.
+              Toe drags, figure eights, lateral moves, one-hand control —
+              log your reps and every touch counts toward your streak.
             </p>
             <div className="track-card-eg">
               <span className="track-card-eg-label">EXAMPLE</span>
-              <span>"5 minutes of stickhandling" → logged.</span>
+              <span>"30 toe drags" → logged.</span>
             </div>
           </div>
         </div>
@@ -417,6 +418,10 @@ export default function LandingScreen() {
             <summary>Can my whole team join?</summary>
             <p>Yes. Coaches get one invite link. Every parent who taps it puts their kid on the same team leaderboard.</p>
           </details>
+          <details className="faq-item">
+            <summary>What if my players don't use it?</summary>
+            <p>That's the #1 thing coaches ask. The short answer: the leaderboard creates its own pressure. Once two or three kids are on the board, the ones who aren't start noticing. Start by getting five players on — the rest usually follow within a week. And if some don't log, you've learned something useful about who's putting in work between practices.</p>
+          </details>
         </div>
       </section>
 
@@ -595,6 +600,12 @@ body:has(.landing) { background: var(--bg) !important; }
   font-size: clamp(15px, 2vw, 18px);
   line-height: 1.55;
   color: var(--text-soft);
+  margin: 0 auto 16px;
+  max-width: 560px;
+}
+.hero-origin {
+  font-size: 13px;
+  color: var(--text-mute);
   margin: 0 auto 32px;
   max-width: 560px;
 }
