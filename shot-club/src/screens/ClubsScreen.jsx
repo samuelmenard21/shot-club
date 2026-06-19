@@ -119,9 +119,14 @@ export default function ClubsScreen() {
           </div>
         </div>
 
-        <button className="cs-cta-ghost" onClick={() => nav('/coach')}>
-          I'm a coach →
-        </button>
+        <div className="cs-hero-ctas">
+          <button className="cs-cta-ghost" onClick={() => nav('/coach')}>
+            I'm a coach →
+          </button>
+          <button className="cs-cta-ghost" onClick={() => nav('/rankings')}>
+            🏆 See rankings →
+          </button>
+        </div>
       </section>
 
       {/* Zero work for you */}

@@ -9,6 +9,7 @@ import ClubScreen from './screens/ClubScreen'
 import ClubsScreen from './screens/ClubsScreen'
 import ClubJoinScreen from './screens/ClubJoinScreen'
 import CardPublicScreen from './screens/CardPublicScreen'
+import RankingsScreen from './screens/RankingsScreen'
 import AuthScreen from './screens/AuthScreen'
 
 // Coach
@@ -100,6 +101,7 @@ function ShellWrapper() {
         <Route path="/start" element={<AuthScreen />} />
         <Route path="/join/:slug" element={<ClubJoinScreen />} />
         <Route path="/card/:username" element={<CardPublicScreen />} />
+        <Route path="/rankings" element={<RankingsScreen />} />
 
         {/* Legacy auth redirect */}
         <Route path="/auth" element={<Navigate to="/start" replace />} />

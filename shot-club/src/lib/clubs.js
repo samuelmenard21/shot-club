@@ -242,6 +242,36 @@ export async function getClubPlayers(clubId) {
   return data || []
 }
 
+export async function getAssociationRankings() {
+  const { data, error } = await supabase
+    .from('players')
+    .select('club_id, lifetime_shots, club:clubs(id, name, city, slug, province)')
+    .not('club_id', 'is', null)
+    .gt('lifetime_shots', 0)
+  if (error) return []
+
+  const byClub = {}
+  for (const p of data || []) {
+    if (!p.club) continue
+    const id = p.club_id
+    if (!byClub[id]) {
+      byClub[id] = {
+        club_id: id,
+        name: p.club.name,
+        city: p.club.city,
+        slug: p.club.slug,
+        province: p.club.province,
+        total_shots: 0,
+        player_count: 0,
+      }
+    }
+    byClub[id].total_shots += p.lifetime_shots || 0
+    byClub[id].player_count += 1
+  }
+
+  return Object.values(byClub).sort((a, b) => b.total_shots - a.total_shots)
+}
+
 export async function getClubDrillStats(clubId) {
   if (!clubId) return []
   // Get all players in this club
