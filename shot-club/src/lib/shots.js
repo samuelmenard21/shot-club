@@ -54,7 +54,7 @@ export async function getLifetimeBreakdown(playerId) {
 function stableIndex(seed, length) {
   let hash = 0
   for (let i = 0; i < seed.length; i++) {
-    hash = Math.imul(hash * 31 + seed.charCodeAt(i), 1) >>> 0
+    hash = (Math.imul(31, hash) + seed.charCodeAt(i)) >>> 0
   }
   return hash % length
 }
@@ -86,10 +86,6 @@ export async function getTodayRival(teamId, excludePlayerId) {
   const week_shots = (weekLogs || []).reduce((s, r) => s + r.count, 0)
 
   return { ...rival, today_shots, week_shots }
-}
-
-export async function getRandomTeammate(teamId, excludePlayerId) {
-  return getTodayRival(teamId, excludePlayerId)
 }
 
 // Scope can be { teamId } or { clubName } or {} for global

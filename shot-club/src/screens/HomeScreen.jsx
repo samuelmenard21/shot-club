@@ -159,7 +159,7 @@ export default function HomeScreen() {
       chasingTag = '—'
     } else if (gapToday > 0) {
       chasingText = `${rival.display_name} · ${rivalToday} today`
-      chasingSub = `+${gapWeek >= 0 ? gapWeek : gapWeek} on them this week`
+      chasingSub = gapWeek >= 0 ? `+${gapWeek} on them this week` : `${gapWeek} this week`
       chasingTag = `+${gapToday}`
       chasingTagClass = 'lead'
     } else if (gapToday < 0) {

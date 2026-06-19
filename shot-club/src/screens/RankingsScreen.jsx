@@ -92,6 +92,7 @@ export default function RankingsScreen() {
         <p className="rk-footer-text">Is your association missing?</p>
         <Link to="/clubs" className="rk-footer-link">Find your club →</Link>
       </div>
+      <style>{styles}</style>
     </div>
   )
 }
@@ -255,6 +256,3 @@ const styles = `
 }
 `
 
-const styleEl = document.createElement('style')
-styleEl.textContent = styles
-document.head.appendChild(styleEl)

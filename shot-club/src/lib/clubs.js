@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { getWeekStart } from './shots'
 
 // ===== CONSTANTS =====
 
@@ -305,7 +306,6 @@ export async function getClubWeeklyRecap(clubId) {
 
 export async function getClubTeamRankings(clubId) {
   if (!clubId) return []
-  const { getWeekStart } = await import('./shots')
   const weekStart = getWeekStart()
 
   // Get all teams in club
