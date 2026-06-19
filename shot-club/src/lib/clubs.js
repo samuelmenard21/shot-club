@@ -242,6 +242,67 @@ export async function getClubPlayers(clubId) {
   return data || []
 }
 
+export async function getClubWeeklyRecap(clubId) {
+  if (!clubId) return null
+
+  // Week boundaries
+  const now = new Date()
+  const dayOfWeek = now.getUTCDay()
+  const daysFromMonday = (dayOfWeek + 6) % 7
+
+  const thisMonday = new Date(now)
+  thisMonday.setUTCDate(now.getUTCDate() - daysFromMonday)
+  const thisWeekStart = thisMonday.toISOString().slice(0, 10)
+
+  const lastMonday = new Date(thisMonday)
+  lastMonday.setUTCDate(thisMonday.getUTCDate() - 7)
+  const lastWeekStart = lastMonday.toISOString().slice(0, 10)
+
+  const lastSunday = new Date(thisMonday)
+  lastSunday.setUTCDate(thisMonday.getUTCDate() - 1)
+  const lastWeekEnd = lastSunday.toISOString().slice(0, 10)
+
+  // All players in club
+  const { data: playerRows } = await supabase
+    .from('players')
+    .select('id, display_name')
+    .eq('club_id', clubId)
+  if (!playerRows?.length) return null
+
+  const playerIds = playerRows.map((p) => p.id)
+  const playerMap = Object.fromEntries(playerRows.map((p) => [p.id, p.display_name]))
+
+  // This week + last week logs in one query
+  const { data: logs } = await supabase
+    .from('shot_logs')
+    .select('player_id, count, log_date')
+    .in('player_id', playerIds)
+    .gte('log_date', lastWeekStart)
+
+  const thisWeekByPlayer = {}
+  let lastWeekTotal = 0
+
+  for (const log of logs || []) {
+    if (log.log_date >= thisWeekStart) {
+      thisWeekByPlayer[log.player_id] = (thisWeekByPlayer[log.player_id] || 0) + log.count
+    } else if (log.log_date <= lastWeekEnd) {
+      lastWeekTotal += log.count
+    }
+  }
+
+  const thisWeekTotal = Object.values(thisWeekByPlayer).reduce((s, n) => s + n, 0)
+  const activePlayers = Object.keys(thisWeekByPlayer).length
+
+  const topPlayerId = Object.entries(thisWeekByPlayer).sort((a, b) => b[1] - a[1])[0]?.[0]
+  const topPlayer = topPlayerId
+    ? { name: playerMap[topPlayerId], shots: thisWeekByPlayer[topPlayerId] }
+    : null
+
+  const vsLastWeek = lastWeekTotal === 0 ? null : Math.round(((thisWeekTotal - lastWeekTotal) / lastWeekTotal) * 100)
+
+  return { thisWeekTotal, lastWeekTotal, vsLastWeek, activePlayers, topPlayer, totalPlayers: playerRows.length }
+}
+
 export async function getClubTeamRankings(clubId) {
   if (!clubId) return []
   const { getWeekStart } = await import('./shots')

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getMyCoachProfile, getClubStats, getClubTeams, getClubPlayers, getClubTeamRankings } from '../lib/clubs'
+import { getMyCoachProfile, getClubStats, getClubTeams, getClubPlayers, getClubTeamRankings, getClubWeeklyRecap } from '../lib/clubs'
 import { getMyTeams, getOrCreateTeamInvite, getPendingCoachesForOwnedTeams, approveTeamCoach } from '../lib/teams'
 import { getClubDrillStats } from '../lib/clubs'
 import { getTeamChallenge, setTeamChallenge, getTeamWeeklyShots } from '../lib/challenges'
@@ -20,6 +20,7 @@ export default function CoachDashboardScreen() {
   const [pendingCoaches, setPendingCoaches] = useState([])
   const [drillStats, setDrillStats] = useState([])
   const [teamRankings, setTeamRankings] = useState([])
+  const [weeklyRecap, setWeeklyRecap] = useState(null)
   const [challenge, setChallenge] = useState(null)
   const [teamWeekShots, setTeamWeekShots] = useState(0)
   const [goalInput, setGoalInput] = useState('')
@@ -38,7 +39,7 @@ export default function CoachDashboardScreen() {
       }
       setCoach(profile)
       if (profile.club?.id) {
-        const [s, t, p, mine, pending, drills, rankings] = await Promise.all([
+        const [s, t, p, mine, pending, drills, rankings, recap] = await Promise.all([
           getClubStats(profile.club.id),
           getClubTeams(profile.club.id),
           getClubPlayers(profile.club.id),
@@ -46,6 +47,7 @@ export default function CoachDashboardScreen() {
           getPendingCoachesForOwnedTeams(profile.id),
           getClubDrillStats(profile.club.id),
           getClubTeamRankings(profile.club.id),
+          getClubWeeklyRecap(profile.club.id),
         ])
         setStats(s)
         setTeams(t)
@@ -54,6 +56,7 @@ export default function CoachDashboardScreen() {
         setPendingCoaches(pending)
         setDrillStats(drills)
         setTeamRankings(rankings)
+        setWeeklyRecap(recap)
         // Default the active team to the first one the coach belongs to
         if (mine.length > 0) {
           const first = mine[0]
@@ -357,6 +360,41 @@ export default function CoachDashboardScreen() {
 
         {tab === 'overview' && (
           <>
+            {weeklyRecap && weeklyRecap.thisWeekTotal > 0 && (
+              <div className="recap-card">
+                <div className="recap-header">
+                  <div className="recap-label">THIS WEEK</div>
+                  {weeklyRecap.vsLastWeek !== null && (
+                    <div className={`recap-delta ${weeklyRecap.vsLastWeek >= 0 ? 'recap-delta--up' : 'recap-delta--down'}`}>
+                      {weeklyRecap.vsLastWeek >= 0 ? '↑' : '↓'} {Math.abs(weeklyRecap.vsLastWeek)}% vs last week
+                    </div>
+                  )}
+                </div>
+                <div className="recap-shots tnum">{weeklyRecap.thisWeekTotal.toLocaleString()}</div>
+                <div className="recap-shots-label">shots logged</div>
+                <div className="recap-row">
+                  <div className="recap-stat">
+                    <div className="recap-stat-num tnum">{weeklyRecap.activePlayers}</div>
+                    <div className="recap-stat-label">active players</div>
+                  </div>
+                  <div className="recap-divider" />
+                  <div className="recap-stat">
+                    <div className="recap-stat-num tnum">{weeklyRecap.totalPlayers}</div>
+                    <div className="recap-stat-label">total players</div>
+                  </div>
+                  {weeklyRecap.topPlayer && (
+                    <>
+                      <div className="recap-divider" />
+                      <div className="recap-stat">
+                        <div className="recap-stat-num" style={{ fontSize: 13 }}>🏆 {weeklyRecap.topPlayer.name}</div>
+                        <div className="recap-stat-label">{weeklyRecap.topPlayer.shots.toLocaleString()} shots</div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="dash-stats">
               <div className="dash-stat">
                 <div className="dash-stat-num tnum">{stats.playerCount}</div>
@@ -1030,6 +1068,56 @@ const styles = `
   line-height: 1.6;
 }
 .dash-tips li { margin-bottom: 6px; }
+
+.recap-card {
+  background: linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(6,182,212,0.08) 100%);
+  border: 1px solid rgba(37,99,235,0.25);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.recap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.recap-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-soft);
+}
+.recap-delta {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+.recap-delta--up { background: rgba(34,197,94,0.15); color: #16a34a; }
+.recap-delta--down { background: rgba(239,68,68,0.12); color: #dc2626; }
+.recap-shots {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+}
+.recap-shots-label {
+  font-size: 12px;
+  color: var(--text-soft);
+  margin-bottom: 14px;
+}
+.recap-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.recap-stat { flex: 1; text-align: center; }
+.recap-stat-num { font-size: 15px; font-weight: 700; }
+.recap-stat-label { font-size: 10px; color: var(--text-soft); margin-top: 2px; }
+.recap-divider { width: 1px; background: rgba(255,255,255,0.1); align-self: stretch; margin: 0 4px; }
 
 .tr-list { display: flex; flex-direction: column; gap: 6px; }
 .tr-row {
