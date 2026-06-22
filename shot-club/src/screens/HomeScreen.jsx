@@ -6,7 +6,7 @@ import { getRank } from '../lib/ranks'
 import { claimAchievements, isStreakInRecovery } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
 import { getSkillVideos } from '../lib/videos'
-import { getTeamChallenge, getTeamWeeklyShots } from '../lib/challenges'
+import { getTeamChallenge, getTeamWeeklyShots, getWeeklyTeamMatchup } from '../lib/challenges'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
 import StreakRecoveryBanner from '../components/StreakRecoveryBanner'
@@ -30,6 +30,7 @@ export default function HomeScreen() {
   const [newPB, setNewPB] = useState(false)
   const [teamChallenge, setTeamChallenge] = useState(null)
   const [teamWeekShots, setTeamWeekShots] = useState(0)
+  const [teamMatchup, setTeamMatchup] = useState(null)
 
   const shotTypes = player?.position === 'G' ? SHOT_TYPES_GOALIE : SHOT_TYPES_SHOOTER
 
@@ -40,9 +41,15 @@ export default function HomeScreen() {
     getSkillVideos().then(setVideos)
     getPersonalBest(player.id).then(setPersonalBest)
     if (player.team_id) {
-      Promise.all([getTeamChallenge(player.team_id), getTeamWeeklyShots(player.team_id)]).then(
-        ([ch, wk]) => { setTeamChallenge(ch); setTeamWeekShots(wk) }
-      )
+      Promise.all([
+        getTeamChallenge(player.team_id),
+        getTeamWeeklyShots(player.team_id),
+        getWeeklyTeamMatchup(player.club_id, player.team_id),
+      ]).then(([ch, wk, matchup]) => {
+        setTeamChallenge(ch)
+        setTeamWeekShots(wk)
+        setTeamMatchup(matchup)
+      })
     }
   }, [player])
 
@@ -255,7 +262,12 @@ export default function HomeScreen() {
 
       {newPB && (
         <div className="pb-banner">
-          🏆 New personal best — {stats.todayTotal} shots today!
+          <span>🏆 New personal best — {stats.todayTotal} shots today!</span>
+          <button className="pb-share" onClick={async () => {
+            const text = `New personal best — ${stats.todayTotal} shots today! 🏒 #HockeyShotChallenge hockeyshotchallenge.com`
+            if (navigator.share) { try { await navigator.share({ text }) } catch (_) {} }
+            else { await navigator.clipboard.writeText(text) }
+          }}>Share</button>
         </div>
       )}
 
@@ -289,6 +301,23 @@ export default function HomeScreen() {
           {teamWeekShots >= teamChallenge.goal_shots && (
             <div className="team-ch-done">🏒 Goal reached! Keep it going.</div>
           )}
+        </div>
+      )}
+
+      {teamMatchup && (
+        <div className="team-matchup">
+          <div className="team-matchup-label">Team matchup this week</div>
+          <div className="team-matchup-row">
+            <div className="team-matchup-us">
+              <div className="team-matchup-name">{teamMatchup.myTeam.age_division} {teamMatchup.myTeam.tier}</div>
+              <div className={`team-matchup-score tnum${teamMatchup.myShots >= teamMatchup.rivalShots ? ' team-matchup-score--lead' : ''}`}>{teamMatchup.myShots.toLocaleString()}</div>
+            </div>
+            <div className="team-matchup-vs">VS</div>
+            <div className="team-matchup-them">
+              <div className="team-matchup-name">{teamMatchup.rivalTeam.age_division} {teamMatchup.rivalTeam.tier}</div>
+              <div className={`team-matchup-score tnum${teamMatchup.rivalShots > teamMatchup.myShots ? ' team-matchup-score--lead' : ''}`}>{teamMatchup.rivalShots.toLocaleString()}</div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -714,10 +743,17 @@ const styles = `
   font-size: 14px; font-weight: 700;
   color: var(--ice);
   letter-spacing: 0.3px;
-  text-align: center;
   margin-bottom: 10px;
   animation: fade-in 0.3s ease-out;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
 }
+.pb-share {
+  font-size: 12px; font-weight: 700;
+  color: var(--ice); border: 1px solid var(--ice);
+  border-radius: 6px; padding: 4px 10px;
+  background: transparent; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+}
+.pb-share:active { opacity: 0.7; }
 
 .stats-row {
   display: grid;
@@ -736,6 +772,28 @@ const styles = `
   font-size: 22px; font-weight: 800;
   line-height: 1; margin-top: 4px;
 }
+
+.team-matchup {
+  margin: 0 20px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.team-matchup-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--text-mute); margin-bottom: 10px;
+}
+.team-matchup-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.team-matchup-us, .team-matchup-them { flex: 1; }
+.team-matchup-us { text-align: left; }
+.team-matchup-them { text-align: right; }
+.team-matchup-name { font-size: 12px; font-weight: 600; color: var(--text-soft); margin-bottom: 4px; }
+.team-matchup-score { font-size: 22px; font-weight: 800; color: var(--text-soft); }
+.team-matchup-score--lead { color: var(--ice, #67e8f9); }
+.team-matchup-vs { font-size: 11px; font-weight: 800; color: var(--text-mute); flex-shrink: 0; }
 
 .team-ch-bar {
   margin: 0 20px 12px;

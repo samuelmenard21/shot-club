@@ -30,6 +30,13 @@ export default function AchievementUnlockModal({ codes, onDismiss }) {
     else setIndex(index + 1)
   }
 
+  const handleShare = async (e) => {
+    e.stopPropagation()
+    const text = `Just unlocked "${display.title}" ${display.icon} on Hockey Shot Challenge — ${display.sub} hockeyshotchallenge.com`
+    if (navigator.share) { try { await navigator.share({ text }) } catch (_) {} }
+    else { await navigator.clipboard.writeText(text) }
+  }
+
   return (
     <div onClick={handleNext} className="ach-overlay">
       <div className="ach-kicker">ACHIEVEMENT UNLOCKED</div>
@@ -37,6 +44,7 @@ export default function AchievementUnlockModal({ codes, onDismiss }) {
       <div className="ach-title">{display.title}</div>
       <div className="ach-sub">{display.sub}</div>
       <div className="ach-quote">"{lineForAchievement(current)}"</div>
+      <button className="ach-share" onClick={handleShare}>Share ↗</button>
       <div className="ach-tap">
         {codes.length > 1 ? `${index + 1} of ${codes.length} — tap to continue` : 'Tap anywhere to continue'}
       </div>
@@ -94,6 +102,15 @@ export default function AchievementUnlockModal({ codes, onDismiss }) {
           margin-bottom: 32px;
           line-height: 1.4;
         }
+        .ach-share {
+          background: rgba(41,121,255,0.2);
+          border: 1px solid rgba(41,121,255,0.5);
+          color: var(--ice, #a8d4f5);
+          font-size: 14px; font-weight: 700;
+          border-radius: 10px; padding: 10px 24px;
+          cursor: pointer; margin-bottom: 24px;
+        }
+        .ach-share:active { opacity: 0.7; }
         .ach-tap {
           color: var(--text-mute, #6b7a99);
           font-size: 12px;

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMyCoachProfile, getClubStats, getClubTeams, getClubPlayers, getClubTeamRankings, getClubWeeklyRecap, getClubDrillStats } from '../lib/clubs'
 import { getMyTeams, getOrCreateTeamInvite, getPendingCoachesForOwnedTeams, approveTeamCoach } from '../lib/teams'
-import { getTeamChallenge, setTeamChallenge, getTeamWeeklyShots } from '../lib/challenges'
+import { getTeamChallenge, setTeamChallenge, getTeamWeeklyShots, getWeeklyTeamMatchup } from '../lib/challenges'
 import { signOut } from '../lib/auth'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
 
@@ -21,6 +21,7 @@ export default function CoachDashboardScreen() {
   const [teamRankings, setTeamRankings] = useState([])
   const [weeklyRecap, setWeeklyRecap] = useState(null)
   const [challenge, setChallenge] = useState(null)
+  const [teamMatchup, setTeamMatchup] = useState(null)
   const [teamWeekShots, setTeamWeekShots] = useState(0)
   const [goalInput, setGoalInput] = useState('')
   const [savingGoal, setSavingGoal] = useState(false)
@@ -81,13 +82,15 @@ export default function CoachDashboardScreen() {
       } catch (e) {
         setActiveTeamCode(null)
       }
-      const [ch, wk] = await Promise.all([
+      const [ch, wk, matchup] = await Promise.all([
         getTeamChallenge(activeTeamId),
         getTeamWeeklyShots(activeTeamId),
+        getWeeklyTeamMatchup(coach?.club?.id, activeTeamId),
       ])
       setChallenge(ch)
       setTeamWeekShots(wk)
       setGoalInput(ch?.goal_shots ? String(ch.goal_shots) : '')
+      setTeamMatchup(matchup)
     })()
   }, [activeTeamId, coach])
 
@@ -462,6 +465,37 @@ export default function CoachDashboardScreen() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {teamMatchup && (
+              <div className="dash-section">
+                <div className="dash-label" style={{ marginBottom: 10 }}>This week's matchup 🏒</div>
+                <div className="matchup-card">
+                  <div className="matchup-side matchup-side--us">
+                    <div className="matchup-team-name">{teamMatchup.myTeam.age_division} {teamMatchup.myTeam.tier}</div>
+                    <div className="matchup-team-label">YOUR TEAM</div>
+                    <div className={`matchup-shots tnum${teamMatchup.myShots >= teamMatchup.rivalShots ? ' matchup-shots--lead' : ''}`}>
+                      {teamMatchup.myShots.toLocaleString()}
+                    </div>
+                  </div>
+                  <div className="matchup-vs">VS</div>
+                  <div className="matchup-side matchup-side--them">
+                    <div className="matchup-team-name">{teamMatchup.rivalTeam.age_division} {teamMatchup.rivalTeam.tier}</div>
+                    <div className="matchup-team-label">OPPONENT</div>
+                    <div className={`matchup-shots tnum${teamMatchup.rivalShots > teamMatchup.myShots ? ' matchup-shots--lead' : ''}`}>
+                      {teamMatchup.rivalShots.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+                {(() => {
+                  const gap = teamMatchup.myShots - teamMatchup.rivalShots
+                  const abs = Math.abs(gap)
+                  if (teamMatchup.myShots === 0 && teamMatchup.rivalShots === 0) return <div className="matchup-status">No shots logged yet — get your team going!</div>
+                  if (gap > 0) return <div className="matchup-status matchup-status--lead">You're up by {abs.toLocaleString()} shots. Keep it going.</div>
+                  if (gap < 0) return <div className="matchup-status matchup-status--down">{abs.toLocaleString()} shots behind. Catchable.</div>
+                  return <div className="matchup-status">Tied. Next shot wins the lead.</div>
+                })()}
               </div>
             )}
 
@@ -1117,6 +1151,38 @@ const styles = `
 .recap-stat-num { font-size: 15px; font-weight: 700; }
 .recap-stat-label { font-size: 10px; color: var(--text-soft); margin-top: 2px; }
 .recap-divider { width: 1px; background: rgba(255,255,255,0.1); align-self: stretch; margin: 0 4px; }
+
+.matchup-card {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--surface-2, rgba(255,255,255,0.04));
+  border: 1px solid var(--border-dim);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.matchup-side {
+  flex: 1;
+  padding: 16px 14px;
+  text-align: center;
+}
+.matchup-side--us { background: rgba(37,99,235,0.08); }
+.matchup-side--them { background: rgba(255,255,255,0.02); }
+.matchup-team-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.matchup-team-label { font-size: 9px; letter-spacing: 1px; color: var(--text-soft); margin-bottom: 8px; }
+.matchup-shots { font-size: 28px; font-weight: 800; color: var(--text-soft); }
+.matchup-shots--lead { color: var(--ice, #67e8f9); }
+.matchup-vs {
+  font-size: 11px; font-weight: 800; letter-spacing: 1px;
+  color: var(--text-soft); padding: 0 4px; flex-shrink: 0;
+}
+.matchup-status {
+  font-size: 13px; color: var(--text-soft);
+  padding: 6px 2px;
+}
+.matchup-status--lead { color: #22c55e; font-weight: 600; }
+.matchup-status--down { color: #f97316; font-weight: 600; }
 
 .tr-list { display: flex; flex-direction: column; gap: 6px; }
 .tr-row {

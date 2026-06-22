@@ -160,6 +160,14 @@ export default function CardPublicScreen() {
           )}
         </div>
 
+        <button className="pc-share" onClick={async () => {
+          const url = window.location.href
+          const text = `Check out ${player.display_name}'s Hockey Shot Challenge card — ${player.lifetime_shots.toLocaleString()} shots, ${rank.fullName}`
+          if (navigator.share) { try { await navigator.share({ title: player.display_name, text, url }) } catch (_) {} }
+          else { await navigator.clipboard.writeText(url) }
+        }}>
+          Share this card ↗
+        </button>
         <button className="pc-cta" onClick={() => nav('/start')}>
           Make your own card →
         </button>
@@ -346,6 +354,19 @@ const styles = `
   letter-spacing: 0.5px;
   margin-bottom: 10px;
 }
+.pc-share {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.pc-share:active { opacity: 0.7; }
 .pc-cta:hover { background: var(--accent-soft); }
 .pc-hint {
   font-size: 12px;

@@ -17,6 +17,12 @@ export default function StreakRecoveryBanner({ player, todayShots }) {
             <div className="srb-title">Comeback complete!</div>
             <div className="srb-sub">You hit {target} shots. Streak is back. Don't miss again.</div>
           </div>
+          <button className="srb-share" onClick={async (e) => {
+            e.stopPropagation()
+            const text = `Just did a ${target}-shot comeback to save my streak on Hockey Shot Challenge 🔥 hockeyshotchallenge.com`
+            if (navigator.share) { try { await navigator.share({ text }) } catch (_) {} }
+            else { await navigator.clipboard.writeText(text) }
+          }}>Share</button>
         </>
       ) : (
         <>
@@ -45,6 +51,7 @@ export default function StreakRecoveryBanner({ player, todayShots }) {
         .srb--done {
           background: rgba(34, 197, 94, 0.08);
           border-color: rgba(34, 197, 94, 0.35);
+          align-items: center;
         }
         .srb-icon { font-size: 20px; line-height: 1.2; flex-shrink: 0; }
         .srb-body { flex: 1; min-width: 0; }
@@ -74,6 +81,13 @@ export default function StreakRecoveryBanner({ player, todayShots }) {
           font-size: 11px; color: var(--text-mute);
           margin-top: 4px; text-align: right;
         }
+        .srb-share {
+          font-size: 12px; font-weight: 700;
+          color: #16a34a; border: 1px solid #16a34a;
+          border-radius: 6px; padding: 4px 10px;
+          background: transparent; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+        }
+        .srb-share:active { opacity: 0.7; }
       `}</style>
     </div>
   )
