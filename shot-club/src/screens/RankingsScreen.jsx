@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAssociationRankings } from '../lib/clubs'
+import { getAssociationRankings, getTeamOfTheWeek } from '../lib/clubs'
 
 function formatShots(n) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
@@ -12,11 +12,13 @@ const MEDALS = ['🥇', '🥈', '🥉']
 
 export default function RankingsScreen() {
   const [rankings, setRankings] = useState([])
+  const [teamOfWeek, setTeamOfWeek] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getAssociationRankings().then((data) => {
+    Promise.all([getAssociationRankings(), getTeamOfTheWeek()]).then(([data, totw]) => {
       setRankings(data)
+      setTeamOfWeek(totw)
       setLoading(false)
     })
   }, [])
@@ -45,6 +47,20 @@ export default function RankingsScreen() {
         </div>
         <button className="rk-share-btn" onClick={handleShare}>Share</button>
       </header>
+
+      {!loading && teamOfWeek && (
+        <div className="totw-card">
+          <div className="totw-eyebrow">🏆 TEAM OF THE WEEK</div>
+          <div className="totw-name">
+            {teamOfWeek.team.age_division} {teamOfWeek.team.tier}
+          </div>
+          <div className="totw-club">
+            {teamOfWeek.team.club?.name}{teamOfWeek.team.club?.city ? ` · ${teamOfWeek.team.club.city}` : ''}
+          </div>
+          <div className="totw-shots tnum">{teamOfWeek.shots.toLocaleString()} shots this week</div>
+          <div className="totw-players">{teamOfWeek.players} active player{teamOfWeek.players !== 1 ? 's' : ''}</div>
+        </div>
+      )}
 
       {loading && <div className="rk-loading">Loading rankings…</div>}
 
@@ -146,6 +162,42 @@ const styles = `
   cursor: pointer;
   white-space: nowrap;
 }
+.totw-card {
+  margin: 8px 16px 4px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.12) 0%, rgba(37,99,235,0.08) 100%);
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 14px;
+  padding: 16px 18px;
+  text-align: center;
+}
+.totw-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #92400e;
+  margin-bottom: 8px;
+}
+.totw-name {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+.totw-club {
+  font-size: 13px;
+  color: var(--text-muted, #6b7280);
+  margin-bottom: 10px;
+}
+.totw-shots {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent, #2563eb);
+}
+.totw-players {
+  font-size: 11px;
+  color: var(--text-muted, #6b7280);
+  margin-top: 4px;
+}
+
 .rk-loading {
   text-align: center;
   padding: 60px 20px;

@@ -279,70 +279,59 @@ export default function LandingScreen() {
       </section>
 
       {/* ============================================================
-          COMPETE — leaderboards mockup
+          COMPETE — battle mockup
          ============================================================ */}
       <section className="section section--compete">
         <div className="section-head">
-          <div className="section-eyebrow">COMPETE</div>
-          <h2 className="section-title">Beat your teammates. Beat the next club over.</h2>
+          <div className="section-eyebrow">WEEKLY BATTLES</div>
+          <h2 className="section-title">Every team fights someone this week.</h2>
           <p className="section-sub">
-            Telling a kid to "shoot 100 pucks tonight" gets nowhere.
-            Showing them they're 47 shots behind their line-mate? Different story.
+            Coaches challenge rival teams. Players see the live score on their home screen all week.
+            The team with more shots when Sunday hits wins. Simple. Brutal. Effective.
           </p>
         </div>
 
-        <div className="compete-grid">
-          <div className="compete-card">
-            <h3 className="compete-card-title">Your team this week</h3>
-            <div className="compete-board">
-              <div className="compete-row compete-row--me">
-                <span className="compete-rank">1</span>
-                <span className="compete-name">You</span>
-                <span className="compete-num">412</span>
-              </div>
-              <div className="compete-row">
-                <span className="compete-rank">2</span>
-                <span className="compete-name">Liam K.</span>
-                <span className="compete-num">388</span>
-              </div>
-              <div className="compete-row">
-                <span className="compete-rank">3</span>
-                <span className="compete-name">Connor M.</span>
-                <span className="compete-num">347</span>
-              </div>
-              <div className="compete-row">
-                <span className="compete-rank">4</span>
-                <span className="compete-name">Jake R.</span>
-                <span className="compete-num">301</span>
-              </div>
+        {/* Mock battle card — looks exactly like what players see */}
+        <div className="mock-battle-wrap">
+          <div className="mock-battle-eyebrow">⚔️ CLUB BATTLE — THIS WEEK</div>
+          <div className="mock-battle-teams">
+            <div className="mock-battle-side mock-battle-side--lead">
+              <div className="mock-battle-team">Burlington U11 AA</div>
+              <div className="mock-battle-club">Burlington Eagles</div>
+              <div className="mock-battle-score">2,841</div>
             </div>
-            <div className="compete-caption">Top of your team. Keep it.</div>
+            <div className="mock-battle-vs">VS</div>
+            <div className="mock-battle-side mock-battle-side--right">
+              <div className="mock-battle-team">Oakville U11 AA</div>
+              <div className="mock-battle-club">Oakville Hornets</div>
+              <div className="mock-battle-score">2,390</div>
+            </div>
           </div>
+          <div className="mock-battle-bar-wrap">
+            <div className="mock-battle-bar">
+              <div className="mock-battle-bar-fill" style={{ width: '54%' }} />
+            </div>
+          </div>
+          <div className="mock-battle-status">Burlington leads by 451 shots — 3 days left</div>
+        </div>
 
-          <div className="compete-card">
-            <h3 className="compete-card-title">Club vs. club · November</h3>
-            <div className="compete-board">
-              <div className="compete-row compete-row--win">
-                <span className="compete-rank">1</span>
-                <span className="compete-logo">🦅</span>
-                <span className="compete-name">Burlington Eagles</span>
-                <span className="compete-num">8,442</span>
-              </div>
-              <div className="compete-row">
-                <span className="compete-rank">2</span>
-                <span className="compete-logo">🐝</span>
-                <span className="compete-name">Oakville Hornets</span>
-                <span className="compete-num">7,991</span>
-              </div>
-              <div className="compete-caption-bar">
-                <div className="compete-caption-fill" style={{ width: '94.7%' }} />
-              </div>
-              <div className="compete-gap">
-                Hornets are 451 shots back. <strong>Catchable.</strong>
-              </div>
-            </div>
-            <div className="compete-caption">Whole clubs put their reps on the line.</div>
+        <div className="compete-how">
+          <div className="compete-how-item">
+            <div className="compete-how-num">1</div>
+            <div className="compete-how-text">Coach picks a rival team from another club and starts the battle</div>
           </div>
+          <div className="compete-how-item">
+            <div className="compete-how-num">2</div>
+            <div className="compete-how-text">Every player on both teams sees the live score on their home screen</div>
+          </div>
+          <div className="compete-how-item">
+            <div className="compete-how-num">3</div>
+            <div className="compete-how-text">Most shots by Sunday wins. New matchup every week.</div>
+          </div>
+        </div>
+
+        <div className="compete-sub-note">
+          Teams only compete within their gender. Boys vs boys. Girls vs girls.
         </div>
       </section>
 
@@ -1162,6 +1151,99 @@ body:has(.landing) { background: var(--bg) !important; }
   font-size: 12px;
   color: var(--text-mute);
   text-align: center;
+}
+
+/* ============ MOCK BATTLE CARD ============ */
+.mock-battle-wrap {
+  max-width: 480px;
+  margin: 0 auto 32px;
+  background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(37,99,235,0.08) 100%);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+.mock-battle-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-mute);
+  margin-bottom: 14px;
+}
+.mock-battle-teams {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.mock-battle-side { flex: 1; }
+.mock-battle-side--right { text-align: right; }
+.mock-battle-team { font-size: 13px; font-weight: 700; }
+.mock-battle-club { font-size: 11px; color: var(--text-mute); margin: 2px 0 6px; }
+.mock-battle-score {
+  font-size: 28px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: white;
+}
+.mock-battle-side--lead .mock-battle-score { color: #67e8f9; }
+.mock-battle-vs {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-mute);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.mock-battle-bar-wrap { margin-bottom: 10px; }
+.mock-battle-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.mock-battle-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #67e8f9);
+  border-radius: 99px;
+}
+.mock-battle-status {
+  font-size: 12px;
+  color: var(--text-soft);
+  text-align: center;
+}
+.compete-how {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto 20px;
+}
+.compete-how-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.compete-how-num {
+  width: 28px; height: 28px;
+  background: rgba(37,99,235,0.15);
+  border: 1px solid rgba(37,99,235,0.3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800;
+  color: #67e8f9;
+  flex-shrink: 0;
+}
+.compete-how-text {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.5;
+  padding-top: 4px;
+}
+.compete-sub-note {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-mute);
+  max-width: 360px;
+  margin: 0 auto;
 }
 
 /* ============ ROUTES (second-pass audience picker) ============ */

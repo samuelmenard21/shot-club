@@ -352,6 +352,44 @@ export async function getClubTeamRankings(clubId) {
     .sort((a, b) => b.week_shots - a.week_shots)
 }
 
+export async function getTeamOfTheWeek() {
+  const weekStart = getWeekStart()
+
+  // Get all players with team info
+  const { data: playerRows } = await supabase
+    .from('players')
+    .select('id, team_id, team:teams(id, name, age_division, tier, club:clubs(id, name, city, slug))')
+    .not('team_id', 'is', null)
+  if (!playerRows?.length) return null
+
+  const playerIds = playerRows.map((p) => p.id)
+  const { data: logs } = await supabase
+    .from('shot_logs')
+    .select('player_id, count')
+    .in('player_id', playerIds)
+    .gte('log_date', weekStart)
+
+  if (!logs?.length) return null
+
+  const shotsByPlayer = {}
+  for (const log of logs) {
+    shotsByPlayer[log.player_id] = (shotsByPlayer[log.player_id] || 0) + log.count
+  }
+
+  const byTeam = {}
+  for (const p of playerRows) {
+    if (!p.team) continue
+    if (!byTeam[p.team_id]) {
+      byTeam[p.team_id] = { team: p.team, shots: 0, players: 0 }
+    }
+    byTeam[p.team_id].shots += shotsByPlayer[p.id] || 0
+    if (shotsByPlayer[p.id]) byTeam[p.team_id].players += 1
+  }
+
+  const sorted = Object.values(byTeam).filter((t) => t.shots > 0).sort((a, b) => b.shots - a.shots)
+  return sorted[0] || null
+}
+
 export async function getAssociationRankings() {
   const { data, error } = await supabase
     .from('players')
