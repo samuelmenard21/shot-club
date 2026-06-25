@@ -7,6 +7,7 @@ import { claimAchievements, isStreakInRecovery } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
 import { getSkillVideos } from '../lib/videos'
 import { getTeamChallenge, getTeamWeeklyShots, getWeeklyTeamMatchup } from '../lib/challenges'
+import { getActiveBattle } from '../lib/battles'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
 import StreakRecoveryBanner from '../components/StreakRecoveryBanner'
@@ -31,6 +32,7 @@ export default function HomeScreen() {
   const [teamChallenge, setTeamChallenge] = useState(null)
   const [teamWeekShots, setTeamWeekShots] = useState(0)
   const [teamMatchup, setTeamMatchup] = useState(null)
+  const [activeBattle, setActiveBattle] = useState(null)
 
   const shotTypes = player?.position === 'G' ? SHOT_TYPES_GOALIE : SHOT_TYPES_SHOOTER
 
@@ -45,10 +47,12 @@ export default function HomeScreen() {
         getTeamChallenge(player.team_id),
         getTeamWeeklyShots(player.team_id),
         getWeeklyTeamMatchup(player.club_id, player.team_id),
-      ]).then(([ch, wk, matchup]) => {
+        getActiveBattle(player.team_id),
+      ]).then(([ch, wk, matchup, battle]) => {
         setTeamChallenge(ch)
         setTeamWeekShots(wk)
         setTeamMatchup(matchup)
+        setActiveBattle(battle)
       })
     }
   }, [player])
@@ -304,22 +308,60 @@ export default function HomeScreen() {
         </div>
       )}
 
-      {teamMatchup && (
-        <div className="team-matchup">
-          <div className="team-matchup-label">Team matchup this week</div>
-          <div className="team-matchup-row">
-            <div className="team-matchup-us">
-              <div className="team-matchup-name">{teamMatchup.myTeam.age_division} {teamMatchup.myTeam.tier}</div>
-              <div className={`team-matchup-score tnum${teamMatchup.myShots >= teamMatchup.rivalShots ? ' team-matchup-score--lead' : ''}`}>{teamMatchup.myShots.toLocaleString()}</div>
+      {(activeBattle || teamMatchup) && (() => {
+        const battle = activeBattle || teamMatchup
+        const isCrossClub = !!activeBattle
+        const myShots = battle.myShots
+        const rivalShots = battle.rivalShots
+        const total = myShots + rivalShots
+        const myPct = total > 0 ? Math.round((myShots / total) * 100) : 50
+        const gap = myShots - rivalShots
+        const winning = gap >= 0
+        const myName = `${battle.myTeam.age_division} ${battle.myTeam.tier}`
+        const rivalName = isCrossClub
+          ? `${battle.rivalTeam.club?.name || ''} ${battle.rivalTeam.age_division} ${battle.rivalTeam.tier}`.trim()
+          : `${battle.rivalTeam.age_division} ${battle.rivalTeam.tier}`
+
+        const handleShare = async () => {
+          const text = `${myName} vs ${rivalName} — ${myShots.toLocaleString()} to ${rivalShots.toLocaleString()} shots this week 🏒 hockeyshotchallenge.com`
+          if (navigator.share) { try { await navigator.share({ text }) } catch (_) {} }
+          else { await navigator.clipboard.writeText(text) }
+        }
+
+        return (
+          <div className={`battle-card${isCrossClub ? ' battle-card--cross' : ''}`}>
+            <div className="battle-header">
+              <div className="battle-eyebrow">⚔️ {isCrossClub ? 'CLUB BATTLE' : 'TEAM MATCHUP'} — THIS WEEK</div>
+              <button className="battle-share-btn" onClick={handleShare}>Share</button>
             </div>
-            <div className="team-matchup-vs">VS</div>
-            <div className="team-matchup-them">
-              <div className="team-matchup-name">{teamMatchup.rivalTeam.age_division} {teamMatchup.rivalTeam.tier}</div>
-              <div className={`team-matchup-score tnum${teamMatchup.rivalShots > teamMatchup.myShots ? ' team-matchup-score--lead' : ''}`}>{teamMatchup.rivalShots.toLocaleString()}</div>
+            <div className="battle-teams">
+              <div className={`battle-side${winning ? ' battle-side--lead' : ''}`}>
+                <div className="battle-team-name">{myName}</div>
+                {isCrossClub && <div className="battle-club-name">Your club</div>}
+                <div className="battle-score tnum">{myShots.toLocaleString()}</div>
+              </div>
+              <div className="battle-vs">VS</div>
+              <div className={`battle-side battle-side--right${!winning ? ' battle-side--lead' : ''}`}>
+                <div className="battle-team-name">{rivalName}</div>
+                {isCrossClub && <div className="battle-club-name">{battle.rivalTeam.club?.name}</div>}
+                <div className="battle-score tnum">{rivalShots.toLocaleString()}</div>
+              </div>
+            </div>
+            <div className="battle-bar-wrap">
+              <div className="battle-bar">
+                <div className="battle-bar-fill" style={{ width: `${myPct}%` }} />
+              </div>
+            </div>
+            <div className="battle-status">
+              {gap === 0
+                ? 'Tied — next shot wins the lead'
+                : winning
+                  ? `You're up by ${gap.toLocaleString()} shots — keep pushing`
+                  : `${Math.abs(gap).toLocaleString()} shots behind — log more today`}
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {rival && (
         <div className={`chase chase--${chasingTagClass}`}>
@@ -773,27 +815,70 @@ const styles = `
   line-height: 1; margin-top: 4px;
 }
 
-.team-matchup {
+.battle-card {
   margin: 0 20px 12px;
   background: var(--surface);
   border: 1px solid var(--border-dim);
-  border-radius: 12px;
-  padding: 12px 14px;
+  border-radius: 14px;
+  padding: 14px 16px;
 }
-.team-matchup-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
-  text-transform: uppercase; color: var(--text-mute); margin-bottom: 10px;
+.battle-card--cross {
+  background: linear-gradient(135deg, rgba(239,68,68,0.07) 0%, rgba(37,99,235,0.07) 100%);
+  border-color: rgba(239,68,68,0.25);
 }
-.team-matchup-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+.battle-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
 }
-.team-matchup-us, .team-matchup-them { flex: 1; }
-.team-matchup-us { text-align: left; }
-.team-matchup-them { text-align: right; }
-.team-matchup-name { font-size: 12px; font-weight: 600; color: var(--text-soft); margin-bottom: 4px; }
-.team-matchup-score { font-size: 22px; font-weight: 800; color: var(--text-soft); }
-.team-matchup-score--lead { color: var(--ice, #67e8f9); }
-.team-matchup-vs { font-size: 11px; font-weight: 800; color: var(--text-mute); flex-shrink: 0; }
+.battle-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  color: var(--text-mute); text-transform: uppercase;
+}
+.battle-share-btn {
+  font-size: 11px; font-weight: 700;
+  color: var(--ice, #67e8f9);
+  background: transparent; border: 1px solid var(--border-dim);
+  border-radius: 6px; padding: 3px 10px; cursor: pointer;
+}
+.battle-teams {
+  display: flex; align-items: flex-end; gap: 8px;
+  margin-bottom: 12px;
+}
+.battle-side { flex: 1; }
+.battle-side--right { text-align: right; }
+.battle-team-name {
+  font-size: 12px; font-weight: 700;
+  color: var(--text-soft); margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.battle-club-name {
+  font-size: 10px; color: var(--text-mute); margin-bottom: 4px;
+}
+.battle-score {
+  font-size: 28px; font-weight: 800;
+  color: var(--text-soft); line-height: 1;
+}
+.battle-side--lead .battle-score { color: var(--ice, #67e8f9); }
+.battle-vs {
+  font-size: 11px; font-weight: 800; color: var(--text-mute);
+  flex-shrink: 0; padding-bottom: 4px;
+}
+.battle-bar-wrap { margin-bottom: 8px; }
+.battle-bar {
+  height: 6px; background: rgba(255,255,255,0.08);
+  border-radius: 99px; overflow: hidden;
+}
+.battle-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #67e8f9);
+  border-radius: 99px;
+  transition: width 0.5s ease;
+  min-width: 4px; max-width: calc(100% - 4px);
+}
+.battle-status {
+  font-size: 11px; color: var(--text-mute);
+  text-align: center;
+}
 
 .team-ch-bar {
   margin: 0 20px 12px;

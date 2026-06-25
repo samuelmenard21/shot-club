@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMyCoachProfile, getClubStats, getClubTeams, getClubPlayers, getClubTeamRankings, getClubWeeklyRecap, getClubDrillStats } from '../lib/clubs'
 import { getMyTeams, getOrCreateTeamInvite, getPendingCoachesForOwnedTeams, approveTeamCoach } from '../lib/teams'
-import { getTeamChallenge, setTeamChallenge, getTeamWeeklyShots, getWeeklyTeamMatchup } from '../lib/challenges'
+import { getTeamChallenge, setTeamChallenge, getTeamWeeklyShots } from '../lib/challenges'
+import { getActiveBattle, getEligibleOpponents, createBattle } from '../lib/battles'
 import { signOut } from '../lib/auth'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
 
@@ -25,6 +26,11 @@ export default function CoachDashboardScreen() {
   const [teamWeekShots, setTeamWeekShots] = useState(0)
   const [goalInput, setGoalInput] = useState('')
   const [savingGoal, setSavingGoal] = useState(false)
+  const [activeBattle, setActiveBattle] = useState(null)
+  const [opponents, setOpponents] = useState([])
+  const [selectedOpponent, setSelectedOpponent] = useState('')
+  const [creatingBattle, setCreatingBattle] = useState(false)
+  const [battleError, setBattleError] = useState('')
   const [tab, setTab] = useState('invite') // default to 'invite' since that's the main job
   const [copied, setCopied] = useState('')
   const [shared, setShared] = useState(false)
@@ -82,15 +88,17 @@ export default function CoachDashboardScreen() {
       } catch (e) {
         setActiveTeamCode(null)
       }
-      const [ch, wk, matchup] = await Promise.all([
+      const [ch, wk, battle, opps] = await Promise.all([
         getTeamChallenge(activeTeamId),
         getTeamWeeklyShots(activeTeamId),
-        getWeeklyTeamMatchup(coach?.club?.id, activeTeamId),
+        getActiveBattle(activeTeamId),
+        getEligibleOpponents(activeTeamId, coach?.club?.id, coach?.club?.gender_type),
       ])
       setChallenge(ch)
       setTeamWeekShots(wk)
       setGoalInput(ch?.goal_shots ? String(ch.goal_shots) : '')
-      setTeamMatchup(matchup)
+      setActiveBattle(battle)
+      setOpponents(opps)
     })()
   }, [activeTeamId, coach])
 
@@ -110,6 +118,21 @@ export default function CoachDashboardScreen() {
   const clubJoinUrl = `${CANONICAL_URL}/join/${coach.club.slug}`
   const teamJoinUrl = activeTeamCode ? `${CANONICAL_URL}/j/${activeTeamCode}` : null
   const activeTeam = myTeams.find((t) => t.id === activeTeamId)
+
+  const handleCreateBattle = async () => {
+    if (!selectedOpponent || !activeTeamId) return
+    setCreatingBattle(true)
+    setBattleError('')
+    try {
+      await createBattle(activeTeamId, selectedOpponent)
+      const battle = await getActiveBattle(activeTeamId)
+      setActiveBattle(battle)
+      setSelectedOpponent('')
+    } catch (e) {
+      setBattleError(e.message?.includes('unique') ? 'Your team already has a battle this week.' : 'Could not start battle. Try again.')
+    }
+    setCreatingBattle(false)
+  }
 
   const handleSaveGoal = async () => {
     const shots = parseInt(goalInput, 10)
@@ -540,6 +563,67 @@ export default function CoachDashboardScreen() {
                   </button>
                 </div>
                 <div className="dash-hint">Players will see a progress bar on their home screen.</div>
+              </div>
+            )}
+
+            {activeTeamId && (
+              <div className="dash-section">
+                <div className="dash-label" style={{ marginBottom: 10 }}>⚔️ Cross-club battle</div>
+
+                {activeBattle ? (
+                  <div className="battle-live">
+                    <div className="battle-live-row">
+                      <div className="battle-live-side">
+                        <div className="battle-live-club">Your team</div>
+                        <div className="battle-live-score tnum">{activeBattle.myShots.toLocaleString()}</div>
+                      </div>
+                      <div className="battle-live-vs">VS</div>
+                      <div className="battle-live-side battle-live-side--right">
+                        <div className="battle-live-club">{activeBattle.rivalTeam?.club?.name || activeBattle.rivalTeam?.name}</div>
+                        <div className="battle-live-score tnum">{activeBattle.rivalShots.toLocaleString()}</div>
+                      </div>
+                    </div>
+                    <div className="dash-hint" style={{ marginTop: 8 }}>
+                      {activeBattle.myShots >= activeBattle.rivalShots
+                        ? `Leading by ${(activeBattle.myShots - activeBattle.rivalShots).toLocaleString()} shots`
+                        : `Behind by ${(activeBattle.rivalShots - activeBattle.myShots).toLocaleString()} shots — keep logging`}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {opponents.length > 0 ? (
+                      <>
+                        <div className="dash-hint" style={{ marginBottom: 10 }}>
+                          Challenge a team from another club. Both teams see the live scoreboard on their home screen all week.
+                        </div>
+                        <div className="ch-set-goal">
+                          <select
+                            className="ch-goal-input"
+                            value={selectedOpponent}
+                            onChange={(e) => setSelectedOpponent(e.target.value)}
+                          >
+                            <option value="">Pick a rival team…</option>
+                            {opponents.map((t) => (
+                              <option key={t.id} value={t.id}>
+                                {t.club?.name} — {t.age_division} {t.tier}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            className="ch-goal-btn"
+                            onClick={handleCreateBattle}
+                            disabled={creatingBattle || !selectedOpponent}
+                          >
+                            {creatingBattle ? '…' : 'Challenge'}
+                          </button>
+                        </div>
+                        {battleError && <div className="dash-hint" style={{ color: '#ef4444', marginTop: 6 }}>{battleError}</div>}
+                      </>
+                    ) : (
+                      <div className="dash-hint">No other clubs are set up yet. Share hockeyshotchallenge.com with rival coaches to unlock cross-club battles.</div>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </>
@@ -1265,4 +1349,19 @@ const styles = `
   white-space: nowrap;
 }
 .ch-goal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.battle-live {
+  background: linear-gradient(135deg, rgba(239,68,68,0.07) 0%, rgba(37,99,235,0.07) 100%);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.battle-live-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.battle-live-side { flex: 1; }
+.battle-live-side--right { text-align: right; }
+.battle-live-club { font-size: 11px; color: var(--text-soft); margin-bottom: 2px; }
+.battle-live-score { font-size: 22px; font-weight: 800; color: var(--ice, #67e8f9); }
+.battle-live-vs { font-size: 11px; font-weight: 800; color: var(--text-mute); flex-shrink: 0; }
 `
