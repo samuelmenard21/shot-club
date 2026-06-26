@@ -144,6 +144,20 @@ export async function signOut() {
   await supabase.auth.signOut()
 }
 
+export async function deleteAccount(playerId) {
+  if (!playerId) throw new Error('No player ID')
+  // Delete all player data — RLS ensures you can only delete your own rows
+  await Promise.all([
+    supabase.from('shot_logs').delete().eq('player_id', playerId),
+    supabase.from('drill_logs').delete().eq('player_id', playerId),
+    supabase.from('achievements').delete().eq('player_id', playerId),
+  ])
+  await supabase.from('players').delete().eq('id', playerId)
+  // Sign out — orphaned auth user is cleaned up server-side on next login attempt
+  await supabase.auth.signOut()
+  if (typeof localStorage !== 'undefined') localStorage.removeItem('activePlayerId')
+}
+
 export async function getCurrentPlayer() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { signOut } from '../lib/auth'
+import { signOut, deleteAccount } from '../lib/auth'
 import { setDailyGoal } from '../lib/progress'
 import { useNavigate } from 'react-router-dom'
 
@@ -14,6 +14,8 @@ export default function MoreScreen() {
   const [shared, setShared] = useState(false)
   const [goal, setGoal] = useState(player?.daily_goal || 50)
   const [savingGoal, setSavingGoal] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   if (!player) return null
 
@@ -62,6 +64,18 @@ export default function MoreScreen() {
     await signOut()
     await refresh()
     nav('/start')
+  }
+
+  const doDeleteAccount = async () => {
+    setDeleting(true)
+    try {
+      await deleteAccount(player.id)
+      nav('/start', { replace: true })
+    } catch (e) {
+      setDeleting(false)
+      setShowDeleteConfirm(false)
+      window.alert('Something went wrong. Try again.')
+    }
   }
 
   const cardNumberDisplay = player.card_number ? `#${String(player.card_number).padStart(3, '0')}` : '—'
@@ -210,6 +224,25 @@ export default function MoreScreen() {
       </div>
 
       <button className="signout-btn" onClick={doSignOut}>Sign out</button>
+      <button className="delete-btn" onClick={() => setShowDeleteConfirm(true)}>Delete account</button>
+
+      {showDeleteConfirm && (
+        <div className="delete-overlay">
+          <div className="delete-modal">
+            <div className="delete-modal-icon">⚠️</div>
+            <h2 className="delete-modal-title">Delete your account?</h2>
+            <p className="delete-modal-body">
+              This permanently deletes your shots, streak, rank, and card. There's no undo.
+            </p>
+            <button className="delete-confirm-btn" onClick={doDeleteAccount} disabled={deleting}>
+              {deleting ? 'Deleting…' : 'Yes, delete everything'}
+            </button>
+            <button className="delete-cancel-btn" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <style>{styles}</style>
     </div>
@@ -421,4 +454,58 @@ const styles = `
   margin-top: 8px;
 }
 .signout-btn:active { background: rgba(255, 84, 84, 0.08); }
+
+.delete-btn {
+  width: 100%;
+  background: transparent;
+  color: var(--text-mute);
+  padding: 12px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.delete-btn:active { color: var(--danger); }
+
+.delete-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+.delete-modal {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 20px;
+  padding: 24px 20px 20px;
+  width: 100%; max-width: 380px;
+  text-align: center;
+}
+.delete-modal-icon { font-size: 32px; margin-bottom: 12px; }
+.delete-modal-title {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 800;
+  color: white; margin-bottom: 10px;
+}
+.delete-modal-body {
+  font-size: 14px; color: var(--text-soft);
+  line-height: 1.5; margin-bottom: 20px;
+}
+.delete-confirm-btn {
+  width: 100%;
+  background: var(--danger);
+  color: white;
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 14px; font-weight: 600;
+  margin-bottom: 10px;
+}
+.delete-confirm-btn:disabled { opacity: 0.6; }
+.delete-cancel-btn {
+  width: 100%;
+  color: var(--text-mute);
+  font-size: 13px;
+  padding: 10px;
+}
+.delete-cancel-btn:disabled { opacity: 0.5; }
 `
