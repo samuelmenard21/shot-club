@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
-import { getClubBySlug, getClubStats, getClubTeams } from '../lib/clubs'
+import { getClubBySlug, getClubStats, getClubTeams, getClubWeeklyRecap, getClubTeamRankings } from '../lib/clubs'
 import ContactSection from '../components/ContactSection'
 
 export default function ClubScreen() {
@@ -10,10 +10,13 @@ export default function ClubScreen() {
   const [club, setClub] = useState(null)
   const [stats, setStats] = useState(null)
   const [teams, setTeams] = useState([])
+  const [weeklyRecap, setWeeklyRecap] = useState(null)
+  const [teamRankings, setTeamRankings] = useState([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [copied, setCopied] = useState(false)
   const [shared, setShared] = useState(false)
+  const [copiedWeek, setCopiedWeek] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -33,10 +36,17 @@ export default function ClubScreen() {
         return
       }
       setClub(c)
-      const [s, t] = await Promise.all([getClubStats(c.id), getClubTeams(c.id)])
+      const [s, t, recap, rankings] = await Promise.all([
+        getClubStats(c.id),
+        getClubTeams(c.id),
+        getClubWeeklyRecap(c.id),
+        getClubTeamRankings(c.id),
+      ])
       if (cancelled) return
       setStats(s)
       setTeams(t)
+      setWeeklyRecap(recap)
+      setTeamRankings(rankings)
       setLoading(false)
       const cityPart = c.city ? `, ${c.city}` : ''
       setSEO({
@@ -82,6 +92,25 @@ export default function ClubScreen() {
       await navigator.clipboard.writeText(clubUrl)
       setCopied(true)
       setTimeout(() => setCopied(false), 2500)
+    } catch (e) {}
+  }
+
+  const shareWeekStats = async () => {
+    if (!weeklyRecap || !club) return
+    const lead = teamRankings.find((t) => t.week_shots > 0)
+    const leadLine = lead ? ` ${lead.age_division} ${lead.tier} leads with ${lead.week_shots.toLocaleString()} shots.` : ''
+    const challengeLine = teamRankings.length > 1 && teamRankings[1]?.week_shots > 0
+      ? ` Can ${teamRankings[1].age_division} ${teamRankings[1].tier} catch up by Sunday?`
+      : ''
+    const text = `${club.name} — ${weeklyRecap.thisWeekTotal.toLocaleString()} shots logged this week.${leadLine}${challengeLine} 🏒 ${clubUrl}`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `${club.name} — this week`, text, url: clubUrl })
+      } else {
+        await navigator.clipboard.writeText(text)
+        setCopiedWeek(true)
+        setTimeout(() => setCopiedWeek(false), 2500)
+      }
     } catch (e) {}
   }
 
@@ -250,6 +279,10 @@ export default function ClubScreen() {
   }
 
   // ===== ACTIVE CLUB — player/parent first, coach secondary =====
+  const weekShotsHeadline = weeklyRecap?.thisWeekTotal > 0
+    ? `${weeklyRecap.thisWeekTotal.toLocaleString()} shots logged this week.`
+    : null
+
   return (
     <div className="club-screen">
       <ClubNav nav={nav} />
@@ -258,11 +291,19 @@ export default function ClubScreen() {
         <div className="club-eyebrow">ACTIVE ON HOCKEY SHOT CHALLENGE</div>
         <h1 className="club-h1">
           <span className="club-h1-name">{club.name}</span>
-          <span className="club-h1-em">is on the board.</span>
         </h1>
-        <p className="club-lede">
-          {club.name} players are logging off-ice shots and competing on the team leaderboard. Ask your coach for the team invite link, or sign in below.
-        </p>
+        {weekShotsHeadline ? (
+          <p className="club-lede club-lede--headline">{weekShotsHeadline}</p>
+        ) : (
+          <p className="club-lede">{club.name} players are logging off-ice shots and competing on the team leaderboard.</p>
+        )}
+        <div className="club-hero-meta">
+          <span className="club-hero-meta-item">{stats.teamCount} team{stats.teamCount !== 1 ? 's' : ''}</span>
+          <span className="club-hero-meta-dot">·</span>
+          <span className="club-hero-meta-item">{stats.playerCount} player{stats.playerCount !== 1 ? 's' : ''}</span>
+          <span className="club-hero-meta-dot">·</span>
+          <span className="club-hero-meta-item">{stats.totalShots.toLocaleString()} shots all-time</span>
+        </div>
         <div className="club-ctas">
           <button className="club-btn-primary" onClick={() => nav(playerSignupLink)}>
             Sign in / Join →
@@ -270,35 +311,52 @@ export default function ClubScreen() {
         </div>
       </section>
 
-      <section className="club-section">
-        <div className="club-stats">
-          <div className="club-stat">
-            <div className="club-stat-num">{stats.playerCount.toLocaleString()}</div>
-            <div className="club-stat-label">Players</div>
-          </div>
-          <div className="club-stat">
-            <div className="club-stat-num">{stats.teamCount.toLocaleString()}</div>
-            <div className="club-stat-label">Teams</div>
-          </div>
-          <div className="club-stat">
-            <div className="club-stat-num">{stats.totalShots.toLocaleString()}</div>
-            <div className="club-stat-label">Shots logged</div>
-          </div>
-        </div>
-      </section>
-
-      {teams.length > 0 && (
+      {/* ── TEAM LEADERBOARD — this week ── */}
+      {teamRankings.length > 0 && (
         <section className="club-section">
-          <h2 className="club-h2">Teams on the platform</h2>
-          <div className="club-teams">
-            {teams.map((t) => (
-              <div key={t.id} className="club-team">
-                <span className="club-team-name">{t.name}</span>
-                <span className="club-team-code">CODE {t.code}</span>
-              </div>
-            ))}
+          <div className="club-section-header">
+            <div className="club-eyebrow-left">⚔️ TEAM LEADERBOARD — THIS WEEK</div>
+            {weeklyRecap?.thisWeekTotal > 0 && (
+              <button className="club-share-week" onClick={shareWeekStats}>
+                {copiedWeek ? '✓ Copied!' : 'Share →'}
+              </button>
+            )}
           </div>
-          <p className="club-teams-note">
+          <div className="club-board">
+            {teamRankings.map((t, i) => {
+              const isLead = i === 0 && t.week_shots > 0
+              const pct = weeklyRecap?.thisWeekTotal > 0
+                ? Math.max(4, Math.round((t.week_shots / weeklyRecap.thisWeekTotal) * 100))
+                : 0
+              return (
+                <div key={t.id} className={`club-board-row${isLead ? ' club-board-row--lead' : ''}`}>
+                  <div className="club-board-rank">
+                    {isLead ? '🥇' : `#${i + 1}`}
+                  </div>
+                  <div className="club-board-info">
+                    <div className="club-board-name">{t.age_division} {t.tier}</div>
+                    <div className="club-board-bar-track">
+                      <div className="club-board-bar-fill" style={{ width: t.week_shots > 0 ? `${pct}%` : '0%' }} />
+                    </div>
+                  </div>
+                  <div className="club-board-shots">
+                    {t.week_shots > 0 ? t.week_shots.toLocaleString() : '—'}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          {weeklyRecap?.thisWeekTotal > 0 && (
+            <div className="club-board-foot">
+              {weeklyRecap.activePlayers} active players this week
+              {weeklyRecap.vsLastWeek !== null && (
+                <span className={`club-board-delta ${weeklyRecap.vsLastWeek >= 0 ? 'club-board-delta--up' : 'club-board-delta--down'}`}>
+                  {weeklyRecap.vsLastWeek >= 0 ? ' ↑' : ' ↓'} {Math.abs(weeklyRecap.vsLastWeek)}% vs last week
+                </span>
+              )}
+            </div>
+          )}
+          <p className="club-teams-note" style={{ marginTop: 14 }}>
             Don't see your team? Ask your coach to set it up — or{' '}
             <button className="club-inline-link" onClick={() => nav(coachSignupLink)}>set it up yourself</button>.
           </p>
@@ -620,6 +678,72 @@ body:has(.club-screen) { background: var(--bg) !important; }
 .club-coach-sub { font-size: 14px; color: var(--text-soft); line-height: 1.5; margin: 0; }
 .club-coach-actions { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
 .club-coach-dash { color: var(--accent); font-size: 13px; font-weight: 600; background: transparent; padding: 4px 0; cursor: pointer; text-align: left; }
+
+/* Hero meta line */
+.club-lede--headline {
+  font-family: var(--font-display); font-size: clamp(20px, 4vw, 28px);
+  font-weight: 800; color: var(--ice); line-height: 1.1; margin-bottom: 10px;
+}
+.club-hero-meta {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  font-size: 13px; color: var(--text-mute); margin-bottom: 24px; align-items: center;
+}
+.club-hero-meta-dot { color: var(--border-dim); }
+
+/* Section header row */
+.club-section-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+}
+.club-section-header .club-eyebrow-left { margin-bottom: 0; }
+.club-share-week {
+  font-family: var(--font-display); font-size: 12px; font-weight: 700;
+  color: var(--accent); background: transparent; padding: 0; cursor: pointer;
+  letter-spacing: 0.3px; transition: opacity 0.15s;
+}
+.club-share-week:hover { opacity: 0.75; }
+
+/* Team leaderboard board */
+.club-board { display: flex; flex-direction: column; gap: 8px; }
+.club-board-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 0.5px solid var(--border-dim);
+  border-radius: 12px; padding: 14px 16px;
+  transition: border-color 0.15s;
+}
+.club-board-row--lead {
+  border-color: #f4c542;
+  background: linear-gradient(90deg, rgba(244,197,66,0.07), var(--surface));
+}
+.club-board-rank {
+  font-family: var(--font-display); font-size: 13px; font-weight: 800;
+  color: var(--text-mute); min-width: 28px; text-align: center; flex-shrink: 0;
+}
+.club-board-row--lead .club-board-rank { color: #f4c542; }
+.club-board-info { flex: 1; min-width: 0; }
+.club-board-name {
+  font-family: var(--font-display); font-weight: 700; font-size: 15px; color: white;
+  margin-bottom: 6px;
+}
+.club-board-bar-track {
+  height: 4px; background: rgba(168,212,245,0.1); border-radius: 2px; overflow: hidden;
+}
+.club-board-bar-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--ice));
+  transition: width 0.4s ease;
+}
+.club-board-row--lead .club-board-bar-fill { background: linear-gradient(90deg, #f4c542, #fde68a); }
+.club-board-shots {
+  font-family: var(--font-display); font-size: 18px; font-weight: 800;
+  color: var(--ice); font-variant-numeric: tabular-nums; flex-shrink: 0; min-width: 52px; text-align: right;
+}
+.club-board-row--lead .club-board-shots { color: #f4c542; }
+.club-board-foot {
+  font-size: 12px; color: var(--text-mute); margin-top: 10px;
+}
+.club-board-delta { font-weight: 600; }
+.club-board-delta--up { color: #22c55e; }
+.club-board-delta--down { color: #ef4444; }
 
 /* Footer */
 .club-footer {
