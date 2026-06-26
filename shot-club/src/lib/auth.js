@@ -23,6 +23,7 @@ function coachEmailToInternal(email) {
 
 export async function signUp({
   displayName,
+  firstName,      // optional: real first name shown to coaches
   position,
   ageBracket,
   teamName,       // legacy free-text path: resolves/creates team by uppercase code
@@ -83,7 +84,7 @@ export async function signUp({
   }
 
   // Create the player row
-  const { error: playerErr } = await supabase.from('players').insert({
+  const playerRow = {
     id: userId,
     display_name: displayName,
     username,
@@ -92,7 +93,15 @@ export async function signUp({
     team_id: resolvedTeamId,
     club_id: clubId || clubIdFromInvite || null,
     club_name: resolvedClubName,
-  })
+  }
+  if (firstName?.trim()) playerRow.first_name = firstName.trim()
+
+  let { error: playerErr } = await supabase.from('players').insert(playerRow)
+  if (playerErr?.message?.includes('first_name')) {
+    // first_name column not yet migrated — retry without it
+    delete playerRow.first_name
+    ;({ error: playerErr } = await supabase.from('players').insert(playerRow))
+  }
   if (playerErr) throw playerErr
 
   // NEW: if a team_invites code was provided (from /j/:code), attach player to that team
@@ -139,13 +148,81 @@ export async function getCurrentPlayer() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  // Family account: check account_id first (Google OAuth players)
+  const activePlayerId = typeof localStorage !== 'undefined' ? localStorage.getItem('activePlayerId') : null
+  try {
+    const { data: accountPlayers, error } = await supabase
+      .from('players')
+      .select('*, team:teams(id, name, code)')
+      .eq('account_id', user.id)
+      .order('created_at')
+    if (!error && accountPlayers?.length > 0) {
+      if (activePlayerId) {
+        const active = accountPlayers.find((p) => p.id === activePlayerId)
+        if (active) return active
+      }
+      return accountPlayers[0]
+    }
+  } catch (_) {
+    // account_id column not yet migrated — fall through to legacy lookup
+  }
+
+  // Legacy: id = auth user id (username / fake-email players)
   const { data } = await supabase
     .from('players')
     .select('*, team:teams(id, name, code)')
     .eq('id', user.id)
     .maybeSingle()
-
   return data
+}
+
+// Create a player profile for a Google-OAuth user (family account support)
+export async function createPlayerWithGoogleAuth({ firstName, displayName, position, ageBracket, teamId, clubId, clubName }) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Must be signed in with Google')
+
+  const username = makeUsername(firstName || displayName)
+  const playerId = crypto.randomUUID()
+
+  const { error } = await supabase.from('players').insert({
+    id: playerId,
+    display_name: displayName,
+    first_name: firstName?.trim() || null,
+    username,
+    position,
+    age_bracket: ageBracket,
+    team_id: teamId || null,
+    club_id: clubId || null,
+    club_name: clubName || null,
+    account_id: user.id,
+  })
+  if (error) throw error
+
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('activePlayerId', playerId)
+  }
+  return { username, playerId }
+}
+
+// Return all player profiles linked to the current Google account
+export async function getPlayersForAccount() {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+  const { data } = await supabase
+    .from('players')
+    .select('*, team:teams(id, name, code)')
+    .eq('account_id', user.id)
+    .order('created_at')
+  return data || []
+}
+
+// Sign in with Google — player flow (redirects back to /start?oauth=1)
+export async function signInWithGooglePlayer() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + '/start?oauth=1' },
+  })
+  if (error) throw error
 }
 
 // ============================================================

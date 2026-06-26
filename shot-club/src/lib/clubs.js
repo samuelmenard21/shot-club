@@ -304,6 +304,36 @@ export async function getClubWeeklyRecap(clubId) {
   return { thisWeekTotal, lastWeekTotal, vsLastWeek, activePlayers, topPlayer, totalPlayers: playerRows.length }
 }
 
+export async function getClubWeeklyTopPlayers(clubId, limit = 5) {
+  if (!clubId) return []
+  const weekStart = getWeekStart()
+
+  const { data: playerRows } = await supabase
+    .from('players')
+    .select('id, display_name, position, team:teams(name, age_division, tier)')
+    .eq('club_id', clubId)
+  if (!playerRows?.length) return []
+
+  const playerIds = playerRows.map((p) => p.id)
+  const { data: logs } = await supabase
+    .from('shot_logs')
+    .select('player_id, count')
+    .in('player_id', playerIds)
+    .gte('log_date', weekStart)
+  if (!logs?.length) return []
+
+  const byPlayer = {}
+  for (const log of logs) {
+    byPlayer[log.player_id] = (byPlayer[log.player_id] || 0) + log.count
+  }
+
+  const playerMap = Object.fromEntries(playerRows.map((p) => [p.id, p]))
+  return Object.entries(byPlayer)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([id, shots]) => ({ ...playerMap[id], week_shots: shots }))
+}
+
 export async function getClubTeamRankings(clubId) {
   if (!clubId) return []
   const weekStart = getWeekStart()

@@ -128,9 +128,27 @@ export default function LandingScreen() {
             )}
           </div>
 
-          <div className="hero-pick-label">WHO ARE YOU?</div>
+          <div className="hero-solo-cta">
+            <button className="hero-solo-btn" onClick={() => nav('/start')}>
+              Start tracking — no coach invite needed →
+            </button>
+            <div className="hero-solo-note">Find your club. Log your first shot. 30 seconds.</div>
+          </div>
+
+          <div className="hero-pick-label">OR PICK YOUR ROLE</div>
 
           <div className="hero-cards">
+            <button className="hero-card hero-card--player" onClick={() => nav('/start')}>
+              <div className="hero-card-icon">🎯</div>
+              <div className="hero-card-eyebrow">FOR PLAYERS & PARENTS</div>
+              <h2 className="hero-card-title">No coach invite? No problem.</h2>
+              <p className="hero-card-text">
+                Find your club, pick your team, and start logging. If your coach joins later,
+                your stats are already there. Compete in squad battles every week.
+              </p>
+              <span className="hero-card-cta">Create my card — free →</span>
+            </button>
+
             <button className="hero-card hero-card--coach" onClick={() => nav('/coach')}>
               <div className="hero-card-icon">📋</div>
               <div className="hero-card-eyebrow">FOR COACHES</div>
@@ -140,17 +158,6 @@ export default function LandingScreen() {
                 You get a dashboard with weekly stats and a team challenge tool.
               </p>
               <span className="hero-card-cta">Set up your team — free →</span>
-            </button>
-
-            <button className="hero-card hero-card--player" onClick={() => nav('/start')}>
-              <div className="hero-card-icon">🎯</div>
-              <div className="hero-card-eyebrow">FOR PLAYERS & PARENTS</div>
-              <h2 className="hero-card-title">Pick a name. Join your squad.</h2>
-              <p className="hero-card-text">
-                Track every shot and stickhandling drill. Earn ranks.
-                Compete in 4-player squad battles against rival teams every week.
-              </p>
-              <span className="hero-card-cta">Start shooting →</span>
             </button>
 
             <button className="hero-card hero-card--association" onClick={() => nav('/for-clubs')}>
@@ -726,6 +733,31 @@ body:has(.landing) { background: var(--bg) !important; }
   padding: 0;
   display: inline;
 }
+.hero-solo-cta {
+  margin-bottom: 20px;
+  text-align: center;
+}
+.hero-solo-btn {
+  width: 100%;
+  background: var(--accent);
+  color: white;
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  line-height: 1.1;
+  transition: transform 0.1s;
+}
+.hero-solo-btn:active { transform: scale(0.98); }
+.hero-solo-note {
+  font-size: 12px;
+  color: var(--text-mute);
+  margin-top: 8px;
+  letter-spacing: 0.3px;
+}
+
 .hero-pick-label {
   font-family: var(--font-display);
   font-size: 11px;
@@ -733,6 +765,7 @@ body:has(.landing) { background: var(--bg) !important; }
   color: var(--text-mute);
   letter-spacing: 2px;
   margin-bottom: 14px;
+  margin-top: 4px;
 }
 
 .hero-cards {

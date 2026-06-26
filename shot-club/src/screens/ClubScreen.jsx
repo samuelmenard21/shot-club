@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
-import { getClubBySlug, getClubStats, getClubTeams, getClubWeeklyRecap, getClubTeamRankings } from '../lib/clubs'
+import { getClubBySlug, getClubStats, getClubTeams, getClubWeeklyRecap, getClubTeamRankings, getClubWeeklyTopPlayers } from '../lib/clubs'
 import ContactSection from '../components/ContactSection'
 
 export default function ClubScreen() {
@@ -12,6 +12,7 @@ export default function ClubScreen() {
   const [teams, setTeams] = useState([])
   const [weeklyRecap, setWeeklyRecap] = useState(null)
   const [teamRankings, setTeamRankings] = useState([])
+  const [topPlayers, setTopPlayers] = useState([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -36,17 +37,19 @@ export default function ClubScreen() {
         return
       }
       setClub(c)
-      const [s, t, recap, rankings] = await Promise.all([
+      const [s, t, recap, rankings, players] = await Promise.all([
         getClubStats(c.id),
         getClubTeams(c.id),
         getClubWeeklyRecap(c.id),
         getClubTeamRankings(c.id),
+        getClubWeeklyTopPlayers(c.id, 5),
       ])
       if (cancelled) return
       setStats(s)
       setTeams(t)
       setWeeklyRecap(recap)
       setTeamRankings(rankings)
+      setTopPlayers(players)
       setLoading(false)
       const cityPart = c.city ? `, ${c.city}` : ''
       setSEO({
@@ -360,6 +363,27 @@ export default function ClubScreen() {
             Don't see your team? Ask your coach to set it up — or{' '}
             <button className="club-inline-link" onClick={() => nav(coachSignupLink)}>set it up yourself</button>.
           </p>
+        </section>
+      )}
+
+      {/* ── TOP PLAYERS THIS WEEK ── */}
+      {topPlayers.length > 0 && (
+        <section className="club-section">
+          <div className="club-eyebrow-left">🔥 TOP PLAYERS — THIS WEEK</div>
+          <div className="club-players-board">
+            {topPlayers.map((p, i) => (
+              <div key={p.id} className={`club-player-row${i === 0 ? ' club-player-row--lead' : ''}`}>
+                <div className="club-player-rank">{i === 0 ? '🥇' : `#${i + 1}`}</div>
+                <div className="club-player-info">
+                  <div className="club-player-name">{p.display_name}</div>
+                  {p.team && (
+                    <div className="club-player-team">{p.team.age_division} {p.team.tier}</div>
+                  )}
+                </div>
+                <div className="club-player-shots">{p.week_shots.toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
         </section>
       )}
 
@@ -744,6 +768,40 @@ body:has(.club-screen) { background: var(--bg) !important; }
 .club-board-delta { font-weight: 600; }
 .club-board-delta--up { color: #22c55e; }
 .club-board-delta--down { color: #ef4444; }
+
+/* Top players board */
+.club-players-board {
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.club-player-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 0.5px solid var(--border-dim);
+}
+.club-player-row:last-child { border-bottom: none; }
+.club-player-row--lead { background: rgba(41,121,255,0.07); }
+.club-player-rank {
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 700;
+  color: var(--text-mute);
+  width: 28px; flex-shrink: 0; text-align: center;
+}
+.club-player-info { flex: 1; min-width: 0; }
+.club-player-name {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  color: white; line-height: 1.1;
+}
+.club-player-team { font-size: 11px; color: var(--text-mute); margin-top: 2px; }
+.club-player-shots {
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 800;
+  color: var(--ice);
+  flex-shrink: 0;
+}
 
 /* Footer */
 .club-footer {

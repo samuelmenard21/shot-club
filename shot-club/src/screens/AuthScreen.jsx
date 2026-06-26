@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { signUp, signIn } from '../lib/auth'
+import { signUp, signIn, signInWithGooglePlayer, createPlayerWithGoogleAuth } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
 import {
   getClubBySlug,
@@ -42,11 +42,20 @@ export default function AuthScreen() {
   const [showFreeText, setShowFreeText] = useState(false)
   const joinClubTimer = useRef(null)
 
+  const [firstName, setFirstName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const nav = useNavigate()
   const [searchParams] = useSearchParams()
-  const { refresh } = useAuth()
+  const { player, loading: authLoading, refresh } = useAuth()
+
+  // OAuth return: redirect if already has a profile, else show setup
+  const isOAuthReturn = searchParams.get('oauth') === '1'
+  useEffect(() => {
+    if (isOAuthReturn && !authLoading && player) {
+      nav('/home', { replace: true })
+    }
+  }, [isOAuthReturn, authLoading, player])
 
   useEffect(() => {
     setSEO({
@@ -113,8 +122,8 @@ export default function AuthScreen() {
       return
     }
 
-    // Join path with a club selected — need age + tier
-    if (path === 'join' && joinClub) {
+    // Join/solo path with a club selected — need age + tier
+    if ((path === 'join' || path === 'solo') && joinClub) {
       if (!ageDivision) { setError('Pick your age division.'); return }
       if (!tier) { setError('Pick your tier.'); return }
       setError('')
@@ -157,7 +166,7 @@ export default function AuthScreen() {
         clubIdToUse = preClub.id
         clubNameToUse = preClub.name
         displayTeamLabel = `${ageDivision} ${tier}`
-      } else if (path === 'join' && joinClub) {
+      } else if ((path === 'join' || path === 'solo') && joinClub) {
         const teamResult = await findOrCreateTeamForPlayer({
           clubId: joinClub.id,
           ageDivision,
@@ -176,6 +185,7 @@ export default function AuthScreen() {
 
       const { username } = await signUp({
         displayName: displayName.trim(),
+        firstName: firstName.trim() || null,
         position,
         ageBracket,
         teamId: teamIdToUse,
@@ -235,6 +245,137 @@ export default function AuthScreen() {
     } catch (e) {}
   }
 
+  // Google OAuth return — create player profile
+  if (isOAuthReturn && !authLoading && !player) {
+    const finishGoogleSetup = async () => {
+      if (!firstName.trim()) { setError('Add your real first name so your coach knows who you are.'); return }
+      if (!displayName.trim() || !position || !ageBracket) { setError('Fill in all the fields.'); return }
+      if (joinClub && (!ageDivision || !tier)) { setError('Pick your age division and tier.'); return }
+      setLoading(true)
+      setError('')
+      try {
+        let teamIdToUse = null
+        let clubIdToUse = null
+        let clubNameToUse = null
+        if (joinClub) {
+          const teamResult = await findOrCreateTeamForPlayer({ clubId: joinClub.id, ageDivision, tier })
+          teamIdToUse = teamResult.teamId
+          clubIdToUse = joinClub.id
+          clubNameToUse = joinClub.name
+        }
+        await createPlayerWithGoogleAuth({
+          firstName: firstName.trim(),
+          displayName: displayName.trim(),
+          position,
+          ageBracket,
+          teamId: teamIdToUse,
+          clubId: clubIdToUse,
+          clubName: clubNameToUse,
+        })
+        await refresh()
+        nav('/home', { replace: true })
+      } catch (e) {
+        setError(e.message || 'Something went wrong.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    return (
+      <div className="auth-wrap fade-in">
+        <div className="auth-card">
+          <div className="brand"><BrandLogo /><div className="brand-name">Hockey Shot<br/>Challenge</div></div>
+          <h2 className="auth-title">Almost there.</h2>
+          <p className="auth-sub">One quick setup and you're in.</p>
+
+          <label className="input-label">
+            <span>First name (shown to your coach)</span>
+            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
+              placeholder="Your real first name" className="input-field" autoFocus />
+          </label>
+
+          <label className="input-label" style={{ marginTop: 12 }}>
+            <span>Player name (on leaderboards)</span>
+            <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="e.g. Connor or C-Train99" className="input-field" />
+          </label>
+
+          <div className="label-sm" style={{ marginTop: 14 }}>Find your club</div>
+          {!joinClub ? (
+            <div style={{ position: 'relative' }}>
+              <input type="text" value={joinClubQuery} onChange={(e) => setJoinClubQuery(e.target.value)}
+                placeholder="Burlington Eagles, Mississauga…" autoCorrect="off" autoCapitalize="none"
+                spellCheck="false" className="input-field" />
+              {joinClubQuery.trim().length >= 2 && (
+                <div className="join-club-dropdown">
+                  {joinSearching && <div className="join-club-status">Searching…</div>}
+                  {!joinSearching && joinClubResults.length === 0 && <div className="join-club-status">No clubs found.</div>}
+                  {joinClubResults.map((c) => (
+                    <button key={c.id} className="join-club-result"
+                      onClick={() => { setJoinClub(c); setJoinClubQuery(''); setJoinClubResults([]) }}>
+                      <span className="join-club-result-name">{c.name}</span>
+                      {c.city && <span className="join-club-result-meta">{c.city}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="join-club-selected">
+                <div className="join-club-selected-name">{joinClub.name}</div>
+                {joinClub.city && <div className="join-club-selected-city">{joinClub.city}</div>}
+                <button className="join-club-change" onClick={() => { setJoinClub(null); setAgeDivision(''); setTier('') }}>Change</button>
+              </div>
+              <label className="input-label" style={{ marginTop: 12 }}>
+                <span>Age division</span>
+                <select value={ageDivision} onChange={(e) => setAgeDivision(e.target.value)} className="input-field">
+                  <option value="">Pick one</option>
+                  {AGE_DIVISIONS.map((a) => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </label>
+              <label className="input-label" style={{ marginTop: 10 }}>
+                <span>Tier</span>
+                <select value={tier} onChange={(e) => setTier(e.target.value)} className="input-field">
+                  <option value="">Pick one</option>
+                  {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </label>
+            </>
+          )}
+          {!joinClub && !joinClubQuery && (
+            <div className="path-hint" style={{ marginTop: 6 }}>Optional — you can skip this and add your club later.</div>
+          )}
+
+          <div className="label-sm" style={{ marginTop: 14 }}>Position</div>
+          <div className="chip-row chip-row--3">
+            {['F', 'D', 'G'].map((p) => (
+              <button key={p} className={`chip chip--big ${position === p ? 'chip--active' : ''}`} onClick={() => setPosition(p)}>
+                <div className="chip-letter">{p}</div>
+                <div className="chip-sub">{p === 'F' ? 'Forward' : p === 'D' ? 'Defense' : 'Goalie'}</div>
+              </button>
+            ))}
+          </div>
+
+          <div className="label-sm">Age</div>
+          <div className="chip-row chip-row--4">
+            {['6-10', '11-14', '15-18', '18+'].map((a) => (
+              <button key={a} className={`chip ${ageBracket === a ? 'chip--active' : ''}`} onClick={() => setAgeBracket(a)}>{a}</button>
+            ))}
+          </div>
+
+          {error && <div className="error">{error}</div>}
+
+          <button className="btn-primary" onClick={finishGoogleSetup}
+            disabled={!firstName || !displayName || !position || !ageBracket || loading}>
+            {loading ? 'Setting up…' : 'Make my card →'}
+          </button>
+        </div>
+        <style>{styles}</style>
+      </div>
+    )
+  }
+
   // Sign in mode
   if (mode === 'signin') {
     return (
@@ -265,6 +406,11 @@ export default function AuthScreen() {
 
           <button className="btn-primary" onClick={doSignIn} disabled={!username || loading}>
             {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+          <div className="or-divider">or</div>
+          <button className="google-btn" onClick={() => signInWithGooglePlayer()}>
+            <GoogleIcon />
+            Continue with Google
           </button>
           <button className="btn-text" onClick={() => { setMode('signup'); setError('') }}>
             New here? Create a card
@@ -463,23 +609,106 @@ export default function AuthScreen() {
 
                 <div className="or-divider">or</div>
 
-                <div className={`path-card ${path === 'solo' ? 'path-card--active' : ''}`} onClick={() => choosePath('solo')}>
+                <div
+                  className={`path-card ${path === 'solo' ? 'path-card--active' : ''}`}
+                  onClick={() => { if (path !== 'solo') choosePath('solo') }}
+                >
                   <div className="path-head">
                     <div className="path-icon">🎯</div>
                     <div>
                       <div className="path-title">Start solo</div>
-                      <div className="path-sub">Track on your own, add a team later</div>
+                      <div className="path-sub">No coach invite needed — find your club</div>
                     </div>
                     <div className={`path-check ${path === 'solo' ? 'path-check--active' : ''}`}>
                       {path === 'solo' ? '✓' : ''}
                     </div>
                   </div>
+                  {path === 'solo' && (
+                    <div className="path-body" onClick={(e) => e.stopPropagation()}>
+                      <div className="path-hint" style={{ marginBottom: 10 }}>
+                        Find your club so your stats count on the association leaderboard.
+                      </div>
+                      {!joinClub ? (
+                        <>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type="text"
+                              value={joinClubQuery}
+                              onChange={(e) => setJoinClubQuery(e.target.value)}
+                              placeholder="Burlington Eagles, Mississauga…"
+                              autoCorrect="off"
+                              autoCapitalize="none"
+                              spellCheck="false"
+                              className="input-field"
+                              autoFocus
+                            />
+                            {joinClubQuery.trim().length >= 2 && (
+                              <div className="join-club-dropdown">
+                                {joinSearching && <div className="join-club-status">Searching…</div>}
+                                {!joinSearching && joinClubResults.length === 0 && (
+                                  <div className="join-club-status">No clubs found.</div>
+                                )}
+                                {joinClubResults.map((c) => (
+                                  <button
+                                    key={c.id}
+                                    className="join-club-result"
+                                    onClick={() => { setJoinClub(c); setJoinClubQuery(''); setJoinClubResults([]) }}
+                                  >
+                                    <span className="join-club-result-name">{c.name}</span>
+                                    {c.city && <span className="join-club-result-meta">{c.city}</span>}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          {!showFreeText ? (
+                            <button className="btn-text" style={{ marginTop: 6, fontSize: 11 }} onClick={() => setShowFreeText(true)}>
+                              My club isn't listed
+                            </button>
+                          ) : (
+                            <div className="path-hint" style={{ marginTop: 8 }}>
+                              No problem — your stats will be personal for now. You can link your club later.
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div className="join-club-selected">
+                            <div className="join-club-selected-name">{joinClub.name}</div>
+                            {joinClub.city && <div className="join-club-selected-city">{joinClub.city}</div>}
+                            <button className="join-club-change" onClick={() => { setJoinClub(null); setAgeDivision(''); setTier('') }}>Change</button>
+                          </div>
+                          <label className="input-label" style={{ marginTop: 12 }}>
+                            <span>Age division</span>
+                            <select value={ageDivision} onChange={(e) => setAgeDivision(e.target.value)} className="input-field">
+                              <option value="">Pick one</option>
+                              {AGE_DIVISIONS.map((a) => <option key={a} value={a}>{a}</option>)}
+                            </select>
+                          </label>
+                          <label className="input-label" style={{ marginTop: 10 }}>
+                            <span>Tier</span>
+                            <select value={tier} onChange={(e) => setTier(e.target.value)} className="input-field">
+                              <option value="">Pick one</option>
+                              {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                          </label>
+                          <div className="path-hint" style={{ marginTop: 6 }}>Not sure? Ask your coach.</div>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
 
                 <button className="btn-primary" onClick={continueFromStep1} disabled={!path} style={{ marginTop: 16 }}>
                   Continue →
+                </button>
+
+                <div className="or-divider" style={{ marginTop: 8 }}>or</div>
+                <button className="google-btn" onClick={() => signInWithGooglePlayer()}>
+                  <GoogleIcon />
+                  Sign up with Google
                 </button>
 
                 <button className="btn-text" onClick={() => { setMode('signin'); setError('') }}>
@@ -500,14 +729,25 @@ export default function AuthScreen() {
             <p className="auth-sub">Just your first name is fine.</p>
 
             <label className="input-label">
-              <span>Name</span>
+              <span>First name (shown to your coach)</span>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Your real first name"
+                className="input-field"
+                autoFocus
+              />
+            </label>
+
+            <label className="input-label" style={{ marginTop: 12 }}>
+              <span>Player name (on leaderboards)</span>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Your first name"
+                placeholder="Same as your name, or a nickname"
                 className="input-field"
-                autoFocus
               />
             </label>
 
@@ -619,6 +859,17 @@ export default function AuthScreen() {
       </div>
       <style>{styles}</style>
     </div>
+  )
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flexShrink: 0 }}>
+      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+      <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+      <path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
+    </svg>
   )
 }
 
@@ -985,6 +1236,21 @@ const styles = `
   font-weight: 700;
   letter-spacing: 0.4px;
 }
+
+.google-btn {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: white;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 14px; font-weight: 500;
+  margin-bottom: 8px;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.google-btn:hover { background: #f8f9fa; }
 
 .join-club-dropdown {
   position: absolute;
