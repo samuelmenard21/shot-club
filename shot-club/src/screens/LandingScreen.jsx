@@ -93,15 +93,14 @@ export default function LandingScreen() {
               Find your club, pick your team, log your first shot.
               No coach invite needed. 30 seconds.
             </p>
-            <span className="hero-path-cta">Create my card — free →</span>
+            <span className="hero-path-cta">Start tracking my shots — free →</span>
           </button>
 
           <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
             <div className="hero-path-eyebrow">COACHES</div>
             <h2 className="hero-path-title">See the work.</h2>
             <p className="hero-path-text">
-              Sign in with Google, pick your team, send one link to parents.
-              You see who's putting in reps — they don't.
+              Sign in with Google, find your club, pick your age group. Your team is on the leaderboard instantly — send one link to parents and you're set.
             </p>
             <span className="hero-path-cta">Set up my team — free →</span>
           </button>
@@ -158,7 +157,7 @@ export default function LandingScreen() {
           <div className="section-eyebrow">⚔️ SQUAD BATTLES</div>
           <h2 className="section-title">4 vs 4. Real names. Daily pressure.</h2>
           <p className="section-sub">
-            Every week you're placed in a squad of 4 with your teammates.
+            Every week you're placed with 3 teammates in a squad of 4.
             Your squad faces a rival squad from another team — boys, girls, any division.
             Every shot you log shows up live. You can't hide.
           </p>
@@ -169,7 +168,7 @@ export default function LandingScreen() {
         <div className="compete-how">
           <div className="compete-how-item">
             <div className="compete-how-num">1</div>
-            <div className="compete-how-text">Every Monday you're auto-placed in a squad of 4. Squad captain picks the name.</div>
+            <div className="compete-how-text">Every Monday you're auto-placed with 3 teammates in a squad of 4. Squad captain picks the name.</div>
           </div>
           <div className="compete-how-item">
             <div className="compete-how-num">2</div>
