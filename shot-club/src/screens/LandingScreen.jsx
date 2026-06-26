@@ -145,10 +145,10 @@ export default function LandingScreen() {
             <button className="hero-card hero-card--player" onClick={() => nav('/start')}>
               <div className="hero-card-icon">🎯</div>
               <div className="hero-card-eyebrow">FOR PLAYERS & PARENTS</div>
-              <h2 className="hero-card-title">Pick a name. Start shooting.</h2>
+              <h2 className="hero-card-title">Pick a name. Join your squad.</h2>
               <p className="hero-card-text">
                 Track every shot and stickhandling drill. Earn ranks.
-                Climb your team's leaderboard.
+                Compete in 4-player squad battles against rival teams every week.
               </p>
               <span className="hero-card-cta">Start shooting →</span>
             </button>
@@ -163,6 +163,38 @@ export default function LandingScreen() {
               </p>
               <span className="hero-card-cta">See the pitch →</span>
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================
+          SQUAD BATTLES — moved up: the #1 differentiator
+         ============================================================ */}
+      <section className="section section--compete">
+        <div className="section-head">
+          <div className="section-eyebrow">⚔️ SQUAD BATTLES</div>
+          <h2 className="section-title">4 vs 4. Real names. Daily pressure.</h2>
+          <p className="section-sub">
+            Every week you're placed in a squad of 4 with your teammates.
+            Your squad faces a rival squad from another team — boys, girls, any division.
+            Every shot you log shows up live. You can't hide.
+          </p>
+        </div>
+
+        <SquadBattleMock />
+
+        <div className="compete-how">
+          <div className="compete-how-item">
+            <div className="compete-how-num">1</div>
+            <div className="compete-how-text">Every Monday you're auto-placed in a squad of 4. Squad captain picks the name.</div>
+          </div>
+          <div className="compete-how-item">
+            <div className="compete-how-num">2</div>
+            <div className="compete-how-text">Your squad gets matched against a rival squad from another team — live score on your home screen all week.</div>
+          </div>
+          <div className="compete-how-item">
+            <div className="compete-how-num">3</div>
+            <div className="compete-how-text">Most shots by Sunday wins. Who logged today is visible to your whole squad. Every shot counts.</div>
           </div>
         </div>
       </section>
@@ -275,63 +307,6 @@ export default function LandingScreen() {
 
         <div className="routine-note">
           These are just starting points. You can do more, do less, or build your own. The app tracks whatever you log.
-        </div>
-      </section>
-
-      {/* ============================================================
-          COMPETE — battle mockup
-         ============================================================ */}
-      <section className="section section--compete">
-        <div className="section-head">
-          <div className="section-eyebrow">WEEKLY BATTLES</div>
-          <h2 className="section-title">Every team fights someone this week.</h2>
-          <p className="section-sub">
-            Coaches challenge rival teams. Players see the live score on their home screen all week.
-            The team with more shots when Sunday hits wins. Simple. Brutal. Effective.
-          </p>
-        </div>
-
-        {/* Mock battle card — looks exactly like what players see */}
-        <div className="mock-battle-wrap">
-          <div className="mock-battle-eyebrow">⚔️ CLUB BATTLE — THIS WEEK</div>
-          <div className="mock-battle-teams">
-            <div className="mock-battle-side mock-battle-side--lead">
-              <div className="mock-battle-team">Burlington U11 AA</div>
-              <div className="mock-battle-club">Burlington Eagles</div>
-              <div className="mock-battle-score">2,841</div>
-            </div>
-            <div className="mock-battle-vs">VS</div>
-            <div className="mock-battle-side mock-battle-side--right">
-              <div className="mock-battle-team">Oakville U11 AA</div>
-              <div className="mock-battle-club">Oakville Hornets</div>
-              <div className="mock-battle-score">2,390</div>
-            </div>
-          </div>
-          <div className="mock-battle-bar-wrap">
-            <div className="mock-battle-bar">
-              <div className="mock-battle-bar-fill" style={{ width: '54%' }} />
-            </div>
-          </div>
-          <div className="mock-battle-status">Burlington leads by 451 shots — 3 days left</div>
-        </div>
-
-        <div className="compete-how">
-          <div className="compete-how-item">
-            <div className="compete-how-num">1</div>
-            <div className="compete-how-text">Coach picks a rival team from another club and starts the battle</div>
-          </div>
-          <div className="compete-how-item">
-            <div className="compete-how-num">2</div>
-            <div className="compete-how-text">Every player on both teams sees the live score on their home screen</div>
-          </div>
-          <div className="compete-how-item">
-            <div className="compete-how-num">3</div>
-            <div className="compete-how-text">Most shots by Sunday wins. New matchup every week.</div>
-          </div>
-        </div>
-
-        <div className="compete-sub-note">
-          Teams only compete within their gender. Boys vs boys. Girls vs girls.
         </div>
       </section>
 
@@ -503,6 +478,86 @@ function PlayerMock() {
           </div>
           <div className="pm-gap">−23</div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function SquadBattleMock() {
+  const myMembers = [
+    { name: 'You', shots: 95, logged: true, isMe: true, isCap: true },
+    { name: 'Connor', shots: 50, logged: true, isMe: false },
+    { name: 'Liam', shots: 89, logged: true, isMe: false },
+    { name: 'Ethan', shots: 0, logged: false, isMe: false },
+  ]
+  const rivalMembers = [
+    { name: 'A', shots: 102, logged: true },
+    { name: 'B', shots: 78, logged: true },
+    { name: 'C', shots: 56, logged: true },
+    { name: 'D', shots: 0, logged: false },
+  ]
+  const myTotal = myMembers.reduce((s, m) => s + m.shots, 0)
+  const rivalTotal = rivalMembers.reduce((s, m) => s + m.shots, 0)
+  const total = myTotal + rivalTotal
+  const myPct = Math.round((myTotal / total) * 100)
+
+  return (
+    <div className="sbm-wrap">
+      <div className="sbm-card">
+        <div className="sbm-header">
+          <div className="sbm-eyebrow">⚔️ SQUAD BATTLE · 3 DAYS LEFT</div>
+          <div className="sbm-share-pill">Share</div>
+        </div>
+
+        <div className="sbm-matchup">
+          <div className="sbm-side">
+            <div className="sbm-squad-name">
+              THE SNIPERS <span className="sbm-edit">✎</span>
+            </div>
+            <div className="sbm-score sbm-score--trail">{myTotal}</div>
+          </div>
+          <div className="sbm-vs">VS</div>
+          <div className="sbm-side sbm-side--right">
+            <div className="sbm-squad-name sbm-squad-name--rival">ICE BREAKERS</div>
+            <div className="sbm-rival-team">Oakville U14 AA</div>
+            <div className="sbm-score sbm-score--lead">{rivalTotal}</div>
+          </div>
+        </div>
+
+        <div className="sbm-bar-track">
+          <div className="sbm-bar-fill" style={{ width: `${myPct}%` }} />
+        </div>
+
+        <div className="sbm-rosters">
+          <div className="sbm-roster">
+            {myMembers.map((m) => (
+              <div key={m.name} className={`sbm-player${m.isMe ? ' sbm-player--me' : ''}`}>
+                <div className="sbm-player-row">
+                  <div className={`sbm-dot${m.logged ? ' sbm-dot--on' : ''}`} />
+                  <div className="sbm-player-name">{m.name}</div>
+                  {m.isCap && <div className="sbm-cap">C</div>}
+                </div>
+                <div className="sbm-player-shots">{m.shots > 0 ? m.shots : '—'}</div>
+              </div>
+            ))}
+          </div>
+          <div className="sbm-divider" />
+          <div className="sbm-roster sbm-roster--rival">
+            {rivalMembers.map((m) => (
+              <div key={m.name} className="sbm-player">
+                <div className="sbm-player-row">
+                  <div className={`sbm-dot sbm-dot--rival${m.logged ? ' sbm-dot--on' : ''}`} />
+                  <div className="sbm-player-name">{m.name}.</div>
+                </div>
+                <div className="sbm-player-shots">{m.shots > 0 ? m.shots : '—'}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="sbm-status">⚡ Ethan hasn't logged today. You need everyone.</div>
+
+        <div className="sbm-log-btn">+ Log shots now</div>
       </div>
     </div>
   )
@@ -1153,61 +1208,116 @@ body:has(.landing) { background: var(--bg) !important; }
   text-align: center;
 }
 
-/* ============ MOCK BATTLE CARD ============ */
-.mock-battle-wrap {
+/* ============ SQUAD BATTLE MOCK ============ */
+.sbm-wrap {
   max-width: 480px;
   margin: 0 auto 32px;
-  background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(37,99,235,0.08) 100%);
-  border: 1px solid rgba(239,68,68,0.25);
-  border-radius: 16px;
+}
+.sbm-card {
+  background: var(--surface);
+  border: 1px solid rgba(37,99,235,0.3);
+  border-radius: 18px;
   padding: 18px 20px;
+  box-shadow: 0 20px 60px rgba(37,99,235,0.12);
 }
-.mock-battle-eyebrow {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: var(--text-mute);
+.sbm-header {
+  display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 14px;
 }
-.mock-battle-teams {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+.sbm-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+  color: var(--text-mute); text-transform: uppercase;
 }
-.mock-battle-side { flex: 1; }
-.mock-battle-side--right { text-align: right; }
-.mock-battle-team { font-size: 13px; font-weight: 700; }
-.mock-battle-club { font-size: 11px; color: var(--text-mute); margin: 2px 0 6px; }
-.mock-battle-score {
-  font-size: 28px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: white;
+.sbm-share-pill {
+  font-size: 11px; font-weight: 700; color: var(--ice);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px; padding: 3px 10px;
 }
-.mock-battle-side--lead .mock-battle-score { color: #67e8f9; }
-.mock-battle-vs {
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--text-mute);
-  letter-spacing: 1px;
-  flex-shrink: 0;
+.sbm-matchup {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 12px;
 }
-.mock-battle-bar-wrap { margin-bottom: 10px; }
-.mock-battle-bar {
-  height: 8px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 99px;
-  overflow: hidden;
+.sbm-side { flex: 1; min-width: 0; }
+.sbm-side--right { text-align: right; }
+.sbm-squad-name {
+  font-size: 14px; font-weight: 800; letter-spacing: 0.3px;
+  color: white; margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.mock-battle-bar-fill {
+.sbm-squad-name--rival { color: var(--text-soft); }
+.sbm-edit { font-size: 11px; color: var(--text-mute); margin-left: 4px; }
+.sbm-rival-team { font-size: 10px; color: var(--text-mute); margin-bottom: 4px; }
+.sbm-vs {
+  font-size: 11px; font-weight: 800; color: var(--text-mute);
+  padding-top: 20px; flex-shrink: 0;
+}
+.sbm-score {
+  font-size: 32px; font-weight: 800; line-height: 1;
+  font-variant-numeric: tabular-nums; color: var(--text-soft);
+}
+.sbm-score--lead { color: #ef4444; }
+.sbm-score--trail { color: var(--ice); }
+.sbm-bar-track {
+  height: 7px; background: rgba(255,255,255,0.08);
+  border-radius: 99px; overflow: hidden; margin-bottom: 16px;
+}
+.sbm-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2563eb, #67e8f9);
+  background: linear-gradient(90deg, #1d4ed8, #67e8f9);
   border-radius: 99px;
 }
-.mock-battle-status {
-  font-size: 12px;
-  color: var(--text-soft);
+.sbm-rosters {
+  display: flex; gap: 10px; margin-bottom: 12px;
+}
+.sbm-roster {
+  display: flex; gap: 4px; flex: 1; min-width: 0;
+}
+.sbm-roster--rival { justify-content: flex-end; }
+.sbm-divider {
+  width: 1px; background: var(--border-dim);
+  align-self: stretch; flex-shrink: 0;
+}
+.sbm-player {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  flex: 1; min-width: 0;
+}
+.sbm-player--me .sbm-player-name { color: var(--ice); font-weight: 800; }
+.sbm-player--me .sbm-player-shots { color: var(--ice); }
+.sbm-player-row {
+  display: flex; align-items: center; gap: 3px;
+}
+.sbm-player-name {
+  font-size: 10px; font-weight: 600; color: var(--text-soft);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 48px;
+}
+.sbm-cap {
+  font-size: 8px; font-weight: 800; color: #fbbf24;
+  background: rgba(251,191,36,0.15);
+  border-radius: 3px; padding: 0 3px; flex-shrink: 0;
+}
+.sbm-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border-dim); flex-shrink: 0;
+}
+.sbm-dot--on { background: #22c55e; }
+.sbm-dot--rival.sbm-dot--on { background: #ef4444; }
+.sbm-player-shots {
+  font-size: 15px; font-weight: 800; line-height: 1;
+  color: var(--text-soft); font-variant-numeric: tabular-nums;
+}
+.sbm-status {
+  font-size: 12px; font-weight: 600; color: #fb923c;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px; padding: 8px 10px;
+  margin-bottom: 10px; line-height: 1.4;
+}
+.sbm-log-btn {
+  width: 100%; background: var(--accent);
+  color: white; border-radius: 10px;
+  padding: 12px 16px;
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700; letter-spacing: 0.4px;
   text-align: center;
 }
 .compete-how {
@@ -1237,13 +1347,6 @@ body:has(.landing) { background: var(--bg) !important; }
   color: var(--text-soft);
   line-height: 1.5;
   padding-top: 4px;
-}
-.compete-sub-note {
-  text-align: center;
-  font-size: 12px;
-  color: var(--text-mute);
-  max-width: 360px;
-  margin: 0 auto;
 }
 
 /* ============ ROUTES (second-pass audience picker) ============ */

@@ -22,7 +22,6 @@ export default function CoachDashboardScreen() {
   const [teamRankings, setTeamRankings] = useState([])
   const [weeklyRecap, setWeeklyRecap] = useState(null)
   const [challenge, setChallenge] = useState(null)
-  const [teamMatchup, setTeamMatchup] = useState(null)
   const [teamWeekShots, setTeamWeekShots] = useState(0)
   const [goalInput, setGoalInput] = useState('')
   const [savingGoal, setSavingGoal] = useState(false)
@@ -92,7 +91,7 @@ export default function CoachDashboardScreen() {
         getTeamChallenge(activeTeamId),
         getTeamWeeklyShots(activeTeamId),
         getActiveBattle(activeTeamId),
-        getEligibleOpponents(activeTeamId, coach?.club?.id, coach?.club?.gender_type),
+        getEligibleOpponents(activeTeamId, coach?.club?.id),
       ])
       setChallenge(ch)
       setTeamWeekShots(wk)
@@ -155,8 +154,9 @@ export default function CoachDashboardScreen() {
     } catch (e) {}
   }
 
+  const teamName = activeTeam ? `${activeTeam.club?.name || coach.club.name} ${activeTeam.age_division || ''} ${activeTeam.tier || ''}`.trim() : coach.club.name
   const teamInviteMessage = activeTeam && teamJoinUrl
-    ? `Hey team — we're using Hockey Shot Challenge to track off-ice shots. Sign up here: ${teamJoinUrl}\n\nIt takes 30 seconds and you'll be on the ${activeTeam.club?.name || coach.club.name} ${activeTeam.age_division || ''} ${activeTeam.tier || ''} leaderboard.`
+    ? `Hey ${teamName} parents! 🏒\n\nWe're using Hockey Shot Challenge this season. Players log shots and stickhandling reps at home, earn ranks, and compete in 4-player squad battles against rival teams all week.\n\nSign up here (30 sec, free, no email needed):\n${teamJoinUrl}`
     : ''
 
   const sharePage = async (url, title, text) => {
@@ -273,45 +273,69 @@ export default function CoachDashboardScreen() {
 
                 {activeTeam && teamJoinUrl && (
                   <>
-                    {/* Primary: the link + share */}
+                    {/* SHARE — dominant action */}
+                    <div className="dash-section inv-hero">
+                      <div className="inv-team-name">{activeTeam.age_division} {activeTeam.tier}</div>
+                      <div className="inv-headline">Send to parents</div>
+                      <div className="inv-sub">One tap opens their messages app with the link pre-filled.</div>
+
+                      <div className="inv-channels">
+                        <a
+                          className="inv-channel inv-channel--sms"
+                          href={`sms:?body=${encodeURIComponent(teamInviteMessage)}`}
+                        >
+                          <span className="inv-channel-icon">💬</span>
+                          <span className="inv-channel-label">iMessage</span>
+                        </a>
+                        <a
+                          className="inv-channel inv-channel--wa"
+                          href={`https://wa.me/?text=${encodeURIComponent(teamInviteMessage)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <span className="inv-channel-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                            </svg>
+                          </span>
+                          <span className="inv-channel-label">WhatsApp</span>
+                        </a>
+                        <a
+                          className="inv-channel inv-channel--email"
+                          href={`mailto:?subject=${encodeURIComponent(`Join ${teamName} on Hockey Shot Challenge`)}&body=${encodeURIComponent(teamInviteMessage)}`}
+                        >
+                          <span className="inv-channel-icon">✉️</span>
+                          <span className="inv-channel-label">Email</span>
+                        </a>
+                      </div>
+
+                      <button
+                        className="inv-more-btn"
+                        onClick={() => sharePage(teamJoinUrl, `Join ${teamName}`, teamInviteMessage)}
+                      >
+                        {shared ? '✓ Sent!' : '↗ More ways to share'}
+                      </button>
+                    </div>
+
+                    {/* Link + copy */}
                     <div className="dash-section">
-                      <div className="dash-section-head">
-                        <div className="dash-label">Player invite link</div>
-                      </div>
-                      <div className="dash-team-info">
-                        {activeTeam.age_division} {activeTeam.tier}
-                      </div>
+                      <div className="dash-label">Your link</div>
                       <div className="dash-url-box">
                         <div className="dash-url tnum">{teamJoinUrl}</div>
                         <button className={`dash-copy ${copied === 'link' ? 'dash-copy--done' : ''}`} onClick={() => copyText(teamJoinUrl, 'link')}>
                           {copied === 'link' ? '✓' : 'Copy'}
                         </button>
                       </div>
-                      <div className="dash-actions">
-                        <button className="dash-action" onClick={() => sharePage(teamJoinUrl, `Join ${activeTeam.club?.name || coach.club.name}`, teamInviteMessage)}>
-                          <div className="dash-action-icon">↗</div>
-                          <div className="dash-action-text">
-                            <div className="dash-action-title">{shared ? 'Sent!' : 'Share link'}</div>
-                            <div className="dash-action-sub">Text, email, or post it</div>
-                          </div>
-                        </button>
-                        <button className="dash-action" onClick={() => copyText(teamInviteMessage, 'message')}>
-                          <div className="dash-action-icon">💬</div>
-                          <div className="dash-action-text">
-                            <div className="dash-action-title">{copied === 'message' ? 'Copied!' : 'Copy message'}</div>
-                            <div className="dash-action-sub">Pre-written for group chat</div>
-                          </div>
-                        </button>
-                      </div>
+                      <div className="dash-hint">Or copy the full message: <button className="inv-copy-msg" onClick={() => copyText(teamInviteMessage, 'message')}>{copied === 'message' ? '✓ Copied' : 'Copy message text'}</button></div>
                     </div>
 
                     {/* QR code */}
                     <div className="dash-section">
-                      <div className="dash-label">QR code</div>
+                      <div className="dash-label">QR code — show at practice</div>
                       <div className="dash-qr-box">
                         <QRPreview url={teamJoinUrl} />
                         <div className="dash-qr-caption">
-                          Show this at practice. Players scan with their phone — they're signed up in 30 seconds.
+                          Players scan with their phone and they're signed up in 30 seconds. No email needed.
                         </div>
                         <a
                           className="dash-btn-ghost"
@@ -324,56 +348,14 @@ export default function CoachDashboardScreen() {
                       </div>
                     </div>
 
-                    {/* Email template */}
-                    <div className="dash-section">
-                      <div className="dash-section-head">
-                        <div className="dash-label">Email to parents</div>
-                        <button
-                          className={`dash-copy ${copied === 'email' ? 'dash-copy--done' : ''}`}
-                          onClick={() => {
-                            const teamName = `${coach.club.name}${activeTeam ? ` ${activeTeam.age_division} ${activeTeam.tier}` : ''}`
-                            const emailText = [
-                              `Hi ${teamName} parents,`,
-                              ``,
-                              `We're using Hockey Shot Challenge this season to track off-ice training. Players log their shots at home — driveway, basement, wherever — and compete on a team leaderboard. It keeps them motivated between practices.`,
-                              ``,
-                              `Sign up here: ${teamJoinUrl}`,
-                              ``,
-                              `Takes 30 seconds. No app to install. Free.`,
-                              ``,
-                              `— ${coach.display_name || 'Coach'}`,
-                            ].join('\n')
-                            copyText(emailText, 'email')
-                          }}
-                        >
-                          {copied === 'email' ? '✓ Copied' : 'Copy'}
-                        </button>
-                      </div>
-                      <div className="dash-email-preview">
-                        <div className="dash-email-line dash-email-to">
-                          <span className="dash-email-field">To:</span> {coach.club.name} parents
-                        </div>
-                        <div className="dash-email-line dash-email-sub-line">
-                          <span className="dash-email-field">Subject:</span> Join us on Hockey Shot Challenge
-                        </div>
-                        <div className="dash-email-body">
-                          <p>Hi {coach.club.name}{activeTeam ? ` ${activeTeam.age_division} ${activeTeam.tier}` : ''} parents,</p>
-                          <p>We're using Hockey Shot Challenge this season to track off-ice training. Players log their shots at home — driveway, basement, wherever — and compete on a team leaderboard. It keeps them motivated between practices.</p>
-                          <p>Sign up here: <span className="dash-email-link">{teamJoinUrl}</span></p>
-                          <p>Takes 30 seconds. No app to install. Free.</p>
-                          <p>— {coach.display_name || 'Coach'}</p>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Tips */}
                     <div className="dash-section">
-                      <div className="dash-label">Tips for coaches</div>
+                      <div className="dash-label">Tips</div>
                       <ul className="dash-tips">
-                        <li>Send the link in your team group chat right after practice</li>
-                        <li>Show the QR at the next practice — easiest signup is in person</li>
-                        <li>Mention the leaderboard — kids love competing with teammates</li>
-                        <li>Make it a challenge: "Most shots this week gets first line next game"</li>
+                        <li>Drop the link in your team group chat right after practice</li>
+                        <li>Show the QR at the rink — easiest signup is in person</li>
+                        <li>Tell kids their squad name resets every Monday — creates urgency</li>
+                        <li>Make it a challenge: "Squad that logs the most shots picks the drill next practice"</li>
                       </ul>
                     </div>
                   </>
@@ -385,6 +367,60 @@ export default function CoachDashboardScreen() {
 
         {tab === 'overview' && (
           <>
+            {activeTeamId && (
+              <div className="battle-callout">
+                <div className="battle-callout-eyebrow">⚔️ CROSS-CLUB BATTLE</div>
+                {activeBattle ? (
+                  <>
+                    <div className="battle-live-row">
+                      <div className="battle-live-side">
+                        <div className="battle-live-club">Your team</div>
+                        <div className="battle-live-score tnum">{activeBattle.myShots.toLocaleString()}</div>
+                      </div>
+                      <div className="battle-live-vs">VS</div>
+                      <div className="battle-live-side battle-live-side--right">
+                        <div className="battle-live-club">{activeBattle.rivalTeam?.club?.name || activeBattle.rivalTeam?.name}</div>
+                        <div className="battle-live-score tnum">{activeBattle.rivalShots.toLocaleString()}</div>
+                      </div>
+                    </div>
+                    <div className="battle-callout-status">
+                      {activeBattle.myShots >= activeBattle.rivalShots
+                        ? `Leading by ${(activeBattle.myShots - activeBattle.rivalShots).toLocaleString()} shots`
+                        : `Behind by ${(activeBattle.rivalShots - activeBattle.myShots).toLocaleString()} shots — keep logging`}
+                    </div>
+                  </>
+                ) : opponents.length > 0 ? (
+                  <>
+                    <div className="battle-callout-body">Challenge any rival team. Both teams see the live score on their home screen all week. Boys vs girls — any matchup works.</div>
+                    <div className="ch-set-goal" style={{ marginTop: 12 }}>
+                      <select
+                        className="ch-goal-input"
+                        value={selectedOpponent}
+                        onChange={(e) => setSelectedOpponent(e.target.value)}
+                      >
+                        <option value="">Pick a rival team…</option>
+                        {opponents.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.club?.name} — {t.age_division} {t.tier}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        className="ch-goal-btn"
+                        onClick={handleCreateBattle}
+                        disabled={creatingBattle || !selectedOpponent}
+                      >
+                        {creatingBattle ? '…' : 'Challenge'}
+                      </button>
+                    </div>
+                    {battleError && <div className="dash-hint" style={{ color: '#ef4444', marginTop: 6 }}>{battleError}</div>}
+                  </>
+                ) : (
+                  <div className="battle-callout-body">No other clubs are set up yet. Share <strong>hockeyshotchallenge.com</strong> with rival coaches — once they join, you can challenge their teams.</div>
+                )}
+              </div>
+            )}
+
             {weeklyRecap && weeklyRecap.thisWeekTotal > 0 && (
               <div className="recap-card">
                 <div className="recap-header">
@@ -491,37 +527,6 @@ export default function CoachDashboardScreen() {
               </div>
             )}
 
-            {teamMatchup && (
-              <div className="dash-section">
-                <div className="dash-label" style={{ marginBottom: 10 }}>This week's matchup 🏒</div>
-                <div className="matchup-card">
-                  <div className="matchup-side matchup-side--us">
-                    <div className="matchup-team-name">{teamMatchup.myTeam.age_division} {teamMatchup.myTeam.tier}</div>
-                    <div className="matchup-team-label">YOUR TEAM</div>
-                    <div className={`matchup-shots tnum${teamMatchup.myShots >= teamMatchup.rivalShots ? ' matchup-shots--lead' : ''}`}>
-                      {teamMatchup.myShots.toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="matchup-vs">VS</div>
-                  <div className="matchup-side matchup-side--them">
-                    <div className="matchup-team-name">{teamMatchup.rivalTeam.age_division} {teamMatchup.rivalTeam.tier}</div>
-                    <div className="matchup-team-label">OPPONENT</div>
-                    <div className={`matchup-shots tnum${teamMatchup.rivalShots > teamMatchup.myShots ? ' matchup-shots--lead' : ''}`}>
-                      {teamMatchup.rivalShots.toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-                {(() => {
-                  const gap = teamMatchup.myShots - teamMatchup.rivalShots
-                  const abs = Math.abs(gap)
-                  if (teamMatchup.myShots === 0 && teamMatchup.rivalShots === 0) return <div className="matchup-status">No shots logged yet — get your team going!</div>
-                  if (gap > 0) return <div className="matchup-status matchup-status--lead">You're up by {abs.toLocaleString()} shots. Keep it going.</div>
-                  if (gap < 0) return <div className="matchup-status matchup-status--down">{abs.toLocaleString()} shots behind. Catchable.</div>
-                  return <div className="matchup-status">Tied. Next shot wins the lead.</div>
-                })()}
-              </div>
-            )}
-
             {activeTeamId && (
               <div className="dash-section">
                 <div className="dash-section-head">
@@ -566,66 +571,6 @@ export default function CoachDashboardScreen() {
               </div>
             )}
 
-            {activeTeamId && (
-              <div className="dash-section">
-                <div className="dash-label" style={{ marginBottom: 10 }}>⚔️ Cross-club battle</div>
-
-                {activeBattle ? (
-                  <div className="battle-live">
-                    <div className="battle-live-row">
-                      <div className="battle-live-side">
-                        <div className="battle-live-club">Your team</div>
-                        <div className="battle-live-score tnum">{activeBattle.myShots.toLocaleString()}</div>
-                      </div>
-                      <div className="battle-live-vs">VS</div>
-                      <div className="battle-live-side battle-live-side--right">
-                        <div className="battle-live-club">{activeBattle.rivalTeam?.club?.name || activeBattle.rivalTeam?.name}</div>
-                        <div className="battle-live-score tnum">{activeBattle.rivalShots.toLocaleString()}</div>
-                      </div>
-                    </div>
-                    <div className="dash-hint" style={{ marginTop: 8 }}>
-                      {activeBattle.myShots >= activeBattle.rivalShots
-                        ? `Leading by ${(activeBattle.myShots - activeBattle.rivalShots).toLocaleString()} shots`
-                        : `Behind by ${(activeBattle.rivalShots - activeBattle.myShots).toLocaleString()} shots — keep logging`}
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {opponents.length > 0 ? (
-                      <>
-                        <div className="dash-hint" style={{ marginBottom: 10 }}>
-                          Challenge a team from another club. Both teams see the live scoreboard on their home screen all week.
-                        </div>
-                        <div className="ch-set-goal">
-                          <select
-                            className="ch-goal-input"
-                            value={selectedOpponent}
-                            onChange={(e) => setSelectedOpponent(e.target.value)}
-                          >
-                            <option value="">Pick a rival team…</option>
-                            {opponents.map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.club?.name} — {t.age_division} {t.tier}
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            className="ch-goal-btn"
-                            onClick={handleCreateBattle}
-                            disabled={creatingBattle || !selectedOpponent}
-                          >
-                            {creatingBattle ? '…' : 'Challenge'}
-                          </button>
-                        </div>
-                        {battleError && <div className="dash-hint" style={{ color: '#ef4444', marginTop: 6 }}>{battleError}</div>}
-                      </>
-                    ) : (
-                      <div className="dash-hint">No other clubs are set up yet. Share hockeyshotchallenge.com with rival coaches to unlock cross-club battles.</div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
           </>
         )}
 
@@ -1350,6 +1295,32 @@ const styles = `
 }
 .ch-goal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.battle-callout {
+  background: linear-gradient(135deg, rgba(239,68,68,0.09) 0%, rgba(37,99,235,0.09) 100%);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.battle-callout-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #ef4444;
+  margin-bottom: 12px;
+}
+.battle-callout-status {
+  font-size: 12px;
+  color: var(--text-soft);
+  margin-top: 10px;
+}
+.battle-callout-body {
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+.battle-callout-body strong { color: var(--ice); }
+
 .battle-live {
   background: linear-gradient(135deg, rgba(239,68,68,0.07) 0%, rgba(37,99,235,0.07) 100%);
   border: 1px solid rgba(239,68,68,0.2);
@@ -1364,4 +1335,62 @@ const styles = `
 .battle-live-club { font-size: 11px; color: var(--text-soft); margin-bottom: 2px; }
 .battle-live-score { font-size: 22px; font-weight: 800; color: var(--ice, #67e8f9); }
 .battle-live-vs { font-size: 11px; font-weight: 800; color: var(--text-mute); flex-shrink: 0; }
+
+/* ── Invite hero ── */
+.inv-hero { text-align: center; }
+.inv-team-name {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+  color: var(--ice); text-transform: uppercase; margin-bottom: 6px;
+}
+.inv-headline {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 800; color: white;
+  letter-spacing: 0.2px; margin-bottom: 6px;
+}
+.inv-sub {
+  font-size: 13px; color: var(--text-soft);
+  margin-bottom: 20px; line-height: 1.4;
+}
+.inv-channels {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; margin-bottom: 12px;
+}
+.inv-channel {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border-dim);
+  border-radius: 14px; padding: 16px 8px;
+  text-decoration: none; color: var(--text);
+  transition: border-color 0.15s, transform 0.1s;
+}
+.inv-channel:active { transform: scale(0.97); }
+.inv-channel--sms { border-color: rgba(34,197,94,0.3); }
+.inv-channel--sms:hover { border-color: #22c55e; }
+.inv-channel--wa { border-color: rgba(37,211,102,0.3); }
+.inv-channel--wa:hover { border-color: #25d366; }
+.inv-channel--wa .inv-channel-icon { color: #25d366; }
+.inv-channel--email { border-color: rgba(37,99,235,0.3); }
+.inv-channel--email:hover { border-color: var(--accent); }
+.inv-channel-icon {
+  font-size: 22px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+}
+.inv-channel-label {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.3px; color: var(--text-soft);
+}
+.inv-more-btn {
+  width: 100%; background: transparent;
+  border: 0.5px solid var(--border-dim);
+  color: var(--text-mute); font-size: 13px; font-weight: 600;
+  border-radius: 10px; padding: 11px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.inv-more-btn:hover { border-color: var(--accent); color: var(--ice); }
+.inv-copy-msg {
+  background: transparent; border: none;
+  color: var(--ice); font-size: 12px; font-weight: 600;
+  padding: 0; cursor: pointer; text-decoration: underline;
+}
 `

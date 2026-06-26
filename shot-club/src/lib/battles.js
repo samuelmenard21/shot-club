@@ -56,26 +56,13 @@ export async function getActiveBattle(teamId) {
   }
 }
 
-// Get teams from other clubs eligible to be challenged (same gender)
-export async function getEligibleOpponents(myTeamId, myClubId, genderType) {
-  // Get teams from other clubs in same governing body / gender
-  const { data: myClub } = await supabase
-    .from('clubs')
-    .select('governing_body, gender_type')
-    .eq('id', myClubId)
-    .maybeSingle()
-  if (!myClub) return []
-
-  // Find clubs with same gender type
-  let clubQuery = supabase
+// Get teams from other clubs eligible to be challenged — no gender restriction, any team can battle any team
+export async function getEligibleOpponents(myTeamId, myClubId) {
+  const { data: rivalClubs } = await supabase
     .from('clubs')
     .select('id')
     .neq('id', myClubId)
     .eq('is_active', true)
-  if (myClub.gender_type && myClub.gender_type !== 'coed') {
-    clubQuery = clubQuery.eq('gender_type', myClub.gender_type)
-  }
-  const { data: rivalClubs } = await clubQuery
   if (!rivalClubs?.length) return []
 
   const rivalClubIds = rivalClubs.map((c) => c.id)
