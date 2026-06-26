@@ -16,6 +16,7 @@ const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
 export default function AuthScreen() {
   const [mode, setMode] = useState('signup')
   const [step, setStep] = useState(1)
+  const [signingUpFor, setSigningUpFor] = useState(null) // 'self' | 'player'
   const [path, setPath] = useState(null) // 'club' | 'join' | 'solo'
   const [teamName, setTeamName] = useState('')
   const [clubName, setClubName] = useState('')
@@ -117,6 +118,8 @@ export default function AuthScreen() {
   }
 
   const continueFromStep1 = () => {
+    if (!signingUpFor) { setError('Let us know who you\'re signing up for.'); return }
+
     // Pre-keyed flow: validate the two-dropdown picker
     if (path === 'club' && preClub) {
       if (!ageDivision) {
@@ -161,6 +164,7 @@ export default function AuthScreen() {
     // Save everything to localStorage — picked up after OAuth redirect
     const pending = {
       path: path || 'solo',
+      signingUpFor: signingUpFor || 'self',
       clubId: activeClub?.id || null,
       clubName: activeClub?.name || null,
       ageDivision: ageDivision || null,
@@ -461,7 +465,24 @@ export default function AuthScreen() {
             ) : (
               <>
                 <h2 className="auth-title">Track every shot.<br/>Climb the rankings.</h2>
-                <p className="auth-sub">Let's get you set up in 30 seconds.</p>
+
+                <div className="for-row">
+                  <div className="for-label">WHO ARE YOU SIGNING UP?</div>
+                  <div className="for-options">
+                    <button
+                      className={`for-btn ${signingUpFor === 'self' ? 'for-btn--active' : ''}`}
+                      onClick={() => { setSigningUpFor('self'); setError('') }}
+                    >
+                      Myself
+                    </button>
+                    <button
+                      className={`for-btn ${signingUpFor === 'player' ? 'for-btn--active' : ''}`}
+                      onClick={() => { setSigningUpFor('player'); setError('') }}
+                    >
+                      My player
+                    </button>
+                  </div>
+                </div>
 
                 <div className={`path-card ${path === 'join' ? 'path-card--active' : ''}`} onClick={() => choosePath('join')}>
                   <div className="path-head">
@@ -675,33 +696,37 @@ export default function AuthScreen() {
         {step === 2 && (
           <>
             <div className="step-chip">Step 2 of 2</div>
-            <h2 className="auth-title">Who are you?</h2>
-            <p className="auth-sub">Your coach will see your real name. Your leaderboard name is up to you.</p>
+            <h2 className="auth-title">{signingUpFor === 'player' ? 'About your player.' : 'Who are you?'}</h2>
+            <p className="auth-sub">
+              {signingUpFor === 'player'
+                ? 'Their coach will see their real name. Their leaderboard name is up to them.'
+                : 'Your coach will see your real name. Your leaderboard name is up to you.'}
+            </p>
 
             <label className="input-label">
-              <span>First name (shown to your coach)</span>
+              <span>{signingUpFor === 'player' ? "Player's first name (shown to their coach)" : 'First name (shown to your coach)'}</span>
               <input
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Your real first name"
+                placeholder={signingUpFor === 'player' ? "Their real first name" : "Your real first name"}
                 className="input-field"
                 autoFocus
               />
             </label>
 
             <label className="input-label" style={{ marginTop: 12 }}>
-              <span>Player name (on leaderboards)</span>
+              <span>{signingUpFor === 'player' ? "Player name (on leaderboards)" : 'Player name (on leaderboards)'}</span>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Same as your name, or a nickname"
+                placeholder={signingUpFor === 'player' ? "What do they go by?" : "Same as your name, or a nickname"}
                 className="input-field"
               />
             </label>
 
-            <div className="label-sm">Position</div>
+            <div className="label-sm">{signingUpFor === 'player' ? "Their position" : 'Position'}</div>
             <div className="chip-row chip-row--3">
               {['F', 'D', 'G'].map((p) => (
                 <button
@@ -724,10 +749,10 @@ export default function AuthScreen() {
               style={{ marginTop: 8 }}
             >
               <GoogleIcon />
-              {loading ? 'One sec…' : 'Continue with Google →'}
+              {loading ? 'One sec…' : signingUpFor === 'player' ? 'Save with Google →' : 'Continue with Google →'}
             </button>
             <div className="path-hint" style={{ textAlign: 'center', marginBottom: 4 }}>
-              No password. Google keeps your account safe.
+              {signingUpFor === 'player' ? 'Your Google account. Their player profile.' : 'No password. Google keeps your account safe.'}
             </div>
 
             <button className="btn-text" onClick={() => setStep(1)}>
@@ -1177,6 +1202,34 @@ const styles = `
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.4px;
+}
+
+.for-row {
+  margin-bottom: 18px;
+}
+.for-label {
+  font-size: 10px; color: var(--text-mute);
+  letter-spacing: 1.5px; text-transform: uppercase;
+  font-weight: 600; margin-bottom: 8px;
+}
+.for-options {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.for-btn {
+  background: var(--bg);
+  border: 0.5px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 12px 8px;
+  color: var(--text-mute);
+  font-size: 14px; font-weight: 600;
+  text-align: center;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.for-btn--active {
+  background: var(--surface-raised);
+  border-color: var(--accent);
+  color: white;
 }
 
 .google-btn {
