@@ -482,6 +482,11 @@ export default function AuthScreen() {
                       My player
                     </button>
                   </div>
+                  {signingUpFor === 'player' && (
+                    <div className="for-parent-note">
+                      Your Google account holds the profile. You can add more players later — one account for all your kids.
+                    </div>
+                  )}
                 </div>
 
                 <div className={`path-card ${path === 'join' ? 'path-card--active' : ''}`} onClick={() => choosePath('join')}>
@@ -1230,6 +1235,16 @@ const styles = `
   background: var(--surface-raised);
   border-color: var(--accent);
   color: white;
+}
+.for-parent-note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ice);
+  line-height: 1.5;
+  background: rgba(168,212,245,0.07);
+  border: 0.5px solid rgba(168,212,245,0.2);
+  border-radius: var(--radius);
+  padding: 10px 12px;
 }
 
 .google-btn {
