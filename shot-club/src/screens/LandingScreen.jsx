@@ -67,9 +67,9 @@ export default function LandingScreen() {
           <span>Hockey Shot Challenge</span>
         </button>
         <div className="land-nav-actions">
-          <button className="land-nav-link" onClick={() => nav('/clubs')}>Find your club</button>
+          <button className="land-nav-link" onClick={() => nav('/coach')}>For coaches</button>
           <button className="land-nav-link" onClick={() => nav('/start')}>Sign in</button>
-          <button className="land-nav-cta" onClick={() => nav('/start')}>Join free</button>
+          <button className="land-nav-cta" onClick={() => nav('/start')}>Start free →</button>
         </div>
       </nav>
 
@@ -82,19 +82,39 @@ export default function LandingScreen() {
           Get better between practices.
         </h1>
         <p className="hero-sub">
-          Hockey Shot Challenge helps young players put in the work at home.
-          Log your shots and stickhandling reps. Climb the team leaderboard.
-          Beat your rivals.
+          Off-ice shot tracking for hockey players. Log reps at home, compete with your team, beat your rivals. Free.
         </p>
-        <p className="hero-origin">Built by a hockey parent in Burlington, ON. Free for players, coaches, and clubs.</p>
 
-        <div className="hero-pick">
-          <div className="hero-search-wrap">
+        <div className="hero-split">
+          <button className="hero-path hero-path--player" onClick={() => nav('/start')}>
+            <div className="hero-path-eyebrow">PLAYERS & PARENTS</div>
+            <h2 className="hero-path-title">Start tracking.</h2>
+            <p className="hero-path-text">
+              Find your club, pick your team, log your first shot.
+              No coach invite needed. 30 seconds.
+            </p>
+            <span className="hero-path-cta">Create my card — free →</span>
+          </button>
+
+          <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
+            <div className="hero-path-eyebrow">COACHES</div>
+            <h2 className="hero-path-title">See the work.</h2>
+            <p className="hero-path-text">
+              Sign in with Google, pick your team, send one link to parents.
+              You see who's putting in reps — they don't.
+            </p>
+            <span className="hero-path-cta">Set up my team — free →</span>
+          </button>
+        </div>
+
+        <div className="hero-club-search">
+          <div className="hero-club-search-label">Find your club's leaderboard</div>
+          <div style={{ position: 'relative', maxWidth: 420, margin: '0 auto' }}>
             <input
               ref={searchInputRef}
               type="text"
               className="hero-search-input"
-              placeholder="Search for your club or association..."
+              placeholder="Burlington Eagles, Mississauga…"
               value={clubQuery}
               onChange={(e) => setClubQuery(e.target.value)}
               autoComplete="off"
@@ -126,50 +146,6 @@ export default function LandingScreen() {
                 ))}
               </div>
             )}
-          </div>
-
-          <div className="hero-solo-cta">
-            <button className="hero-solo-btn" onClick={() => nav('/start')}>
-              Start tracking — no coach invite needed →
-            </button>
-            <div className="hero-solo-note">Find your club. Log your first shot. 30 seconds.</div>
-          </div>
-
-          <div className="hero-pick-label">OR PICK YOUR ROLE</div>
-
-          <div className="hero-cards">
-            <button className="hero-card hero-card--player" onClick={() => nav('/start')}>
-              <div className="hero-card-icon">🎯</div>
-              <div className="hero-card-eyebrow">FOR PLAYERS & PARENTS</div>
-              <h2 className="hero-card-title">No coach invite? No problem.</h2>
-              <p className="hero-card-text">
-                Find your club, pick your team, and start logging. If your coach joins later,
-                your stats are already there. Compete in squad battles every week.
-              </p>
-              <span className="hero-card-cta">Create my card — free →</span>
-            </button>
-
-            <button className="hero-card hero-card--coach" onClick={() => nav('/coach')}>
-              <div className="hero-card-icon">📋</div>
-              <div className="hero-card-eyebrow">FOR COACHES</div>
-              <h2 className="hero-card-title">See who's actually putting in the reps.</h2>
-              <p className="hero-card-text">
-                Send one link to parents. Your team shows up on the board.
-                You get a dashboard with weekly stats and a team challenge tool.
-              </p>
-              <span className="hero-card-cta">Set up your team — free →</span>
-            </button>
-
-            <button className="hero-card hero-card--association" onClick={() => nav('/for-clubs')}>
-              <div className="hero-card-icon">🏒</div>
-              <div className="hero-card-eyebrow">FOR LEAGUES & ASSOCIATIONS</div>
-              <h2 className="hero-card-title">Bring your whole league on board.</h2>
-              <p className="hero-card-text">
-                Get every club in your league training off-ice. Free to start.
-                Three minutes to set up.
-              </p>
-              <span className="hero-card-cta">See the pitch →</span>
-            </button>
           </div>
         </div>
       </section>
@@ -661,22 +637,103 @@ body:has(.landing) { background: var(--bg) !important; }
   max-width: 560px;
 }
 
-.hero-pick {
-  margin-top: 8px;
+/* Two-path hero split */
+.hero-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  max-width: 800px;
+  margin: 0 auto 28px;
 }
-.hero-search-wrap {
-  position: relative;
-  max-width: 480px;
-  margin: 0 auto 20px;
+@media (min-width: 640px) {
+  .hero-split { grid-template-columns: 1fr 1fr; gap: 16px; }
+}
+
+.hero-path {
+  border-radius: 18px;
+  padding: 26px 22px 22px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s;
+  display: flex;
+  flex-direction: column;
+}
+.hero-path:active { transform: scale(0.98); }
+.hero-path--player {
+  background: linear-gradient(135deg, #1a3a6b 0%, #0d2040 100%);
+  border: 1px solid rgba(41,121,255,0.5);
+}
+.hero-path--coach {
+  background: linear-gradient(135deg, #1a2535 0%, #0f1922 100%);
+  border: 1px solid rgba(168,212,245,0.2);
+}
+.hero-path-eyebrow {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+.hero-path--player .hero-path-eyebrow { color: #60a5fa; }
+.hero-path--coach .hero-path-eyebrow { color: var(--ice); }
+.hero-path-title {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 4vw, 34px);
+  font-weight: 800;
+  color: white;
+  margin: 0 0 10px;
+  line-height: 1.0;
+  letter-spacing: -0.3px;
+}
+.hero-path-text {
+  font-size: 14px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.5;
+  flex: 1;
+  margin-bottom: 18px;
+}
+.hero-path-cta {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  align-self: flex-start;
+}
+.hero-path--player .hero-path-cta {
+  background: var(--accent);
+  color: white;
+}
+.hero-path--coach .hero-path-cta {
+  background: rgba(168,212,245,0.15);
+  color: var(--ice);
+  border: 1px solid rgba(168,212,245,0.3);
+}
+
+/* Secondary club search below the two paths */
+.hero-club-search {
+  max-width: 800px;
+  margin: 0 auto 8px;
+  text-align: center;
+}
+.hero-club-search-label {
+  font-size: 11px;
+  color: var(--text-mute);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-bottom: 10px;
 }
 .hero-search-input {
   width: 100%;
   background: var(--surface);
   border: 0.5px solid var(--border);
   border-radius: 12px;
-  padding: 14px 18px;
+  padding: 12px 16px;
   color: var(--text);
-  font-size: 15px;
+  font-size: 14px;
   font-family: var(--font-body);
   outline: none;
   transition: border-color 0.15s;
@@ -733,96 +790,8 @@ body:has(.landing) { background: var(--bg) !important; }
   padding: 0;
   display: inline;
 }
-.hero-solo-cta {
-  margin-bottom: 20px;
-  text-align: center;
-}
-.hero-solo-btn {
-  width: 100%;
-  background: var(--accent);
-  color: white;
-  border-radius: var(--radius);
-  padding: 16px 20px;
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  line-height: 1.1;
-  transition: transform 0.1s;
-}
-.hero-solo-btn:active { transform: scale(0.98); }
-.hero-solo-note {
-  font-size: 12px;
-  color: var(--text-mute);
-  margin-top: 8px;
-  letter-spacing: 0.3px;
-}
 
-.hero-pick-label {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-mute);
-  letter-spacing: 2px;
-  margin-bottom: 14px;
-  margin-top: 4px;
-}
-
-.hero-cards {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  max-width: 980px;
-  margin: 0 auto;
-}
-@media (min-width: 800px) {
-  .hero-cards { grid-template-columns: repeat(3, 1fr); }
-}
-
-.hero-card {
-  background: var(--surface);
-  border: 0.5px solid var(--border-dim);
-  border-radius: 18px;
-  padding: 22px 20px 20px;
-  text-align: left;
-  color: var(--text);
-  cursor: pointer;
-  transition: border-color 0.2s, transform 0.15s, background 0.2s;
-  display: flex;
-  flex-direction: column;
-}
-.hero-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-3px);
-  background: var(--surface-raised, var(--surface));
-}
-.hero-card:active { transform: translateY(-1px); }
-.hero-card-icon {
-  font-size: 30px;
-  line-height: 1;
-  margin-bottom: 14px;
-}
-.hero-card-eyebrow {
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.8px;
-  color: var(--ice);
-  margin-bottom: 6px;
-}
-.hero-card--association .hero-card-eyebrow { color: #f4c542; }
-.hero-card--coach .hero-card-eyebrow { color: var(--ice); }
-.hero-card--player .hero-card-eyebrow { color: var(--accent); }
-
-.hero-card-title {
-  font-family: var(--font-display);
-  font-size: 19px;
-  font-weight: 800;
-  color: white;
-  margin: 0 0 8px;
-  letter-spacing: 0.2px;
-  line-height: 1.15;
-}
+/* Keep old card classes so rest of page still works */
 .hero-card-text {
   font-size: 14px;
   color: var(--text-soft);
