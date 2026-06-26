@@ -106,6 +106,16 @@ export default function AuthScreen() {
     setError('')
   }
 
+  // Derive age bracket from division so we don't need to ask separately
+  function ageBracketFromDivision(div) {
+    const n = parseInt((div || '').replace('U', ''), 10)
+    if (!n) return null
+    if (n <= 10) return '6-10'
+    if (n <= 14) return '11-14'
+    if (n <= 18) return '15-18'
+    return '18+'
+  }
+
   const continueFromStep1 = () => {
     // Pre-keyed flow: validate the two-dropdown picker
     if (path === 'club' && preClub) {
@@ -141,68 +151,27 @@ export default function AuthScreen() {
     setStep(2)
   }
 
-  const finishSignup = async () => {
-    if (!displayName.trim() || !position || !ageBracket) {
-      setError('Pick a name, position, and age.')
-      return
-    }
-    setLoading(true)
+  const saveAndGoogleAuth = async () => {
+    if (!firstName.trim()) { setError('Add your first name so your coach knows who you are.'); return }
+    if (!displayName.trim() || !position) { setError('Fill in your name and position.'); return }
+    const activeClub = (path === 'club' && preClub) ? preClub : joinClub
+    if (activeClub && (!ageDivision || !tier)) { setError('Pick your age division and tier.'); return }
     setError('')
-    try {
-      let teamIdToUse = null
-      let teamNameToUse = null
-      let clubIdToUse = null
-      let clubNameToUse = null
-      let displayTeamLabel = ''
 
-      if (path === 'club' && preClub) {
-        // NEW: resolve team via RPC before signup
-        const teamResult = await findOrCreateTeamForPlayer({
-          clubId: preClub.id,
-          ageDivision,
-          tier,
-        })
-        teamIdToUse = teamResult.teamId
-        clubIdToUse = preClub.id
-        clubNameToUse = preClub.name
-        displayTeamLabel = `${ageDivision} ${tier}`
-      } else if ((path === 'join' || path === 'solo') && joinClub) {
-        const teamResult = await findOrCreateTeamForPlayer({
-          clubId: joinClub.id,
-          ageDivision,
-          tier,
-        })
-        teamIdToUse = teamResult.teamId
-        clubIdToUse = joinClub.id
-        clubNameToUse = joinClub.name
-        displayTeamLabel = `${ageDivision} ${tier}`
-      } else if (path === 'join') {
-        teamNameToUse = teamName.trim().toUpperCase()
-        clubNameToUse = clubName.trim() || null
-        displayTeamLabel = teamNameToUse
-      }
-      // path === 'solo' falls through — no team, no club
-
-      const { username } = await signUp({
-        displayName: displayName.trim(),
-        firstName: firstName.trim() || null,
-        position,
-        ageBracket,
-        teamId: teamIdToUse,
-        teamName: teamNameToUse,
-        clubId: clubIdToUse,
-        clubName: clubNameToUse,
-      })
-      setGeneratedUsername(username)
-      setGeneratedTeamName(displayTeamLabel)
-      setGeneratedClubName(clubNameToUse || '')
-      await refresh()
-      setStep(3)
-    } catch (e) {
-      setError(e.message || 'Something went wrong.')
-    } finally {
-      setLoading(false)
+    // Save everything to localStorage — picked up after OAuth redirect
+    const pending = {
+      path: path || 'solo',
+      clubId: activeClub?.id || null,
+      clubName: activeClub?.name || null,
+      ageDivision: ageDivision || null,
+      tier: tier || null,
+      firstName: firstName.trim(),
+      displayName: displayName.trim(),
+      position,
+      ageBracket: ageBracketFromDivision(ageDivision),
     }
+    localStorage.setItem('pendingProfile', JSON.stringify(pending))
+    await signInWithGooglePlayer()
   }
 
   const doSignIn = async () => {
@@ -245,32 +214,77 @@ export default function AuthScreen() {
     } catch (e) {}
   }
 
-  // Google OAuth return — create player profile
+  // Google OAuth return — auto-create profile from saved localStorage data
   if (isOAuthReturn && !authLoading && !player) {
-    const finishGoogleSetup = async () => {
-      if (!firstName.trim()) { setError('Add your real first name so your coach knows who you are.'); return }
-      if (!displayName.trim() || !position || !ageBracket) { setError('Fill in all the fields.'); return }
-      if (joinClub && (!ageDivision || !tier)) { setError('Pick your age division and tier.'); return }
+    const pending = (() => {
+      try { return JSON.parse(localStorage.getItem('pendingProfile') || '{}') } catch { return {} }
+    })()
+
+    const autoCreate = async () => {
+      if (!pending.firstName || !pending.displayName || !pending.position) {
+        setError('Something went wrong. Please start over.')
+        return
+      }
       setLoading(true)
       setError('')
       try {
         let teamIdToUse = null
-        let clubIdToUse = null
-        let clubNameToUse = null
-        if (joinClub) {
-          const teamResult = await findOrCreateTeamForPlayer({ clubId: joinClub.id, ageDivision, tier })
+        if (pending.clubId && pending.ageDivision && pending.tier) {
+          const teamResult = await findOrCreateTeamForPlayer({
+            clubId: pending.clubId,
+            ageDivision: pending.ageDivision,
+            tier: pending.tier,
+          })
           teamIdToUse = teamResult.teamId
-          clubIdToUse = joinClub.id
-          clubNameToUse = joinClub.name
         }
+        await createPlayerWithGoogleAuth({
+          firstName: pending.firstName,
+          displayName: pending.displayName,
+          position: pending.position,
+          ageBracket: pending.ageBracket,
+          teamId: teamIdToUse,
+          clubId: pending.clubId,
+          clubName: pending.clubName,
+        })
+        localStorage.removeItem('pendingProfile')
+        await refresh()
+        nav('/home', { replace: true })
+      } catch (e) {
+        setError(e.message || 'Something went wrong.')
+        setLoading(false)
+      }
+    }
+
+    // If we have pending profile data, auto-create and redirect
+    if (pending.firstName && pending.displayName && pending.position && !loading && !error) {
+      autoCreate()
+      return (
+        <div className="auth-wrap">
+          <div className="auth-card" style={{ textAlign: 'center', padding: 40 }}>
+            <div style={{ fontFamily: 'var(--font-display)', color: 'var(--text-mute)', letterSpacing: 2, fontSize: 12 }}>
+              SETTING UP YOUR CARD…
+            </div>
+          </div>
+          <style>{styles}</style>
+        </div>
+      )
+    }
+
+    // Fallback: no pending data (e.g. they hit Google sign-in without going through the form)
+    // Show a minimal setup form
+    const finishGoogleSetup = async () => {
+      if (!firstName.trim()) { setError('Add your first name.'); return }
+      if (!displayName.trim() || !position) { setError('Fill in your name and position.'); return }
+      setLoading(true)
+      setError('')
+      try {
         await createPlayerWithGoogleAuth({
           firstName: firstName.trim(),
           displayName: displayName.trim(),
           position,
-          ageBracket,
-          teamId: teamIdToUse,
-          clubId: clubIdToUse,
-          clubName: clubNameToUse,
+          ageBracket: ageBracketFromDivision(ageDivision) || null,
+          clubId: joinClub?.id || null,
+          clubName: joinClub?.name || null,
         })
         await refresh()
         nav('/home', { replace: true })
@@ -287,66 +301,16 @@ export default function AuthScreen() {
           <div className="brand"><BrandLogo /><div className="brand-name">Hockey Shot<br/>Challenge</div></div>
           <h2 className="auth-title">Almost there.</h2>
           <p className="auth-sub">One quick setup and you're in.</p>
-
           <label className="input-label">
             <span>First name (shown to your coach)</span>
             <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
               placeholder="Your real first name" className="input-field" autoFocus />
           </label>
-
           <label className="input-label" style={{ marginTop: 12 }}>
             <span>Player name (on leaderboards)</span>
             <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="e.g. Connor or C-Train99" className="input-field" />
+              placeholder="Same as your name, or a nickname" className="input-field" />
           </label>
-
-          <div className="label-sm" style={{ marginTop: 14 }}>Find your club</div>
-          {!joinClub ? (
-            <div style={{ position: 'relative' }}>
-              <input type="text" value={joinClubQuery} onChange={(e) => setJoinClubQuery(e.target.value)}
-                placeholder="Burlington Eagles, Mississauga…" autoCorrect="off" autoCapitalize="none"
-                spellCheck="false" className="input-field" />
-              {joinClubQuery.trim().length >= 2 && (
-                <div className="join-club-dropdown">
-                  {joinSearching && <div className="join-club-status">Searching…</div>}
-                  {!joinSearching && joinClubResults.length === 0 && <div className="join-club-status">No clubs found.</div>}
-                  {joinClubResults.map((c) => (
-                    <button key={c.id} className="join-club-result"
-                      onClick={() => { setJoinClub(c); setJoinClubQuery(''); setJoinClubResults([]) }}>
-                      <span className="join-club-result-name">{c.name}</span>
-                      {c.city && <span className="join-club-result-meta">{c.city}</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="join-club-selected">
-                <div className="join-club-selected-name">{joinClub.name}</div>
-                {joinClub.city && <div className="join-club-selected-city">{joinClub.city}</div>}
-                <button className="join-club-change" onClick={() => { setJoinClub(null); setAgeDivision(''); setTier('') }}>Change</button>
-              </div>
-              <label className="input-label" style={{ marginTop: 12 }}>
-                <span>Age division</span>
-                <select value={ageDivision} onChange={(e) => setAgeDivision(e.target.value)} className="input-field">
-                  <option value="">Pick one</option>
-                  {AGE_DIVISIONS.map((a) => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </label>
-              <label className="input-label" style={{ marginTop: 10 }}>
-                <span>Tier</span>
-                <select value={tier} onChange={(e) => setTier(e.target.value)} className="input-field">
-                  <option value="">Pick one</option>
-                  {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </label>
-            </>
-          )}
-          {!joinClub && !joinClubQuery && (
-            <div className="path-hint" style={{ marginTop: 6 }}>Optional — you can skip this and add your club later.</div>
-          )}
-
           <div className="label-sm" style={{ marginTop: 14 }}>Position</div>
           <div className="chip-row chip-row--3">
             {['F', 'D', 'G'].map((p) => (
@@ -356,18 +320,8 @@ export default function AuthScreen() {
               </button>
             ))}
           </div>
-
-          <div className="label-sm">Age</div>
-          <div className="chip-row chip-row--4">
-            {['6-10', '11-14', '15-18', '18+'].map((a) => (
-              <button key={a} className={`chip ${ageBracket === a ? 'chip--active' : ''}`} onClick={() => setAgeBracket(a)}>{a}</button>
-            ))}
-          </div>
-
           {error && <div className="error">{error}</div>}
-
-          <button className="btn-primary" onClick={finishGoogleSetup}
-            disabled={!firstName || !displayName || !position || !ageBracket || loading}>
+          <button className="btn-primary" onClick={finishGoogleSetup} disabled={!firstName || !displayName || !position || loading}>
             {loading ? 'Setting up…' : 'Make my card →'}
           </button>
         </div>
@@ -386,9 +340,16 @@ export default function AuthScreen() {
             <div className="brand-name">Hockey Shot<br/>Challenge</div>
           </div>
           <h2 className="auth-title">Welcome back.</h2>
-          <p className="auth-sub">Enter your username to sign in.</p>
+          <p className="auth-sub">Sign in with Google, or use your username if you set up an older account.</p>
 
-          <label className="input-label">
+          <button className="google-btn" onClick={() => signInWithGooglePlayer()} style={{ marginBottom: 16 }}>
+            <GoogleIcon />
+            Continue with Google
+          </button>
+
+          <div className="or-divider">or sign in with username</div>
+
+          <label className="input-label" style={{ marginTop: 8 }}>
             <span>Username</span>
             <input
               type="text"
@@ -405,12 +366,7 @@ export default function AuthScreen() {
           {error && <div className="error">{error}</div>}
 
           <button className="btn-primary" onClick={doSignIn} disabled={!username || loading}>
-            {loading ? 'Signing in…' : 'Sign in'}
-          </button>
-          <div className="or-divider">or</div>
-          <button className="google-btn" onClick={() => signInWithGooglePlayer()}>
-            <GoogleIcon />
-            Continue with Google
+            {loading ? 'Signing in…' : 'Sign in with username'}
           </button>
           <button className="btn-text" onClick={() => { setMode('signup'); setError('') }}>
             New here? Create a card
@@ -705,12 +661,6 @@ export default function AuthScreen() {
                   Continue →
                 </button>
 
-                <div className="or-divider" style={{ marginTop: 8 }}>or</div>
-                <button className="google-btn" onClick={() => signInWithGooglePlayer()}>
-                  <GoogleIcon />
-                  Sign up with Google
-                </button>
-
                 <button className="btn-text" onClick={() => { setMode('signin'); setError('') }}>
                   Already playing? Sign in
                 </button>
@@ -724,9 +674,9 @@ export default function AuthScreen() {
 
         {step === 2 && (
           <>
-            <div className="step-chip">Step 2 of 3</div>
+            <div className="step-chip">Step 2 of 2</div>
             <h2 className="auth-title">Who are you?</h2>
-            <p className="auth-sub">Just your first name is fine.</p>
+            <p className="auth-sub">Your coach will see your real name. Your leaderboard name is up to you.</p>
 
             <label className="input-label">
               <span>First name (shown to your coach)</span>
@@ -765,28 +715,20 @@ export default function AuthScreen() {
               ))}
             </div>
 
-            <div className="label-sm">Age</div>
-            <div className="chip-row chip-row--4">
-              {['6-10', '11-14', '15-18', '18+'].map((a) => (
-                <button
-                  key={a}
-                  className={`chip ${ageBracket === a ? 'chip--active' : ''}`}
-                  onClick={() => setAgeBracket(a)}
-                >
-                  {a}
-                </button>
-              ))}
-            </div>
-
             {error && <div className="error">{error}</div>}
 
             <button
-              className="btn-primary"
-              onClick={finishSignup}
-              disabled={!displayName || !position || !ageBracket || loading}
+              className="google-btn"
+              onClick={saveAndGoogleAuth}
+              disabled={!firstName || !displayName || !position || loading}
+              style={{ marginTop: 8 }}
             >
-              {loading ? 'Setting up…' : 'Make my card →'}
+              <GoogleIcon />
+              {loading ? 'One sec…' : 'Continue with Google →'}
             </button>
+            <div className="path-hint" style={{ textAlign: 'center', marginBottom: 4 }}>
+              No password. Google keeps your account safe.
+            </div>
 
             <button className="btn-text" onClick={() => setStep(1)}>
               ← Back
