@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { signOut, deleteAccount } from '../lib/auth'
+import { signOut, deleteAccount, getPlayersForAccount } from '../lib/auth'
 import { setDailyGoal } from '../lib/progress'
 import { useNavigate } from 'react-router-dom'
 
@@ -16,8 +16,22 @@ export default function MoreScreen() {
   const [savingGoal, setSavingGoal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [accountPlayers, setAccountPlayers] = useState([])
+  const [switching, setSwitching] = useState(null)
+
+  useEffect(() => {
+    getPlayersForAccount().then(setAccountPlayers).catch(() => {})
+  }, [])
 
   if (!player) return null
+
+  const switchPlayer = async (p) => {
+    if (p.id === player.id || switching) return
+    setSwitching(p.id)
+    localStorage.setItem('activePlayerId', p.id)
+    await refresh()
+    setSwitching(null)
+  }
 
   const copyText = async (text, which) => {
     try {
@@ -223,7 +237,37 @@ export default function MoreScreen() {
         </div>
       </div>
 
-      <button className="add-player-btn" onClick={() => nav('/add-player')}>+ Add another player</button>
+      {accountPlayers.length > 0 && (
+        <div className="section">
+          <div className="label-sm" style={{ marginBottom: 8 }}>Players on this account</div>
+          <div className="players-list">
+            {accountPlayers.map((p) => (
+              <button
+                key={p.id}
+                className={`player-row ${p.id === player.id ? 'player-row--active' : ''}`}
+                onClick={() => switchPlayer(p)}
+                disabled={switching !== null}
+              >
+                <div className="player-row-avatar">{p.display_name[0]?.toUpperCase()}</div>
+                <div className="player-row-info">
+                  <div className="player-row-name">{p.display_name}</div>
+                  <div className="player-row-sub">
+                    {p.position === 'F' ? 'Forward' : p.position === 'D' ? 'Defense' : p.position === 'G' ? 'Goalie' : '—'}
+                    {p.team?.name ? ` · ${p.team.name}` : ''}
+                  </div>
+                </div>
+                {p.id === player.id
+                  ? <div className="player-row-badge">Active</div>
+                  : switching === p.id
+                    ? <div className="player-row-switching">Switching…</div>
+                    : <div className="player-row-switch">Switch →</div>
+                }
+              </button>
+            ))}
+          </div>
+          <button className="add-player-btn" onClick={() => nav('/add-player')}>+ Add another player</button>
+        </div>
+      )}
 
       <button className="signout-btn" onClick={doSignOut}>Sign out</button>
 
@@ -445,6 +489,63 @@ const styles = `
   font-size: 13px; color: var(--text);
   font-weight: 500;
   text-align: right;
+}
+
+.players-list {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 10px;
+}
+.player-row {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: left;
+  transition: all 0.1s;
+}
+.player-row--active {
+  border-color: var(--accent);
+  background: rgba(41, 121, 255, 0.07);
+}
+.player-row:active:not(:disabled) { transform: scale(0.99); }
+.player-row:disabled { opacity: 0.6; }
+.player-row-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.player-row-info { flex: 1; min-width: 0; }
+.player-row-name {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  color: white; letter-spacing: 0.2px;
+}
+.player-row-sub {
+  font-size: 11px; color: var(--text-mute);
+  margin-top: 2px;
+}
+.player-row-badge {
+  font-size: 10px; font-weight: 700;
+  color: var(--ice);
+  background: rgba(41, 121, 255, 0.15);
+  padding: 3px 8px; border-radius: 999px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.player-row-switch {
+  font-size: 12px; color: var(--text-mute);
+  flex-shrink: 0;
+}
+.player-row-switching {
+  font-size: 11px; color: var(--text-mute);
+  flex-shrink: 0;
 }
 
 .add-player-btn {
