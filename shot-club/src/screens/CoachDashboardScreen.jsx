@@ -111,7 +111,33 @@ export default function CoachDashboardScreen() {
   }
 
   if (!coach?.club) {
-    return null
+    return (
+      <div className="dash-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh' }}>
+        <div style={{ maxWidth: 400, padding: '24px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🏒</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: 'white', marginBottom: 10 }}>
+            Finish setting up
+          </div>
+          <div style={{ fontSize: 14, color: 'var(--text-mute)', lineHeight: 1.5, marginBottom: 24 }}>
+            You need to connect to your club and pick your team before you can invite players. It only takes a minute.
+          </div>
+          <button
+            className="dash-btn-ghost"
+            onClick={() => nav('/coach')}
+            style={{ display: 'inline-block', padding: '12px 28px', fontSize: 14 }}
+          >
+            Complete setup →
+          </button>
+          <button
+            style={{ display: 'block', margin: '16px auto 0', color: 'var(--text-mute)', fontSize: 13 }}
+            onClick={doSignOut}
+          >
+            Sign out
+          </button>
+        </div>
+        <style>{styles}</style>
+      </div>
+    )
   }
 
   const clubJoinUrl = `${CANONICAL_URL}/join/${coach.club.slug}`
@@ -247,8 +273,14 @@ export default function CoachDashboardScreen() {
           <>
             {myTeams.length === 0 ? (
               <div className="dash-empty">
-                <div className="dash-empty-title">No teams yet</div>
-                <div className="dash-empty-sub">Set up a team to start inviting players.</div>
+                <div style={{ fontSize: 36, marginBottom: 12 }}>👋</div>
+                <div className="dash-empty-title">You're not on a team yet</div>
+                <div className="dash-empty-sub">
+                  Go back to setup to pick your age group and tier. Once you're on a team, you'll get an invite link to send to parents.
+                </div>
+                <button className="dash-btn-ghost" onClick={() => nav('/coach')} style={{ marginTop: 4 }}>
+                  Pick my team →
+                </button>
               </div>
             ) : (
               <>

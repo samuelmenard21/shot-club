@@ -393,6 +393,7 @@ export default function LandingScreen() {
           <button className="foot-link" onClick={() => nav('/for-clubs')}>For clubs</button>
           <button className="foot-link" onClick={() => nav('/coach')}>Coaches</button>
           <button className="foot-link" onClick={() => nav('/start')}>Sign in</button>
+          <button className="foot-link" onClick={() => nav('/privacy')}>Privacy</button>
         </div>
         <div className="foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge · Built in Burlington, ON</div>
       </footer>

@@ -223,7 +223,11 @@ export default function MoreScreen() {
         </div>
       </div>
 
+      <button className="add-player-btn" onClick={() => nav('/add-player')}>+ Add another player</button>
+
       <button className="signout-btn" onClick={doSignOut}>Sign out</button>
+
+      <button className="privacy-link-btn" onClick={() => nav('/privacy')}>Privacy policy</button>
       <button className="delete-btn" onClick={() => setShowDeleteConfirm(true)}>Delete account</button>
 
       {showDeleteConfirm && (
@@ -443,6 +447,21 @@ const styles = `
   text-align: right;
 }
 
+.add-player-btn {
+  width: 100%;
+  background: var(--surface);
+  border: 0.5px solid var(--accent);
+  color: var(--ice);
+  padding: 13px;
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-top: 8px;
+  transition: all 0.15s;
+}
+.add-player-btn:active { background: rgba(41, 121, 255, 0.1); }
+
 .signout-btn {
   width: 100%;
   background: transparent;
@@ -454,6 +473,16 @@ const styles = `
   margin-top: 8px;
 }
 .signout-btn:active { background: rgba(255, 84, 84, 0.08); }
+
+.privacy-link-btn {
+  width: 100%;
+  background: transparent;
+  color: var(--text-mute);
+  padding: 10px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.privacy-link-btn:hover { color: var(--text-soft); }
 
 .delete-btn {
   width: 100%;

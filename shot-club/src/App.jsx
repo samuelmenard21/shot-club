@@ -21,6 +21,10 @@ import HomeScreen from './screens/HomeScreen'
 import CardScreen from './screens/CardScreen'
 import RankScreen from './screens/RankScreen'
 import MoreScreen from './screens/MoreScreen'
+import AddPlayerScreen from './screens/AddPlayerScreen'
+
+// Public static
+import PrivacyScreen from './screens/PrivacyScreen'
 
 function LoadingScreen() {
   return (
@@ -116,6 +120,10 @@ function ShellWrapper() {
         <Route path="/rank" element={<Protected><RankScreen /></Protected>} />
         <Route path="/teams" element={<Navigate to="/rank" replace />} />
         <Route path="/more" element={<Protected><MoreScreen /></Protected>} />
+        <Route path="/add-player" element={<Protected><AddPlayerScreen /></Protected>} />
+
+        {/* Static */}
+        <Route path="/privacy" element={<PrivacyScreen />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
