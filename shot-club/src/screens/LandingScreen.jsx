@@ -67,6 +67,7 @@ export default function LandingScreen() {
           <span>Hockey Shot Challenge</span>
         </button>
         <div className="land-nav-actions">
+          <button className="land-nav-link" onClick={() => nav('/for-clubs')}>For clubs</button>
           <button className="land-nav-link" onClick={() => nav('/coach')}>For coaches</button>
           <button className="land-nav-link" onClick={() => nav('/start')}>Sign in</button>
           <button className="land-nav-cta" onClick={() => nav('/start')}>Start free →</button>
@@ -98,6 +99,18 @@ export default function LandingScreen() {
             <div className="hero-path-hint">See which players are putting in the work. Free for your whole team.</div>
           </button>
         </div>
+
+        <button className="hero-path hero-path--club" onClick={() => nav('/for-clubs')}>
+          <div className="hero-path-club-left">
+            <div className="hero-path-who">Club &amp; Association Managers</div>
+            <div className="hero-path-label hero-path-label--club">I manage an association →</div>
+          </div>
+          <div className="hero-path-club-pills">
+            <span className="hero-club-pill">📊 Team leaderboards</span>
+            <span className="hero-club-pill">🔗 Coach &amp; parent sharing links</span>
+            <span className="hero-club-pill">⚔️ Club vs. club challenges</span>
+          </div>
+        </button>
 
         <div className="hero-club-search">
           <div className="hero-club-search-label">Find your club's leaderboard</div>
@@ -643,7 +656,7 @@ body:has(.landing) { background: var(--bg) !important; }
   grid-template-columns: 1fr;
   gap: 12px;
   max-width: 560px;
-  margin: 0 auto 28px;
+  margin: 0 auto 12px;
 }
 @media (min-width: 560px) {
   .hero-split { grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -668,6 +681,50 @@ body:has(.landing) { background: var(--bg) !important; }
 .hero-path--coach {
   background: #141e2e;
   border: 2px solid #3a5070;
+}
+.hero-path--club {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #0e1a20;
+  border: 1.5px solid #1e3a30;
+  border-radius: 14px;
+  padding: 18px 20px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+  max-width: 560px;
+  margin: 0 auto 20px;
+  width: 100%;
+  min-height: auto;
+}
+.hero-path--club:hover { border-color: #2a6050; }
+.hero-path--club:active { transform: scale(0.99); }
+@media (min-width: 560px) {
+  .hero-path--club { flex-direction: row; align-items: center; gap: 20px; }
+}
+.hero-path-club-left { flex-shrink: 0; }
+.hero-path-label--club {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 4vw, 22px);
+  font-weight: 800;
+  color: #7dd3b8;
+  line-height: 1.1;
+}
+.hero-path-club-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.hero-club-pill {
+  background: rgba(45,120,90,0.15);
+  border: 1px solid rgba(45,120,90,0.3);
+  border-radius: 20px;
+  padding: 5px 11px;
+  font-size: 12px;
+  color: #7dd3b8;
+  font-weight: 500;
+  white-space: nowrap;
 }
 .hero-path-who {
   font-size: 13px;
