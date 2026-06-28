@@ -16,6 +16,7 @@ export default function MoreScreen() {
   const [savingGoal, setSavingGoal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
   const [accountPlayers, setAccountPlayers] = useState([])
   const [switching, setSwitching] = useState(null)
 
@@ -74,7 +75,6 @@ export default function MoreScreen() {
   }
 
   const doSignOut = async () => {
-    if (!window.confirm('Sign out? Make sure you saved your username first.')) return
     await signOut()
     await refresh()
     nav('/start')
@@ -269,10 +269,30 @@ export default function MoreScreen() {
         </div>
       )}
 
-      <button className="signout-btn" onClick={doSignOut}>Sign out</button>
+      <button className="signout-btn" onClick={() => setShowSignOutConfirm(true)}>Sign out</button>
 
       <button className="privacy-link-btn" onClick={() => nav('/privacy')}>Privacy policy</button>
       <button className="delete-btn" onClick={() => setShowDeleteConfirm(true)}>Delete account</button>
+
+      {showSignOutConfirm && (
+        <div className="delete-overlay" onClick={() => setShowSignOutConfirm(false)}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-icon">👋</div>
+            <h2 className="delete-modal-title">Sign out?</h2>
+            <p className="delete-modal-body">
+              {player.username
+                ? <>Your username is <strong style={{ color: 'white' }}>@{player.username}</strong> — save it so you can sign back in.</>
+                : 'You can sign back in with Google any time.'}
+            </p>
+            <button className="signout-confirm-btn" onClick={doSignOut}>
+              Sign out
+            </button>
+            <button className="delete-cancel-btn" onClick={() => setShowSignOutConfirm(false)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {showDeleteConfirm && (
         <div className="delete-overlay">
@@ -621,6 +641,18 @@ const styles = `
   font-size: 14px; color: var(--text-soft);
   line-height: 1.5; margin-bottom: 20px;
 }
+.signout-confirm-btn {
+  width: 100%;
+  background: var(--surface-raised, #1a2035);
+  border: 0.5px solid rgba(255,84,84,0.3);
+  color: var(--danger);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 14px; font-weight: 600;
+  margin-bottom: 10px;
+}
+.signout-confirm-btn:active { background: rgba(255,84,84,0.08); }
+
 .delete-confirm-btn {
   width: 100%;
   background: var(--danger);

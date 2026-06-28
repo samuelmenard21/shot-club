@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0a0e1a"/>
+
+  <!-- Grid lines subtle -->
+  <line x1="0" y1="315" x2="1200" y2="315" stroke="#1a2035" stroke-width="1"/>
+  <line x1="600" y1="0" x2="600" y2="630" stroke="#1a2035" stroke-width="1"/>
+
+  <!-- Puck/circle accent -->
+  <circle cx="600" cy="260" r="180" fill="none" stroke="#1a2847" stroke-width="40"/>
+  <circle cx="600" cy="260" r="180" fill="none" stroke="#2979ff" stroke-width="2" opacity="0.6"/>
+
+  <!-- Hockey stick shape - left -->
+  <line x1="340" y1="120" x2="340" y2="340" stroke="#2979ff" stroke-width="8" stroke-linecap="round" opacity="0.5"/>
+  <line x1="340" y1="340" x2="420" y2="370" stroke="#2979ff" stroke-width="8" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Hockey stick shape - right mirror -->
+  <line x1="860" y1="120" x2="860" y2="340" stroke="#2979ff" stroke-width="8" stroke-linecap="round" opacity="0.5"/>
+  <line x1="860" y1="340" x2="780" y2="370" stroke="#2979ff" stroke-width="8" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Checkmark inside circle -->
+  <path d="M530 255 L575 305 L680 210" fill="none" stroke="#a8d4f5" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- App name -->
+  <text x="600" y="490" font-family="'Barlow Condensed', 'Arial Narrow', Arial, sans-serif" font-weight="800" font-size="68" fill="white" text-anchor="middle" letter-spacing="1">HOCKEY SHOT CHALLENGE</text>
+
+  <!-- Tagline -->
+  <text x="600" y="548" font-family="'Barlow', Arial, sans-serif" font-weight="500" font-size="28" fill="#6b7fa8" text-anchor="middle" letter-spacing="2">TRACK EVERY SHOT · CLIMB THE RANKINGS</text>
+
+  <!-- URL -->
+  <text x="600" y="598" font-family="'Barlow', Arial, sans-serif" font-weight="500" font-size="22" fill="#2979ff" text-anchor="middle" letter-spacing="1">hockeyshotchallenge.com</text>
+</svg>

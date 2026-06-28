@@ -218,7 +218,14 @@ export default function HomeScreen() {
         </div>
       )}
 
-      <div className="tap-hint">Tap a shot type to log it</div>
+      {player.lifetime_shots === 0 && (
+        <div className="first-time-nudge">
+          <div className="ftn-title">Log your first shots 🏒</div>
+          <div className="ftn-body">Tap any shot type below to get on the board. Every rep counts toward your rank.</div>
+        </div>
+      )}
+
+      {player.lifetime_shots > 0 && <div className="tap-hint">Tap a shot type to log it</div>}
 
       <div className="shots-grid">
         {shotTypes.map((t) => {
@@ -599,6 +606,27 @@ const styles = `
   text-transform: uppercase;
   font-weight: 500;
   margin-bottom: 10px;
+}
+.first-time-nudge {
+  background: linear-gradient(135deg, rgba(41,121,255,0.12) 0%, rgba(41,121,255,0.06) 100%);
+  border: 0.5px solid rgba(41,121,255,0.35);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.ftn-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 5px;
+  letter-spacing: 0.3px;
+}
+.ftn-body {
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.45;
 }
 
 .shots-grid {
