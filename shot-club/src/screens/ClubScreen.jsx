@@ -16,6 +16,7 @@ export default function ClubScreen() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [copiedParent, setCopiedParent] = useState(false)
   const [shared, setShared] = useState(false)
   const [copiedWeek, setCopiedWeek] = useState(false)
 
@@ -72,6 +73,7 @@ export default function ClubScreen() {
   }, [slug])
 
   const clubUrl = `${CANONICAL_URL}/clubs/${slug}`
+  const parentSignupUrl = `${CANONICAL_URL}/start?club=${slug}`
 
   const sharePageWithCoaches = async () => {
     const text = club
@@ -142,8 +144,31 @@ export default function ClubScreen() {
   }
 
   const hasActivity = (stats?.playerCount > 0) || (stats?.totalShots > 0)
-  const coachSignupLink = `/coach?club=${slug}`
-  const playerSignupLink = `/start`
+  const coachSignupLink = `/coach/start`
+  const playerSignupLink = `/start?club=${slug}`
+
+  const copyParentLink = async () => {
+    try {
+      await navigator.clipboard.writeText(parentSignupUrl)
+      setCopiedParent(true)
+      setTimeout(() => setCopiedParent(false), 2500)
+    } catch (e) {}
+  }
+
+  const shareWithParents = async () => {
+    const text = club
+      ? `Sign your player up for ${club.name} on Hockey Shot Challenge. They'll log shots and stickhandling reps at home, compete with teammates, and earn ranks. Free — takes 30 seconds: ${parentSignupUrl}`
+      : parentSignupUrl
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `Sign up for ${club?.name}`, text, url: parentSignupUrl })
+      } else {
+        await navigator.clipboard.writeText(parentSignupUrl)
+        setCopiedParent(true)
+        setTimeout(() => setCopiedParent(false), 2500)
+      }
+    } catch (e) {}
+  }
 
   const emailBody = [
     `Hey coaches,`,
@@ -265,13 +290,27 @@ export default function ClubScreen() {
           </div>
         </section>
 
-        {/* Player notice */}
-        <section className="club-section club-player-notice">
-          <div className="club-eyebrow-left">FOR PLAYERS & PARENTS</div>
-          <h2 className="club-h2">Player at {club.name}?</h2>
+        {/* Parent sign-up section */}
+        <section className="club-section club-parents">
+          <div className="club-eyebrow-left">👨‍👩‍👧 FOR PARENTS</div>
+          <h2 className="club-h2">Sign up your player.</h2>
           <p className="club-section-text">
-            Your coach needs to set up the team first. Ask them to visit this page — it takes 2 minutes. Once they're set up, they'll send you an invite link and you're in.
+            Players can sign up now — your coach just needs to set up their team first. Once they do, your player's stats will show up on the leaderboard automatically.
           </p>
+          <div className="club-parent-link-row">
+            <div className="club-parent-link-url">{parentSignupUrl.replace('https://', '')}</div>
+            <button className="club-parent-link-copy" onClick={copyParentLink}>
+              {copiedParent ? '✓ Copied' : 'Copy'}
+            </button>
+          </div>
+          <div className="club-share-row" style={{ marginTop: 12 }}>
+            <button className="club-share-btn" onClick={shareWithParents}>
+              <span>💬</span> Share via messages
+            </button>
+            <button className="club-share-btn" onClick={() => nav(playerSignupLink)}>
+              <span>→</span> Sign up now
+            </button>
+          </div>
         </section>
 
         <ContactSection />
@@ -365,6 +404,29 @@ export default function ClubScreen() {
           </p>
         </section>
       )}
+
+      {/* ── SHARE WITH PARENTS ── */}
+      <section className="club-section club-parents">
+        <div className="club-eyebrow-left">👨‍👩‍👧 FOR PARENTS</div>
+        <h2 className="club-h2">Sign up your player.</h2>
+        <p className="club-section-text">
+          Send this link to parents. They sign in with Google, pick their kid's team, and they're on the leaderboard in 30 seconds.
+        </p>
+        <div className="club-parent-link-row">
+          <div className="club-parent-link-url">{parentSignupUrl.replace('https://', '')}</div>
+          <button className="club-parent-link-copy" onClick={copyParentLink}>
+            {copiedParent ? '✓ Copied' : 'Copy'}
+          </button>
+        </div>
+        <div className="club-share-row" style={{ marginTop: 12 }}>
+          <button className="club-share-btn" onClick={shareWithParents}>
+            <span>💬</span> Share via messages
+          </button>
+          <button className="club-share-btn" onClick={() => nav(playerSignupLink)}>
+            <span>→</span> Sign up now
+          </button>
+        </div>
+      </section>
 
       {/* ── TOP PLAYERS THIS WEEK ── */}
       {topPlayers.length > 0 && (
@@ -684,7 +746,39 @@ body:has(.club-screen) { background: var(--bg) !important; }
 .club-loop-title { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: white; margin: 0 0 8px; }
 .club-loop-text { font-size: 14px; color: var(--text-soft); line-height: 1.5; margin: 0; }
 
-/* Parents */
+/* Parents section */
+.club-parents { background: linear-gradient(180deg, rgba(41,121,255,0.04), var(--bg)); }
+.club-parent-link-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border-dim);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 4px;
+}
+.club-parent-link-url {
+  flex: 1;
+  font-size: 13px;
+  color: #60a5fa;
+  font-family: monospace;
+  word-break: break-all;
+  min-width: 0;
+}
+.club-parent-link-copy {
+  background: rgba(41,121,255,0.15);
+  border: 1px solid rgba(41,121,255,0.3);
+  border-radius: 7px;
+  color: #60a5fa;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 12px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Families */
 .club-families { background: linear-gradient(180deg, var(--bg), rgba(41,121,255,0.04)); }
 
 /* Coach CTA (active club) */
