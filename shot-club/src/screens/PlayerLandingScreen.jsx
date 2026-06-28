@@ -1,10 +1,45 @@
 import { useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
 import { AppMockupSection, RoutineSection } from '../components/LandingSharedSections'
+import { searchClubs } from '../lib/clubs'
 
 export default function PlayerLandingScreen() {
   const nav = useNavigate()
+  const [clubQuery, setClubQuery] = useState('')
+  const [clubResults, setClubResults] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [selectedClub, setSelectedClub] = useState(null)
+  const searchTimer = useRef(null)
+
+  useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    if (!clubQuery.trim() || clubQuery.trim().length < 2) {
+      setClubResults([])
+      setSearching(false)
+      return
+    }
+    setSearching(true)
+    searchTimer.current = setTimeout(async () => {
+      try {
+        const results = await searchClubs(clubQuery, 5)
+        setClubResults(results || [])
+      } catch (e) {
+        setClubResults([])
+      } finally {
+        setSearching(false)
+      }
+    }, 200)
+    return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
+  }, [clubQuery])
+
+  const handleStart = () => {
+    if (selectedClub) {
+      nav(`/start?club=${selectedClub.slug}`)
+    } else {
+      nav('/start')
+    }
+  }
 
   useEffect(() => {
     setSEO({
@@ -27,8 +62,50 @@ export default function PlayerLandingScreen() {
         <p className="pl-sub">
           Every day, log how many shots and stickhandling reps you did at home. Watch your rank climb. Compete against other teams every week.
         </p>
-        <button className="pl-cta" onClick={() => nav('/start')}>
-          Start for free — takes 30 seconds →
+        <div className="pl-club-search">
+          <div className="pl-club-search-label">Find your club first (optional)</div>
+          {selectedClub ? (
+            <div className="pl-club-selected">
+              <span className="pl-club-selected-name">{selectedClub.name}</span>
+              {selectedClub.city && <span className="pl-club-selected-city">{selectedClub.city}</span>}
+              <button className="pl-club-change" onClick={() => { setSelectedClub(null); setClubQuery('') }}>Change</button>
+            </div>
+          ) : (
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                className="pl-club-input"
+                placeholder="Burlington Eagles, Mississauga…"
+                value={clubQuery}
+                onChange={(e) => setClubQuery(e.target.value)}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck="false"
+              />
+              {clubQuery.trim().length >= 2 && (
+                <div className="pl-club-dropdown">
+                  {searching && <div className="pl-club-status">Searching…</div>}
+                  {!searching && clubResults.length === 0 && (
+                    <div className="pl-club-status">No clubs found — you can still sign up.</div>
+                  )}
+                  {clubResults.map((c) => (
+                    <button
+                      key={c.id}
+                      className="pl-club-result"
+                      onClick={() => { setSelectedClub(c); setClubQuery(''); setClubResults([]) }}
+                    >
+                      <span className="pl-club-result-name">{c.name}</span>
+                      {c.city && <span className="pl-club-result-meta">{c.city}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <button className="pl-cta" onClick={handleStart}>
+          {selectedClub ? `Start with ${selectedClub.name} →` : 'Start for free — takes 30 seconds →'}
         </button>
         <p className="pl-cta-hint">Sign in with your Google account. No credit card. Just hockey.</p>
       </section>
@@ -205,6 +282,103 @@ const styles = `
   font-size: 13px;
   color: #6b7fa8;
   margin-top: 10px;
+}
+
+.pl-club-search {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 16px;
+  text-align: left;
+}
+.pl-club-search-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #4a6080;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.pl-club-input {
+  width: 100%;
+  background: #0f1928;
+  border: 1px solid #1e2f4a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.pl-club-input:focus { border-color: var(--accent); }
+.pl-club-input::placeholder { color: #3a5070; }
+.pl-club-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: #0f1928;
+  border: 1px solid #1e2f4a;
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 50;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.pl-club-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 11px 14px;
+  border-bottom: 1px solid #1a2847;
+  text-align: left;
+  transition: background 0.1s;
+}
+.pl-club-result:last-child { border-bottom: none; }
+.pl-club-result:hover { background: #0a0e1a; }
+.pl-club-result-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+}
+.pl-club-result-meta {
+  font-size: 12px;
+  color: #4a6080;
+  margin-top: 2px;
+}
+.pl-club-status {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #4a6080;
+  text-align: center;
+}
+.pl-club-selected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(41,121,255,0.12);
+  border: 1px solid rgba(41,121,255,0.35);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.pl-club-selected-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  flex: 1;
+}
+.pl-club-selected-city {
+  font-size: 12px;
+  color: #6b7fa8;
+}
+.pl-club-change {
+  background: transparent;
+  color: #60a5fa;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .pl-steps {

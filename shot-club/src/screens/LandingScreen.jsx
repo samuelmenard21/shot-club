@@ -125,16 +125,23 @@ export default function LandingScreen() {
                   </div>
                 )}
                 {clubResults.map((c) => (
-                  <button
-                    key={c.id}
-                    className="hero-search-result"
-                    onClick={() => { nav(`/clubs/${c.slug}`); setClubQuery(''); setClubResults([]) }}
-                  >
-                    <span className="hero-search-result-name">{c.name}</span>
-                    <span className="hero-search-result-meta">
-                      {[c.city, c.governing_body].filter(Boolean).join(' · ')}
-                    </span>
-                  </button>
+                  <div key={c.id} className="hero-search-result-wrap">
+                    <button
+                      className="hero-search-result"
+                      onClick={() => { nav(`/clubs/${c.slug}`); setClubQuery(''); setClubResults([]) }}
+                    >
+                      <span className="hero-search-result-name">{c.name}</span>
+                      <span className="hero-search-result-meta">
+                        {[c.city, c.governing_body].filter(Boolean).join(' · ')}
+                      </span>
+                    </button>
+                    <button
+                      className="hero-search-join"
+                      onClick={() => { nav(`/start?club=${c.slug}`); setClubQuery(''); setClubResults([]) }}
+                    >
+                      Sign up →
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -725,18 +732,34 @@ body:has(.landing) { background: var(--bg) !important; }
   z-index: 50;
   box-shadow: 0 12px 40px rgba(0,0,0,0.4);
 }
+.hero-search-result-wrap {
+  display: flex;
+  align-items: center;
+  border-bottom: 0.5px solid var(--border-dim);
+  padding-right: 10px;
+}
+.hero-search-result-wrap:last-child { border-bottom: none; }
 .hero-search-result {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 100%;
+  flex: 1;
   padding: 12px 16px;
-  border-bottom: 0.5px solid var(--border-dim);
   text-align: left;
   transition: background 0.1s;
 }
-.hero-search-result:last-child { border-bottom: none; }
 .hero-search-result:hover { background: var(--bg); }
+.hero-search-join {
+  background: rgba(41,121,255,0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(41,121,255,0.3);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 .hero-search-result-name {
   font-family: var(--font-display);
   font-size: 15px;
