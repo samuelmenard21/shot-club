@@ -118,7 +118,7 @@ export default function AuthScreen() {
   }
 
   const continueFromStep1 = () => {
-    if (!signingUpFor) { setError('Let us know who you\'re signing up for.'); return }
+    if (!signingUpFor) setSigningUpFor('self')
 
     // Pre-keyed flow: validate the two-dropdown picker
     if (path === 'club' && preClub) {
@@ -925,18 +925,18 @@ const styles = `
 }
 
 .picker-label {
-  font-size: 11px; color: var(--text-mute);
-  letter-spacing: 2px; text-transform: uppercase;
-  font-weight: 600;
+  font-size: 13px; color: #8899b4;
+  letter-spacing: 1px; text-transform: uppercase;
+  font-weight: 700;
   margin-bottom: 10px;
 }
 
 .input-label { display: block; margin-bottom: 4px; }
 .input-label > span {
   display: block;
-  font-size: 10px; color: var(--text-mute);
-  letter-spacing: 1.5px; text-transform: uppercase;
-  margin-bottom: 6px; font-weight: 500;
+  font-size: 13px; color: #8899b4;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  margin-bottom: 8px; font-weight: 600;
 }
 .input-field {
   width: 100%;
@@ -1015,7 +1015,7 @@ const styles = `
   border-top: 0.5px solid var(--border-dim);
 }
 .path-hint {
-  font-size: 11px; color: var(--text-mute);
+  font-size: 13px; color: #8899b4;
   line-height: 1.4; margin-top: 6px;
 }
 .or-divider {
@@ -1213,7 +1213,7 @@ const styles = `
   margin-bottom: 18px;
 }
 .for-label {
-  font-size: 10px; color: var(--text-mute);
+  font-size: 13px; color: #8899b4;
   letter-spacing: 1.5px; text-transform: uppercase;
   font-weight: 600; margin-bottom: 8px;
 }

@@ -25,6 +25,7 @@ import AddPlayerScreen from './screens/AddPlayerScreen'
 
 // Public static
 import PrivacyScreen from './screens/PrivacyScreen'
+import PlayerLandingScreen from './screens/PlayerLandingScreen'
 
 function LoadingScreen() {
   return (
@@ -124,6 +125,7 @@ function ShellWrapper() {
 
         {/* Static */}
         <Route path="/privacy" element={<PrivacyScreen />} />
+        <Route path="/player" element={<PlayerLandingScreen />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

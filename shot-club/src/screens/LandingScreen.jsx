@@ -86,23 +86,16 @@ export default function LandingScreen() {
         </p>
 
         <div className="hero-split">
-          <button className="hero-path hero-path--player" onClick={() => nav('/start')}>
-            <div className="hero-path-eyebrow">PLAYERS & PARENTS</div>
-            <h2 className="hero-path-title">Start tracking.</h2>
-            <p className="hero-path-text">
-              Find your club, pick your team, log your first shot.
-              No coach invite needed. 30 seconds.
-            </p>
-            <span className="hero-path-cta">Start tracking my shots — free →</span>
+          <button className="hero-path hero-path--player" onClick={() => nav('/player')}>
+            <div className="hero-path-who">Players &amp; Parents</div>
+            <div className="hero-path-label">I'm a player →</div>
+            <div className="hero-path-hint">Log shots, earn ranks, compete in squad battles every week.</div>
           </button>
 
           <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
-            <div className="hero-path-eyebrow">COACHES</div>
-            <h2 className="hero-path-title">See the work.</h2>
-            <p className="hero-path-text">
-              Sign in with Google, find your club, pick your age group. Your team is on the leaderboard instantly — send one link to parents and you're set.
-            </p>
-            <span className="hero-path-cta">Set up my team — free →</span>
+            <div className="hero-path-who">Coaches</div>
+            <div className="hero-path-label">I'm a coach →</div>
+            <div className="hero-path-hint">See which players are putting in the work. Free for your whole team.</div>
           </button>
         </div>
 
@@ -642,74 +635,54 @@ body:has(.landing) { background: var(--bg) !important; }
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
-  max-width: 800px;
+  max-width: 560px;
   margin: 0 auto 28px;
 }
-@media (min-width: 640px) {
-  .hero-split { grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (min-width: 560px) {
+  .hero-split { grid-template-columns: 1fr 1fr; gap: 14px; }
 }
 
 .hero-path {
-  border-radius: 18px;
-  padding: 26px 22px 22px;
+  border-radius: 16px;
+  padding: 24px 22px 22px;
   text-align: left;
   cursor: pointer;
   transition: transform 0.15s;
   display: flex;
   flex-direction: column;
+  gap: 8px;
+  min-height: 140px;
 }
 .hero-path:active { transform: scale(0.98); }
 .hero-path--player {
-  background: linear-gradient(135deg, #1a3a6b 0%, #0d2040 100%);
-  border: 1px solid rgba(41,121,255,0.5);
+  background: #1a2f5a;
+  border: 2px solid #2979ff;
 }
 .hero-path--coach {
-  background: linear-gradient(135deg, #1a2535 0%, #0f1922 100%);
-  border: 1px solid rgba(168,212,245,0.2);
+  background: #141e2e;
+  border: 2px solid #3a5070;
 }
-.hero-path-eyebrow {
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  margin-bottom: 10px;
+.hero-path-who {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8899b4;
+  letter-spacing: 0.3px;
 }
-.hero-path--player .hero-path-eyebrow { color: #60a5fa; }
-.hero-path--coach .hero-path-eyebrow { color: var(--ice); }
-.hero-path-title {
+.hero-path-label {
   font-family: var(--font-display);
-  font-size: clamp(26px, 4vw, 34px);
+  font-size: clamp(22px, 5vw, 28px);
   font-weight: 800;
   color: white;
-  margin: 0 0 10px;
-  line-height: 1.0;
-  letter-spacing: -0.3px;
+  line-height: 1.1;
+  letter-spacing: 0.1px;
 }
-.hero-path-text {
+.hero-path--player .hero-path-label { color: white; }
+.hero-path--coach .hero-path-label { color: #c8dff5; }
+.hero-path-hint {
   font-size: 14px;
-  color: rgba(255,255,255,0.65);
-  line-height: 1.5;
-  flex: 1;
-  margin-bottom: 18px;
-}
-.hero-path-cta {
-  display: inline-block;
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  padding: 10px 16px;
-  border-radius: 999px;
-  align-self: flex-start;
-}
-.hero-path--player .hero-path-cta {
-  background: var(--accent);
-  color: white;
-}
-.hero-path--coach .hero-path-cta {
-  background: rgba(168,212,245,0.15);
-  color: var(--ice);
-  border: 1px solid rgba(168,212,245,0.3);
+  color: #7a90b0;
+  line-height: 1.45;
+  margin-top: 2px;
 }
 
 /* Secondary club search below the two paths */
