@@ -26,6 +26,7 @@ import AddPlayerScreen from './screens/AddPlayerScreen'
 // Public static
 import PrivacyScreen from './screens/PrivacyScreen'
 import PlayerLandingScreen from './screens/PlayerLandingScreen'
+import CoachLandingScreen from './screens/CoachLandingScreen'
 
 function LoadingScreen() {
   return (
@@ -112,7 +113,8 @@ function ShellWrapper() {
         <Route path="/auth" element={<Navigate to="/start" replace />} />
 
         {/* Coach */}
-        <Route path="/coach" element={<CoachAuthScreen />} />
+        <Route path="/coach" element={<CoachLandingScreen />} />
+        <Route path="/coach/start" element={<CoachAuthScreen />} />
         <Route path="/coach/dashboard" element={<CoachDashboardScreen />} />
 
         {/* Authenticated player */}

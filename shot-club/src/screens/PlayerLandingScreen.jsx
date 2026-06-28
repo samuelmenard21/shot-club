@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
+import { AppMockupSection, RoutineSection } from '../components/LandingSharedSections'
 
 export default function PlayerLandingScreen() {
   const nav = useNavigate()
@@ -8,7 +9,7 @@ export default function PlayerLandingScreen() {
   useEffect(() => {
     setSEO({
       title: 'For players and parents',
-      description: 'Log your shots at home. Compete in squad battles every week. Earn your rank. Free for hockey players ages 6–18.',
+      description: 'Log your shots and stickhandling at home. Compete in squad battles every week. Earn your rank. Free for hockey players ages 6–18.',
       url: `${CANONICAL_URL}/player`,
     })
   }, [])
@@ -21,15 +22,15 @@ export default function PlayerLandingScreen() {
       </nav>
 
       <section className="pl-hero">
-        <div className="pl-eyebrow">FREE · NO EMAIL NEEDED · AGES 6–18</div>
+        <div className="pl-eyebrow">FREE · SIGN IN WITH GOOGLE · AGES 6–18</div>
         <h1 className="pl-title">Log your shots.<br/>Beat your teammates.</h1>
         <p className="pl-sub">
-          Every day, log how many shots you took at home. Watch your rank climb. Compete against other teams every week.
+          Every day, log how many shots and stickhandling reps you did at home. Watch your rank climb. Compete against other teams every week.
         </p>
         <button className="pl-cta" onClick={() => nav('/start')}>
           Start for free — takes 30 seconds →
         </button>
-        <p className="pl-cta-hint">No email. No credit card. Just hockey.</p>
+        <p className="pl-cta-hint">Sign in with your Google account. No credit card. Just hockey.</p>
       </section>
 
       <section className="pl-steps">
@@ -39,22 +40,41 @@ export default function PlayerLandingScreen() {
             <div className="pl-step-num">1</div>
             <div className="pl-step-body">
               <div className="pl-step-title">Sign up in 30 seconds</div>
-              <div className="pl-step-text">Pick your team. Create your screen name. No email or password needed. Done.</div>
+              <div className="pl-step-text">Sign in with Google. Pick your team. Create your screen name. Done.</div>
             </div>
           </div>
           <div className="pl-step">
             <div className="pl-step-num">2</div>
             <div className="pl-step-body">
-              <div className="pl-step-title">Log shots every day</div>
-              <div className="pl-step-text">Tap a shot type. Enter how many. Takes 5 seconds. The more you log, the higher you climb.</div>
+              <div className="pl-step-title">Log shots and stickhandling every day</div>
+              <div className="pl-step-text">Tap a shot type or stickhandling drill. Enter how many. Takes 5 seconds. The more you log, the higher you climb.</div>
             </div>
           </div>
           <div className="pl-step">
             <div className="pl-step-num">3</div>
             <div className="pl-step-body">
               <div className="pl-step-title">Compete every week</div>
-              <div className="pl-step-text">Every Monday, you get placed with 3 teammates. Your squad faces a rival squad from another team. Most shots by Sunday wins.</div>
+              <div className="pl-step-text">Every Monday, you get placed with 3 teammates. Your squad faces a rival squad from another team. Most reps by Sunday wins.</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <AppMockupSection />
+
+      <RoutineSection />
+
+      <section className="pl-videos">
+        <div className="pl-videos-inner">
+          <div className="pl-eyebrow">SKILL VIDEOS</div>
+          <h2 className="pl-section-title pl-section-title--left">Watch a drill. Then go do it.</h2>
+          <p className="pl-section-sub pl-section-sub--left">
+            The app includes curated YouTube videos for every shot type and stickhandling skill — wrist shots, snap shots, toe drags, figure eights, and more. Pick a drill, watch it once, then log your reps.
+          </p>
+          <div className="pl-video-types">
+            {['Wrist shots', 'Snap shots', 'Slap shots', 'Backhand shots', 'Toe drags', 'Figure eights', 'Lateral moves', 'One-hand drills'].map((v) => (
+              <div key={v} className="pl-video-tag">{v}</div>
+            ))}
           </div>
         </div>
       </section>
@@ -99,14 +119,6 @@ export default function PlayerLandingScreen() {
             Sign up for my player →
           </button>
         </div>
-      </section>
-
-      <section className="pl-final">
-        <h2 className="pl-final-title">Ready to start?</h2>
-        <p className="pl-final-sub">Takes 30 seconds. No email needed.</p>
-        <button className="pl-cta pl-cta--big" onClick={() => nav('/start')}>
-          Create my free account →
-        </button>
       </section>
 
       <style>{styles}</style>
@@ -189,17 +201,13 @@ const styles = `
   max-width: 400px;
 }
 .pl-cta:active { transform: scale(0.98); }
-.pl-cta--big {
-  font-size: 19px;
-  padding: 18px 32px;
-}
 .pl-cta-hint {
   font-size: 13px;
   color: #6b7fa8;
   margin-top: 10px;
 }
 
-.pl-steps, .pl-what, .pl-final {
+.pl-steps {
   padding: 50px 20px;
   max-width: 640px;
   margin: 0 auto;
@@ -213,6 +221,9 @@ const styles = `
   margin-bottom: 28px;
   letter-spacing: 0.2px;
 }
+.pl-section-title--left { text-align: left; }
+.pl-section-sub { font-size: 16px; color: #8899b4; line-height: 1.55; margin-bottom: 20px; }
+.pl-section-sub--left { text-align: left; }
 .pl-step-list {
   display: flex;
   flex-direction: column;
@@ -251,6 +262,35 @@ const styles = `
   line-height: 1.55;
 }
 
+.pl-videos {
+  border-top: 1px solid #1a2035;
+  padding: 50px 20px;
+}
+.pl-videos-inner {
+  max-width: 640px;
+  margin: 0 auto;
+}
+.pl-video-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pl-video-tag {
+  background: #0f1928;
+  border: 1px solid #1e2f4a;
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 14px;
+  color: #a8b8d0;
+  font-weight: 500;
+}
+
+.pl-what {
+  padding: 50px 20px;
+  max-width: 640px;
+  margin: 0 auto;
+  border-top: 1px solid #1a2035;
+}
 .pl-what-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -327,23 +367,5 @@ const styles = `
   left: 0;
   color: #60a5fa;
   font-weight: 700;
-}
-
-.pl-final {
-  text-align: center;
-  border-top: 1px solid #1a2035;
-  padding: 60px 20px;
-}
-.pl-final-title {
-  font-family: var(--font-display);
-  font-size: clamp(26px, 5vw, 36px);
-  font-weight: 800;
-  color: white;
-  margin-bottom: 10px;
-}
-.pl-final-sub {
-  font-size: 16px;
-  color: #6b7fa8;
-  margin-bottom: 24px;
 }
 `

@@ -268,7 +268,7 @@ export default function CoachAuthScreen() {
           >
             Search for my club →
           </button>
-          <button className="c-text-btn" onClick={() => nav('/')}>← Back to home</button>
+          <button className="c-text-btn" onClick={() => nav('/coach')}>← Back</button>
         </div>
         <style>{styles}</style>
       </div>
@@ -291,7 +291,7 @@ export default function CoachAuthScreen() {
             Continue with Google — free
           </button>
           <button className="c-text-btn" onClick={() => setMode('signin')}>Already have an account? Sign in</button>
-          <button className="c-text-btn" onClick={() => nav('/')}>← Back</button>
+          <button className="c-text-btn" onClick={() => nav('/coach')}>← Back</button>
         </div>
         <style>{styles}</style>
       </div>

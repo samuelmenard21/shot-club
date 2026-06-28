@@ -273,7 +273,7 @@ export async function signUpCoach({ email, password, displayName }) {
 export async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + '/coach' },
+    options: { redirectTo: window.location.origin + '/coach/start' },
   })
   if (error) throw error
 }
