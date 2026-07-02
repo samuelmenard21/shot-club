@@ -77,6 +77,7 @@ export default function LandingScreen() {
         <div className="land-nav-actions">
           <button className="land-nav-link" onClick={() => nav('/for-clubs')}>For clubs</button>
           <button className="land-nav-link" onClick={() => nav('/coach')}>For coaches</button>
+          <button className="land-nav-link" onClick={() => nav('/blog')}>Guides</button>
           <button className="land-nav-link" onClick={() => nav('/start')}>Sign in</button>
           <button className="land-nav-cta" onClick={() => nav('/start')}>Start free →</button>
         </div>
@@ -404,6 +405,7 @@ export default function LandingScreen() {
         <div className="foot-links">
           <button className="foot-link" onClick={() => nav('/for-clubs')}>For clubs</button>
           <button className="foot-link" onClick={() => nav('/coach')}>Coaches</button>
+          <button className="foot-link" onClick={() => nav('/blog')}>Guides</button>
           <button className="foot-link" onClick={() => nav('/start')}>Sign in</button>
           <button className="foot-link" onClick={() => nav('/privacy')}>Privacy</button>
         </div>

@@ -26,6 +26,9 @@ const STATIC_PAGES = [
   { loc: '/player',    priority: '0.8', changefreq: 'monthly' },
   { loc: '/coach',     priority: '0.7', changefreq: 'monthly' },
   { loc: '/start',     priority: '0.6', changefreq: 'monthly' },
+  { loc: '/blog',                          priority: '0.7', changefreq: 'monthly' },
+  { loc: '/blog/getting-started',          priority: '0.7', changefreq: 'monthly' },
+  { loc: '/blog/how-squad-battles-work',   priority: '0.7', changefreq: 'monthly' },
 ]
 
 const __filename = fileURLToPath(import.meta.url)

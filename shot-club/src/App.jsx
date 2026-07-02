@@ -27,6 +27,9 @@ import AddPlayerScreen from './screens/AddPlayerScreen'
 import PrivacyScreen from './screens/PrivacyScreen'
 import PlayerLandingScreen from './screens/PlayerLandingScreen'
 import CoachLandingScreen from './screens/CoachLandingScreen'
+import BlogIndex from './screens/blog/BlogIndex'
+import GettingStartedPost from './screens/blog/GettingStartedPost'
+import SquadBattlesPost from './screens/blog/SquadBattlesPost'
 
 function LoadingScreen() {
   return (
@@ -128,6 +131,9 @@ function ShellWrapper() {
         {/* Static */}
         <Route path="/privacy" element={<PrivacyScreen />} />
         <Route path="/player" element={<PlayerLandingScreen />} />
+        <Route path="/blog" element={<BlogIndex />} />
+        <Route path="/blog/getting-started" element={<GettingStartedPost />} />
+        <Route path="/blog/how-squad-battles-work" element={<SquadBattlesPost />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
