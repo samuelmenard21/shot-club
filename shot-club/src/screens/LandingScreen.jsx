@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import ContactSection from '../components/ContactSection'
 import { searchClubs } from '../lib/clubs'
+import { supabase } from '../lib/supabase'
 
 export default function LandingScreen() {
   const nav = useNavigate()
   const [clubQuery, setClubQuery] = useState('')
   const [clubResults, setClubResults] = useState([])
   const [searchingClubs, setSearchingClubs] = useState(false)
+  const [totalShots, setTotalShots] = useState(null)
   const searchTimer = useRef(null)
   const searchInputRef = useRef(null)
 
@@ -32,6 +34,12 @@ export default function LandingScreen() {
     }, 200)
     return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
   }, [clubQuery])
+
+  useEffect(() => {
+    supabase.rpc('get_total_shots').then(({ data }) => {
+      if (data) setTotalShots(data)
+    })
+  }, [])
 
   useEffect(() => {
     setSEO({
@@ -80,40 +88,31 @@ export default function LandingScreen() {
       <section className="hero">
         <div className="hero-eyebrow">FREE · AGES 6–18 · OFF-ICE TRAINING</div>
         <h1 className="hero-title">
-          Get better between practices.
+          Log shots. Compete every week.<br />Get better every day.
         </h1>
         <p className="hero-sub">
-          Off-ice shot tracking for hockey players. Log reps at home, compete with your team, beat your rivals. Free.
+          Kids log shots and stickhandling at home. They compete with teammates on a weekly leaderboard. Coaches see who's putting in the work. All free.
         </p>
 
-        <div className="hero-split">
-          <button className="hero-path hero-path--player" onClick={() => nav('/player')}>
-            <div className="hero-path-who">Players &amp; Parents</div>
-            <div className="hero-path-label">I'm a player →</div>
-            <div className="hero-path-hint">Log shots, earn ranks, compete in squad battles every week.</div>
-          </button>
+        {totalShots > 0 && (
+          <div className="hero-stat">
+            🏒 <strong>{totalShots.toLocaleString()}</strong> shots logged by real players
+          </div>
+        )}
 
-          <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
-            <div className="hero-path-who">Coaches</div>
-            <div className="hero-path-label">I'm a coach →</div>
-            <div className="hero-path-hint">See which players are putting in the work. Free for your whole team.</div>
-          </button>
+        <button className="hero-primary-cta" onClick={() => nav('/player')}>
+          Start free — sign in with Google →
+        </button>
+        <div className="hero-primary-hint">No app to download. Takes 2 minutes.</div>
+
+        <div className="hero-secondary-paths">
+          <button className="hero-secondary-link" onClick={() => nav('/coach')}>I'm a coach →</button>
+          <span className="hero-secondary-div">·</span>
+          <button className="hero-secondary-link" onClick={() => nav('/for-clubs')}>I manage a club →</button>
         </div>
 
-        <button className="hero-path hero-path--club" onClick={() => nav('/for-clubs')}>
-          <div className="hero-path-club-left">
-            <div className="hero-path-who">Club &amp; Association Managers</div>
-            <div className="hero-path-label hero-path-label--club">I manage an association →</div>
-          </div>
-          <div className="hero-path-club-pills">
-            <span className="hero-club-pill">📊 Team leaderboards</span>
-            <span className="hero-club-pill">🔗 Coach &amp; parent sharing links</span>
-            <span className="hero-club-pill">⚔️ Club vs. club challenges</span>
-          </div>
-        </button>
-
         <div className="hero-club-search">
-          <div className="hero-club-search-label">Find your club's leaderboard</div>
+          <div className="hero-club-search-label">Find your team's leaderboard</div>
           <div style={{ position: 'relative', maxWidth: 420, margin: '0 auto' }}>
             <input
               ref={searchInputRef}
@@ -649,6 +648,52 @@ body:has(.landing) { background: var(--bg) !important; }
   margin: 0 auto 32px;
   max-width: 560px;
 }
+.hero-stat {
+  font-size: 15px;
+  color: var(--text-soft);
+  margin: 0 auto 20px;
+  letter-spacing: 0.2px;
+}
+.hero-stat strong { color: white; font-weight: 700; }
+.hero-primary-cta {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 10px;
+  background: var(--accent);
+  color: white;
+  padding: 18px 24px;
+  border-radius: 14px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 0 4px 24px rgba(41,121,255,0.35);
+}
+.hero-primary-cta:active { transform: scale(0.98); }
+.hero-primary-hint {
+  font-size: 13px;
+  color: var(--text-mute);
+  margin-bottom: 18px;
+}
+.hero-secondary-paths {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.hero-secondary-link {
+  font-size: 14px;
+  color: var(--ice);
+  background: transparent;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.hero-secondary-link:hover { color: white; }
+.hero-secondary-div { color: var(--text-mute); font-size: 14px; }
 
 /* Two-path hero split */
 .hero-split {
