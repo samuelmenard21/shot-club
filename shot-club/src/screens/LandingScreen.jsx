@@ -1028,14 +1028,14 @@ body:has(.landing) { background: var(--bg) !important; }
 }
 .pm-card-val--drill { color: var(--warn-soft); }
 .pm-card-today {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--text-mute);
   letter-spacing: 1px;
   margin-top: 4px;
   text-transform: uppercase;
 }
 .pm-drill-label {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--text-mute);
   letter-spacing: 1.5px;
   font-weight: 600;
@@ -1056,7 +1056,7 @@ body:has(.landing) { background: var(--bg) !important; }
   display: flex; justify-content: space-between; align-items: center;
 }
 .pm-chase-label {
-  font-size: 9px; color: var(--text-mute);
+  font-size: 11px; color: var(--text-mute);
   letter-spacing: 1.5px; text-transform: uppercase;
   font-weight: 500;
 }
@@ -1347,7 +1347,7 @@ body:has(.landing) { background: var(--bg) !important; }
   max-width: 48px;
 }
 .sbm-cap {
-  font-size: 8px; font-weight: 800; color: #fbbf24;
+  font-size: 10px; font-weight: 800; color: #fbbf24;
   background: rgba(251,191,36,0.15);
   border-radius: 3px; padding: 0 3px; flex-shrink: 0;
 }

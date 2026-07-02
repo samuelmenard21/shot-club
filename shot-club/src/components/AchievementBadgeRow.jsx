@@ -84,7 +84,7 @@ export default function AchievementBadgeRow({ playerId }) {
         }
         .badge--locked .badge-icon { filter: grayscale(1); }
         .badge-name {
-          font-size: 9px;
+          font-size: 11px;
           color: var(--text-soft);
           line-height: 1.2;
           font-weight: 500;

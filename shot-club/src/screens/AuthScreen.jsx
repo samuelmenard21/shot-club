@@ -883,7 +883,7 @@ const styles = `
   background: var(--bg);
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 10px; color: var(--text-mute);
+  font-size: 12px; color: var(--text-mute);
   letter-spacing: 1px; text-transform: uppercase;
   font-weight: 500; margin-bottom: 12px;
 }
@@ -907,7 +907,7 @@ const styles = `
   text-align: center;
 }
 .club-banner-label {
-  font-size: 10px; color: var(--text-mute);
+  font-size: 12px; color: var(--text-mute);
   letter-spacing: 2px; text-transform: uppercase;
   font-weight: 500;
 }
@@ -1136,7 +1136,7 @@ const styles = `
   margin-bottom: 10px;
 }
 .username-label {
-  font-size: 10px; color: var(--text-mute);
+  font-size: 12px; color: var(--text-mute);
   letter-spacing: 2px; font-weight: 500;
 }
 .username-value-big {
@@ -1180,7 +1180,7 @@ const styles = `
 }
 .invite-top { text-align: center; margin-bottom: 8px; }
 .invite-label {
-  font-size: 10px; color: var(--text-mute);
+  font-size: 12px; color: var(--text-mute);
   letter-spacing: 2px; font-weight: 500;
 }
 .invite-team-name {

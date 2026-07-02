@@ -231,7 +231,7 @@ const styles = `
   margin-bottom: 16px;
 }
 .pc-meta-label {
-  font-size: 9px; color: var(--text-mute);
+  font-size: 11px; color: var(--text-mute);
   letter-spacing: 1.5px; font-weight: 500;
   text-transform: uppercase;
 }
@@ -324,7 +324,7 @@ const styles = `
   line-height: 1;
 }
 .pc-stat-label {
-  font-size: 9px; color: var(--text-mute);
+  font-size: 11px; color: var(--text-mute);
   letter-spacing: 1px; margin-top: 5px;
   text-transform: uppercase;
 }

@@ -274,7 +274,7 @@ const styles = `
   max-width: 52px;
 }
 .sbc-cap {
-  font-size: 9px; font-weight: 800; color: #fbbf24;
+  font-size: 10px; font-weight: 800; color: #fbbf24;
   background: rgba(251,191,36,0.15);
   border-radius: 3px; padding: 0 3px; flex-shrink: 0;
 }

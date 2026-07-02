@@ -298,7 +298,7 @@ const styles = `
   margin-bottom: 14px; gap: 10px;
 }
 .card-meta-label {
-  font-size: 9px; color: var(--text-mute);
+  font-size: 11px; color: var(--text-mute);
   letter-spacing: 1.5px; text-transform: uppercase;
   font-weight: 500;
 }
@@ -409,7 +409,7 @@ const styles = `
 }
 .card-stat-num-row { display: inline-flex; align-items: center; gap: 4px; }
 .card-stat-label {
-  font-size: 9px; color: var(--text-mute);
+  font-size: 11px; color: var(--text-mute);
   letter-spacing: 1px; margin-top: 5px;
   text-transform: uppercase;
 }
@@ -477,7 +477,7 @@ const styles = `
   background: var(--gold);
   color: var(--gold-bg);
   font-family: var(--font-display);
-  font-size: 9px; font-weight: 800;
+  font-size: 11px; font-weight: 800;
   letter-spacing: 1px;
   padding: 2px 7px;
   border-radius: 999px;

@@ -72,7 +72,7 @@ export default function DailyGoalRing({ playerId, dailyGoal, refreshKey }) {
           margin-top: 1px;
         }
         .goal-ring-label {
-          font-size: 9px; color: var(--text-mute);
+          font-size: 11px; color: var(--text-mute);
           letter-spacing: 1.5px;
           margin-top: 6px;
           font-weight: 600;
