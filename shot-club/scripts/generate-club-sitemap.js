@@ -23,6 +23,7 @@ const SITE_URL = 'https://hockeyshotchallenge.com'
 const STATIC_PAGES = [
   { loc: '/',          priority: '1.0', changefreq: 'weekly'  },
   { loc: '/for-clubs', priority: '0.9', changefreq: 'monthly' },
+  { loc: '/player',    priority: '0.8', changefreq: 'monthly' },
   { loc: '/coach',     priority: '0.7', changefreq: 'monthly' },
   { loc: '/start',     priority: '0.6', changefreq: 'monthly' },
 ]
