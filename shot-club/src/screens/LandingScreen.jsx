@@ -81,15 +81,15 @@ export default function LandingScreen() {
       </nav>
 
       {/* ============================================================
-          HERO — card mock + sign-in overlay
+          HERO — skill building + visibility
          ============================================================ */}
       <section className="hero">
         <div className="hero-eyebrow">FREE · AGES 6–18 · OFF-ICE TRAINING</div>
         <h1 className="hero-title">
-          Your card. Your rank.<br />Beat your squad.
+          Track every rep.<br />Let your team see the work.
         </h1>
         <p className="hero-sub">
-          Track your shots and stickhandling at home. Climb from Rookie to Regional. Compete with your squad every week. Free.
+          Log your shots and stickhandling every day. Your coach, parents, and teammates can all see how much you're putting in.
         </p>
 
         {totalShots > 0 && (
@@ -98,105 +98,8 @@ export default function LandingScreen() {
           </div>
         )}
 
-        {/* Player card mock with sign-in overlay */}
-        <div className="hero-card-wrap">
-          <div className="hero-card">
-            <div className="hero-card-bg">
-              <svg viewBox="0 0 320 220" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
-                <path d="M -20 140 Q 80 110, 180 150 T 360 130" stroke="#a8d4f5" strokeWidth="0.5" fill="none" opacity="0.3" />
-                <path d="M -20 160 Q 100 130, 200 170 T 360 150" stroke="#a8d4f5" strokeWidth="0.5" fill="none" opacity="0.25" />
-                <circle cx="40" cy="40" r="1" fill="#a8d4f5" opacity="0.6" />
-                <circle cx="280" cy="30" r="1" fill="#a8d4f5" opacity="0.5" />
-                <circle cx="180" cy="50" r="0.8" fill="#a8d4f5" opacity="0.4" />
-              </svg>
-            </div>
-            <div className="hero-card-content">
-              <div className="hero-card-meta">
-                <div>
-                  <div className="hero-card-meta-label">HOCKEY SHOT CHALLENGE · 2026</div>
-                  <div className="hero-card-meta-handle">@oliviam</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div className="hero-card-meta-label">CARD</div>
-                  <div className="hero-card-serial">#007</div>
-                </div>
-              </div>
-
-              <div className="hero-card-identity">
-                <div className="hero-card-avatar">
-                  <svg viewBox="0 0 80 80" style={{ width: '100%', height: '100%' }}>
-                    <polygon points="40,4 72,22 72,58 40,76 8,58 8,22" fill="#1a2847" stroke="#2979ff" strokeWidth="1.5" />
-                    <polygon points="40,12 66,26 66,54 40,68 14,54 14,26" fill="none" stroke="#4a92ff" strokeWidth="0.5" opacity="0.6" />
-                  </svg>
-                  <div className="hero-card-avatar-letters">OM</div>
-                </div>
-                <div>
-                  <div className="hero-card-name">Olivia M.</div>
-                  <div className="hero-card-pills">
-                    <span className="hero-card-pill">FORWARD</span>
-                    <span className="hero-card-pill">Tier 2 Eagles</span>
-                  </div>
-                  <div className="hero-card-streak">🔥 12-day streak</div>
-                </div>
-              </div>
-
-              <div className="hero-card-rank-row">
-                <div>
-                  <div className="hero-card-meta-label">RANK</div>
-                  <div className="hero-card-rank-name">Prospect <span style={{ color: '#a8d4f5' }}>II</span></div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div className="hero-card-meta-label">THIS WEEK</div>
-                  <div className="hero-card-rank-name" style={{ color: '#fbbf24' }}>#3 on team</div>
-                </div>
-              </div>
-              <div className="hero-card-rank-bar">
-                <div className="hero-card-rank-fill" style={{ width: '68%' }} />
-              </div>
-              <div className="hero-card-rank-togo">260 shots to Prospect III</div>
-
-              <div className="hero-card-shots-label">THIS WEEK'S SHOTS — 168 total</div>
-              <div className="hero-card-shot-bars">
-                <div className="hero-card-shot-row">
-                  <div className="hero-card-shot-type">Wrist</div>
-                  <div className="hero-card-shot-bar-wrap">
-                    <div className="hero-card-shot-bar" style={{ width: '75%', background: '#2979ff' }} />
-                  </div>
-                  <div className="hero-card-shot-count">85</div>
-                </div>
-                <div className="hero-card-shot-row">
-                  <div className="hero-card-shot-type">Snap</div>
-                  <div className="hero-card-shot-bar-wrap">
-                    <div className="hero-card-shot-bar" style={{ width: '42%', background: '#a8d4f5' }} />
-                  </div>
-                  <div className="hero-card-shot-count">42</div>
-                </div>
-                <div className="hero-card-shot-row">
-                  <div className="hero-card-shot-type">Slap</div>
-                  <div className="hero-card-shot-bar-wrap">
-                    <div className="hero-card-shot-bar" style={{ width: '24%', background: '#ff7a29' }} />
-                  </div>
-                  <div className="hero-card-shot-count">24</div>
-                </div>
-                <div className="hero-card-shot-row">
-                  <div className="hero-card-shot-type">Backhand</div>
-                  <div className="hero-card-shot-bar-wrap">
-                    <div className="hero-card-shot-bar" style={{ width: '15%', background: '#3dd68c' }} />
-                  </div>
-                  <div className="hero-card-shot-count">17</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="hero-card-overlay">
-              <button className="hero-card-signin" onClick={() => nav('/start')}>
-                <GoogleIcon />
-                Create your card — sign in with Google
-              </button>
-              <div className="hero-card-signin-hint">Free · No app to download · Takes 2 minutes</div>
-            </div>
-          </div>
-        </div>
+        {/* Daily session mock */}
+        <HeroSessionMock onSignIn={() => nav('/start')} />
 
         <div className="hero-secondary-paths">
           <button className="hero-secondary-pill hero-secondary-pill--coach" onClick={() => nav('/coach')}>🏒 I'm a coach</button>
@@ -504,6 +407,57 @@ export default function LandingScreen() {
       </footer>
 
       <style>{styles}</style>
+    </div>
+  )
+}
+
+function HeroSessionMock({ onSignIn }) {
+  return (
+    <div className="hsm-wrap">
+      <div className="hsm-card">
+        <div className="hsm-player-row">
+          <div className="hsm-avatar">O</div>
+          <div>
+            <div className="hsm-name">Olivia M. <span className="hsm-streak">🔥 12</span></div>
+            <div className="hsm-team">Tier 2 Eagles · Prospect II</div>
+          </div>
+          <div className="hsm-rank">#3 on team</div>
+        </div>
+
+        <div className="hsm-divider" />
+
+        <div className="hsm-label">TODAY'S SESSION</div>
+        <div className="hsm-stats">
+          <div className="hsm-stat">
+            <div className="hsm-stat-icon">🥅</div>
+            <div className="hsm-stat-num">168</div>
+            <div className="hsm-stat-desc">shots</div>
+          </div>
+          <div className="hsm-stat-sep" />
+          <div className="hsm-stat">
+            <div className="hsm-stat-icon">🏒</div>
+            <div className="hsm-stat-num">80</div>
+            <div className="hsm-stat-desc">stickhandling reps</div>
+          </div>
+        </div>
+
+        <div className="hsm-visible">
+          <div className="hsm-visible-label">Visible to</div>
+          <div className="hsm-visible-pills">
+            <span className="hsm-pill">👀 Teammates</span>
+            <span className="hsm-pill">📋 Coach</span>
+            <span className="hsm-pill">👨‍👩‍👧 Parents</span>
+          </div>
+        </div>
+
+        <div className="hsm-divider" />
+
+        <button className="hsm-signin" onClick={onSignIn}>
+          <GoogleIcon />
+          Start logging — sign in with Google
+        </button>
+        <div className="hsm-hint">Free · No app to download · Takes 2 minutes</div>
+      </div>
     </div>
   )
 }
@@ -996,106 +950,79 @@ body:has(.landing) { background: var(--bg) !important; }
   display: inline;
 }
 
-/* ===== HERO CARD MOCK ===== */
-.hero-card-wrap {
+/* ===== HERO SESSION MOCK ===== */
+.hsm-wrap {
   max-width: 400px;
   margin: 0 auto 20px;
-  position: relative;
 }
-.hero-card {
+.hsm-card {
   background: linear-gradient(135deg, #0d1e3a 0%, #091526 100%);
-  border: 1px solid #2040708a;
+  border: 1px solid rgba(41,121,255,0.25);
   border-radius: 20px;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 8px 40px rgba(41,121,255,0.18), 0 2px 8px rgba(0,0,0,0.5);
+  padding: 20px;
+  box-shadow: 0 8px 40px rgba(41,121,255,0.15), 0 2px 8px rgba(0,0,0,0.5);
 }
-.hero-card-bg {
-  position: absolute; inset: 0; pointer-events: none;
+.hsm-player-row {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
 }
-.hero-card-content {
-  position: relative; z-index: 1;
-  padding: 18px 18px 0;
-}
-.hero-card-meta {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  margin-bottom: 14px;
-}
-.hero-card-meta-label {
-  font-size: 9px; color: var(--text-mute);
-  letter-spacing: 1.5px; text-transform: uppercase; font-weight: 500;
-}
-.hero-card-meta-handle {
-  font-size: 13px; color: var(--ice);
-  font-family: var(--font-display); font-weight: 600; margin-top: 2px;
-}
-.hero-card-serial {
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 700; color: var(--text); margin-top: 2px;
-}
-.hero-card-identity {
-  display: flex; gap: 12px; align-items: center; margin-bottom: 14px;
-}
-.hero-card-avatar {
-  width: 54px; height: 54px; position: relative; flex-shrink: 0;
-}
-.hero-card-avatar-letters {
-  position: absolute; inset: 0;
+.hsm-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(41,121,255,0.2);
+  border: 1.5px solid rgba(41,121,255,0.4);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-size: 16px; font-weight: 800;
-  color: var(--ice); letter-spacing: 1px;
+  color: var(--ice); flex-shrink: 0;
 }
-.hero-card-name {
-  font-family: var(--font-display);
-  font-size: 22px; font-weight: 800; color: white; line-height: 1.1;
+.hsm-name {
+  font-family: var(--font-display); font-size: 16px; font-weight: 800; color: white;
+  display: flex; align-items: center; gap: 8px;
 }
-.hero-card-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
-.hero-card-pill {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
-  background: rgba(41,121,255,0.12);
-  border: 0.5px solid rgba(41,121,255,0.3);
-  color: var(--ice); padding: 3px 8px; border-radius: 999px;
+.hsm-streak { font-size: 13px; color: #fb923c; font-weight: 600; }
+.hsm-team { font-size: 12px; color: #4a6080; margin-top: 2px; }
+.hsm-rank {
+  margin-left: auto; flex-shrink: 0;
+  font-family: var(--font-display); font-size: 14px; font-weight: 800;
+  color: #fbbf24;
 }
-.hero-card-rank-row {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  margin-bottom: 8px;
+.hsm-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 16px 0; }
+.hsm-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  color: #4a6080; text-transform: uppercase; margin-bottom: 14px;
 }
-.hero-card-rank-name {
-  font-family: var(--font-display);
-  font-size: 18px; font-weight: 800; color: white; margin-top: 2px;
+.hsm-stats {
+  display: flex; align-items: center; gap: 0; margin-bottom: 16px;
 }
-.hero-card-rank-next {
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 700; color: var(--ice); margin-top: 2px;
+.hsm-stat {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
 }
-.hero-card-rank-togo { font-size: 11px; color: var(--text-mute); margin-top: 2px; }
-.hero-card-rank-bar {
-  height: 5px; background: rgba(255,255,255,0.08);
-  border-radius: 999px; overflow: hidden; margin-bottom: 14px;
+.hsm-stat-icon { font-size: 22px; line-height: 1; }
+.hsm-stat-num {
+  font-family: var(--font-display); font-size: 36px; font-weight: 800;
+  color: white; line-height: 1;
 }
-.hero-card-rank-fill {
-  height: 100%; background: linear-gradient(90deg, #2979ff, #a8d4f5);
-  border-radius: 999px;
+.hsm-stat-desc { font-size: 12px; color: #4a6080; font-weight: 500; }
+.hsm-stat-sep {
+  width: 1px; height: 56px; background: rgba(255,255,255,0.06); flex-shrink: 0;
 }
-.hero-card-stats {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 10px; padding-bottom: 16px;
+.hsm-visible {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 0;
 }
-.hero-card-stat { text-align: center; }
-.hero-card-stat-num {
-  font-family: var(--font-display);
-  font-size: 20px; font-weight: 800; color: white; line-height: 1;
+.hsm-visible-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  color: #4a6080; text-transform: uppercase; margin-bottom: 8px;
 }
-.hero-card-stat-label {
-  font-size: 10px; color: var(--text-mute);
-  letter-spacing: 1px; text-transform: uppercase; margin-top: 4px;
+.hsm-visible-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.hsm-pill {
+  font-size: 12px; font-weight: 600; color: #a8d4f5;
+  background: rgba(41,121,255,0.1);
+  border: 1px solid rgba(41,121,255,0.2);
+  border-radius: 999px; padding: 4px 10px;
 }
-.hero-card-overlay {
-  background: linear-gradient(to top, rgba(6,12,26,0.98) 60%, rgba(6,12,26,0.7) 100%);
-  padding: 28px 18px 20px;
-  text-align: center;
-}
-.hero-card-signin {
+.hsm-signin {
   display: flex; align-items: center; justify-content: center; gap: 10px;
   width: 100%;
   background: white; color: #1a1a2e;
@@ -1106,31 +1033,18 @@ body:has(.landing) { background: var(--bg) !important; }
   box-shadow: 0 2px 16px rgba(0,0,0,0.4);
   margin-bottom: 10px;
 }
-.hero-card-signin:active { transform: scale(0.98); }
-.hero-card-signin:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
-.hero-card-signin-hint {
-  font-size: 12px; color: #4a6080; letter-spacing: 0.3px;
+.hsm-signin:active { transform: scale(0.98); }
+.hsm-signin:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
+.hsm-hint { font-size: 12px; color: #4a6080; text-align: center; letter-spacing: 0.3px; }
+
+/* Keep old card classes for any remaining references */
+.hero-card-text {
+  font-size: 14px; color: var(--text-soft); line-height: 1.45; margin: 0 0 16px; flex: 1;
 }
-.hero-card-streak {
-  font-size: 13px; color: #fb923c; font-weight: 600; margin-top: 4px;
+.hero-card-cta {
+  font-family: var(--font-display); font-size: 13px; font-weight: 700;
+  color: white; letter-spacing: 0.4px;
 }
-.hero-card-shots-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-  color: var(--text-mute); text-transform: uppercase;
-  margin: 12px 0 8px;
-}
-.hero-card-shot-bars { display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px; }
-.hero-card-shot-row {
-  display: grid; grid-template-columns: 72px 1fr 28px;
-  align-items: center; gap: 8px;
-}
-.hero-card-shot-type { font-size: 12px; color: #8899b4; font-weight: 500; }
-.hero-card-shot-bar-wrap {
-  height: 6px; background: rgba(255,255,255,0.06);
-  border-radius: 999px; overflow: hidden;
-}
-.hero-card-shot-bar { height: 100%; border-radius: 999px; }
-.hero-card-shot-count { font-size: 12px; color: white; font-weight: 700; text-align: right; }
 
 .hero-secondary-paths {
   display: flex; gap: 10px; justify-content: center;
