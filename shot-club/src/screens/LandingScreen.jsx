@@ -84,7 +84,7 @@ export default function LandingScreen() {
       </nav>
 
       {/* ============================================================
-          HERO — the 3-audience picker IS the hero
+          HERO — card mock + sign-in overlay
          ============================================================ */}
       <section className="hero">
         <div className="hero-eyebrow">FREE · AGES 6–18 · OFF-ICE TRAINING</div>
@@ -92,7 +92,7 @@ export default function LandingScreen() {
           Log shots. Compete every week.<br />Get better every day.
         </h1>
         <p className="hero-sub">
-          Kids log shots and stickhandling at home. They compete with teammates on a weekly leaderboard. Coaches see who's putting in the work. All free.
+          Kids log shots and stickhandling at home, compete with teammates, and earn ranks. Coaches see who's putting in the work. All free.
         </p>
 
         {totalShots > 0 && (
@@ -101,10 +101,84 @@ export default function LandingScreen() {
           </div>
         )}
 
-        <button className="hero-primary-cta" onClick={() => nav('/player')}>
-          Start free — sign in with Google →
-        </button>
-        <div className="hero-primary-hint">No app to download. Takes 2 minutes.</div>
+        {/* Player card mock with sign-in overlay */}
+        <div className="hero-card-wrap">
+          <div className="hero-card">
+            <div className="hero-card-bg">
+              <svg viewBox="0 0 320 220" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
+                <path d="M -20 140 Q 80 110, 180 150 T 360 130" stroke="#a8d4f5" strokeWidth="0.5" fill="none" opacity="0.3" />
+                <path d="M -20 160 Q 100 130, 200 170 T 360 150" stroke="#a8d4f5" strokeWidth="0.5" fill="none" opacity="0.25" />
+                <circle cx="40" cy="40" r="1" fill="#a8d4f5" opacity="0.6" />
+                <circle cx="280" cy="30" r="1" fill="#a8d4f5" opacity="0.5" />
+                <circle cx="180" cy="50" r="0.8" fill="#a8d4f5" opacity="0.4" />
+              </svg>
+            </div>
+            <div className="hero-card-content">
+              <div className="hero-card-meta">
+                <div>
+                  <div className="hero-card-meta-label">HOCKEY SHOT CHALLENGE · 2026</div>
+                  <div className="hero-card-meta-handle">@connorm</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div className="hero-card-meta-label">CARD</div>
+                  <div className="hero-card-serial">#007</div>
+                </div>
+              </div>
+              <div className="hero-card-identity">
+                <div className="hero-card-avatar">
+                  <svg viewBox="0 0 80 80" style={{ width: '100%', height: '100%' }}>
+                    <polygon points="40,4 72,22 72,58 40,76 8,58 8,22" fill="#1a2847" stroke="#2979ff" strokeWidth="1.5" />
+                    <polygon points="40,12 66,26 66,54 40,68 14,54 14,26" fill="none" stroke="#4a92ff" strokeWidth="0.5" opacity="0.6" />
+                  </svg>
+                  <div className="hero-card-avatar-letters">CM</div>
+                </div>
+                <div>
+                  <div className="hero-card-name">Connor M.</div>
+                  <div className="hero-card-pills">
+                    <span className="hero-card-pill">FORWARD</span>
+                    <span className="hero-card-pill">Tier 2 Eagles</span>
+                  </div>
+                </div>
+              </div>
+              <div className="hero-card-rank-row">
+                <div>
+                  <div className="hero-card-meta-label">CURRENT RANK</div>
+                  <div className="hero-card-rank-name">Prospect <span style={{ color: '#a8d4f5' }}>II</span></div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div className="hero-card-meta-label">NEXT</div>
+                  <div className="hero-card-rank-next">Prospect III</div>
+                  <div className="hero-card-rank-togo">260 to go</div>
+                </div>
+              </div>
+              <div className="hero-card-rank-bar">
+                <div className="hero-card-rank-fill" style={{ width: '68%' }} />
+              </div>
+              <div className="hero-card-stats">
+                <div className="hero-card-stat">
+                  <div className="hero-card-stat-num">1,240</div>
+                  <div className="hero-card-stat-label">Lifetime</div>
+                </div>
+                <div className="hero-card-stat">
+                  <div className="hero-card-stat-num">🔥 12</div>
+                  <div className="hero-card-stat-label">Streak</div>
+                </div>
+                <div className="hero-card-stat">
+                  <div className="hero-card-stat-num">#3</div>
+                  <div className="hero-card-stat-label">This week</div>
+                </div>
+              </div>
+            </div>
+            {/* Sign-in overlay at bottom of card */}
+            <div className="hero-card-overlay">
+              <button className="hero-card-signin" onClick={() => nav('/start')}>
+                <GoogleIcon />
+                Create your card — sign in with Google
+              </button>
+              <div className="hero-card-signin-hint">Free · No app to download · Takes 2 minutes</div>
+            </div>
+          </div>
+        </div>
 
         <div className="hero-secondary-paths">
           <button className="hero-secondary-link" onClick={() => nav('/coach')}>I'm a coach →</button>
@@ -414,6 +488,17 @@ export default function LandingScreen() {
 
       <style>{styles}</style>
     </div>
+  )
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" style={{ flexShrink: 0 }}>
+      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+      <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+      <path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
+    </svg>
   )
 }
 
@@ -889,6 +974,122 @@ body:has(.landing) { background: var(--bg) !important; }
   font-weight: 600;
   padding: 0;
   display: inline;
+}
+
+/* ===== HERO CARD MOCK ===== */
+.hero-card-wrap {
+  max-width: 400px;
+  margin: 0 auto 20px;
+  position: relative;
+}
+.hero-card {
+  background: linear-gradient(135deg, #0d1e3a 0%, #091526 100%);
+  border: 1px solid #2040708a;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 8px 40px rgba(41,121,255,0.18), 0 2px 8px rgba(0,0,0,0.5);
+}
+.hero-card-bg {
+  position: absolute; inset: 0; pointer-events: none;
+}
+.hero-card-content {
+  position: relative; z-index: 1;
+  padding: 18px 18px 0;
+}
+.hero-card-meta {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px;
+}
+.hero-card-meta-label {
+  font-size: 9px; color: var(--text-mute);
+  letter-spacing: 1.5px; text-transform: uppercase; font-weight: 500;
+}
+.hero-card-meta-handle {
+  font-size: 13px; color: var(--ice);
+  font-family: var(--font-display); font-weight: 600; margin-top: 2px;
+}
+.hero-card-serial {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700; color: var(--text); margin-top: 2px;
+}
+.hero-card-identity {
+  display: flex; gap: 12px; align-items: center; margin-bottom: 14px;
+}
+.hero-card-avatar {
+  width: 54px; height: 54px; position: relative; flex-shrink: 0;
+}
+.hero-card-avatar-letters {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 16px; font-weight: 800;
+  color: var(--ice); letter-spacing: 1px;
+}
+.hero-card-name {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 800; color: white; line-height: 1.1;
+}
+.hero-card-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+.hero-card-pill {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+  background: rgba(41,121,255,0.12);
+  border: 0.5px solid rgba(41,121,255,0.3);
+  color: var(--ice); padding: 3px 8px; border-radius: 999px;
+}
+.hero-card-rank-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 8px;
+}
+.hero-card-rank-name {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 800; color: white; margin-top: 2px;
+}
+.hero-card-rank-next {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700; color: var(--ice); margin-top: 2px;
+}
+.hero-card-rank-togo { font-size: 11px; color: var(--text-mute); margin-top: 2px; }
+.hero-card-rank-bar {
+  height: 5px; background: rgba(255,255,255,0.08);
+  border-radius: 999px; overflow: hidden; margin-bottom: 14px;
+}
+.hero-card-rank-fill {
+  height: 100%; background: linear-gradient(90deg, #2979ff, #a8d4f5);
+  border-radius: 999px;
+}
+.hero-card-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; padding-bottom: 16px;
+}
+.hero-card-stat { text-align: center; }
+.hero-card-stat-num {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 800; color: white; line-height: 1;
+}
+.hero-card-stat-label {
+  font-size: 10px; color: var(--text-mute);
+  letter-spacing: 1px; text-transform: uppercase; margin-top: 4px;
+}
+.hero-card-overlay {
+  background: linear-gradient(to top, rgba(6,12,26,0.98) 60%, rgba(6,12,26,0.7) 100%);
+  padding: 28px 18px 20px;
+  text-align: center;
+}
+.hero-card-signin {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%;
+  background: white; color: #1a1a2e;
+  padding: 14px 20px; border-radius: 12px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 800;
+  letter-spacing: 0.2px;
+  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.4);
+  margin-bottom: 10px;
+}
+.hero-card-signin:active { transform: scale(0.98); }
+.hero-card-signin:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
+.hero-card-signin-hint {
+  font-size: 12px; color: #4a6080; letter-spacing: 0.3px;
 }
 
 /* Keep old card classes so rest of page still works */
