@@ -3,7 +3,7 @@
 const CANONICAL_URL = 'https://hockeyshotchallenge.com'
 const DEFAULT_TITLE = 'Hockey Shot Challenge — Track every shot. Climb the rankings.'
 const DEFAULT_DESCRIPTION = 'Off-ice hockey practice tracking for kids ages 6-18. Log your shots, climb team and global leaderboards, earn ranks, and get better every day.'
-const DEFAULT_IMAGE = `${CANONICAL_URL}/og-image.png`
+const DEFAULT_IMAGE = `${CANONICAL_URL}/og-image.svg`
 
 function setMeta(attr, key, content) {
   let tag = document.querySelector(`meta[${attr}="${key}"]`)

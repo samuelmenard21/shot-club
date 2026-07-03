@@ -464,7 +464,8 @@ export default function AuthScreen() {
               </>
             ) : (
               <>
-                <h2 className="auth-title">Track every shot.<br/>Climb the rankings.</h2>
+                <h2 className="auth-title">Let's get you set up.</h2>
+                <p className="auth-sub" style={{ marginBottom: 14 }}>Takes 2 minutes. You'll sign in with Google at the end.</p>
 
                 <div className="for-row">
                   <div className="for-label">WHO ARE YOU SIGNING UP?</div>
@@ -598,8 +599,8 @@ export default function AuthScreen() {
                   <div className="path-head">
                     <div className="path-icon">🎯</div>
                     <div>
-                      <div className="path-title">Start solo</div>
-                      <div className="path-sub">No coach invite needed — find your club</div>
+                      <div className="path-title">No team invite yet</div>
+                      <div className="path-sub">Start on your own — you can join a team later</div>
                     </div>
                     <div className={`path-check ${path === 'solo' ? 'path-check--active' : ''}`}>
                       {path === 'solo' ? '✓' : ''}

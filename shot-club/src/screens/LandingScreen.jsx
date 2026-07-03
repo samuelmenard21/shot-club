@@ -276,6 +276,9 @@ export default function LandingScreen() {
           </button>
         </div>
         <div className="final-cta-sub">Free. No app to download. Takes 2 minutes to sign up.</div>
+        <button className="final-cta-guide" onClick={() => nav('/blog/getting-started')}>
+          New to this? Read the parent guide →
+        </button>
       </section>
 
       <ContactSection />
@@ -777,7 +780,13 @@ body:has(.landing) { background: var(--bg) !important; }
 .final-cta-btn:active { transform: scale(0.98); }
 .final-cta-btn--player { background: var(--accent); color: white; }
 .final-cta-btn--coach { background: rgba(45,180,100,0.15); color: #4ade80; border: 1.5px solid rgba(45,180,100,0.4); }
-.final-cta-sub { font-size: 13px; color: var(--text-mute); }
+.final-cta-sub { font-size: 13px; color: var(--text-mute); margin-bottom: 14px; }
+.final-cta-guide {
+  background: transparent; color: var(--text-mute);
+  font-size: 13px; text-decoration: underline;
+  text-underline-offset: 3px; padding: 0; cursor: pointer;
+}
+.final-cta-guide:hover { color: var(--ice); }
 
 /* ── FOOTER ── */
 .land-footer {
