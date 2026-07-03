@@ -703,6 +703,9 @@ body:has(.landing) { background: var(--bg) !important; }
   font-size: 14px;
   font-weight: 500;
 }
+@media (max-width: 600px) {
+  .land-nav-link { display: none; }
+}
 .land-nav-cta {
   background: var(--accent);
   color: white;
@@ -1099,8 +1102,8 @@ body:has(.landing) { background: var(--bg) !important; }
   display: flex; align-items: center; justify-content: center; gap: 10px;
   width: 100%;
   background: white; color: #1a1a2e;
-  padding: 14px 20px; border-radius: 12px;
-  font-family: var(--font-display); font-size: 15px; font-weight: 800;
+  padding: 14px 16px; border-radius: 12px;
+  font-family: var(--font-display); font-size: clamp(13px, 3.5vw, 15px); font-weight: 800;
   letter-spacing: 0.2px;
   transition: transform 0.1s, box-shadow 0.1s;
   box-shadow: 0 2px 16px rgba(0,0,0,0.4);
@@ -1121,7 +1124,7 @@ body:has(.landing) { background: var(--bg) !important; }
 }
 .hero-card-shot-bars { display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px; }
 .hero-card-shot-row {
-  display: grid; grid-template-columns: 64px 1fr 28px;
+  display: grid; grid-template-columns: 72px 1fr 28px;
   align-items: center; gap: 8px;
 }
 .hero-card-shot-type { font-size: 12px; color: #8899b4; font-weight: 500; }
