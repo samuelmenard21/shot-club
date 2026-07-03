@@ -75,10 +75,10 @@ export default function LandingScreen() {
 
       {/* ── HERO ── */}
       <section className="hero">
-        <div className="hero-eyebrow">FREE · AGES 6–18 · OFF-ICE TRAINING</div>
-        <h1 className="hero-title">The off-ice tracker your whole team uses.</h1>
+        <div className="hero-eyebrow">FREE · FOR HOCKEY PLAYERS · AGES 6–18</div>
+        <h1 className="hero-title">Shoot more. Track it. Beat your squad.</h1>
         <p className="hero-sub">
-          Players log shots and stickhandling every day. Coaches see who's putting in the work. Everyone competes every week.
+          Log your shots and stickhandling after every practice. Your teammates, parents, and coach can all see how hard you're working.
         </p>
 
         {totalShots > 0 && (
@@ -91,22 +91,22 @@ export default function LandingScreen() {
         <div className="hero-paths">
           <button className="hero-path hero-path--player" onClick={() => nav('/player')}>
             <div className="hero-path-eyebrow">PLAYERS &amp; PARENTS</div>
-            <div className="hero-path-title">Log your shots. Climb the ranks. Beat your squad.</div>
+            <div className="hero-path-title">Go outside. Shoot. Log it. Watch your rank climb.</div>
             <div className="hero-path-detail">
               <span>🥅 Shots</span>
               <span>🏒 Stickhandling</span>
               <span>🔥 Streaks</span>
               <span>🏅 Ranks</span>
             </div>
-            <div className="hero-path-cta">Get started free →</div>
+            <div className="hero-path-cta">Start for free →</div>
           </button>
 
           <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
             <div className="hero-path-eyebrow">COACHES</div>
-            <div className="hero-path-title">See which players are putting in the work — before practice starts.</div>
+            <div className="hero-path-title">Know who's been shooting before they walk into practice.</div>
             <div className="hero-path-detail">
-              <span>📊 Weekly activity</span>
-              <span>📈 Player progress</span>
+              <span>📊 Who logged this week</span>
+              <span>📈 Shot counts</span>
               <span>⚔️ Squad battles</span>
             </div>
             <div className="hero-path-cta">Set up my team →</div>
@@ -115,7 +115,7 @@ export default function LandingScreen() {
 
         {/* Club search */}
         <div className="hero-club-search">
-          <div className="hero-club-search-label">Find your team's leaderboard</div>
+          <div className="hero-club-search-label">Is your team already on here?</div>
           <div style={{ position: 'relative', maxWidth: 420, margin: '0 auto' }}>
             <input
               ref={searchInputRef}
@@ -170,7 +170,7 @@ export default function LandingScreen() {
           <div className="section-eyebrow">⚔️ SQUAD BATTLES</div>
           <h2 className="section-title">4 vs 4. Real names. Daily pressure.</h2>
           <p className="section-sub">
-            Every week, players are grouped into squads of 4 and matched against a rival squad from another team. Every shot logged shows up live. Most reps by Sunday wins.
+            Every Monday you get put with 3 teammates. You go up against a squad from another team. Every shot you log shows up for everyone to see. Most shots by Sunday wins.
           </p>
         </div>
         <SquadBattleMock />
@@ -204,7 +204,7 @@ export default function LandingScreen() {
 
       {/* ── FINAL CTA ── */}
       <section className="final-cta">
-        <h2 className="final-cta-title">Stop telling your kid to shoot more.<br />Show them their numbers.</h2>
+        <h2 className="final-cta-title">Go shoot some pucks.<br />Then log it.</h2>
         <div className="final-cta-paths">
           <button className="final-cta-btn final-cta-btn--player" onClick={() => nav('/player')}>
             I'm a player or parent →
@@ -213,7 +213,7 @@ export default function LandingScreen() {
             I'm a coach →
           </button>
         </div>
-        <div className="final-cta-sub">Free. No app. No credit card.</div>
+        <div className="final-cta-sub">Free. No app to download. Takes 2 minutes to sign up.</div>
       </section>
 
       <ContactSection />
