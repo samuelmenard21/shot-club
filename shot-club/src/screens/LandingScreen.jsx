@@ -164,6 +164,68 @@ export default function LandingScreen() {
         </div>
       </section>
 
+      {/* ── HOW IT WORKS ── */}
+      <section className="hiw">
+        <div className="hiw-label">HOW IT WORKS</div>
+        <div className="hiw-steps">
+
+          <div className="hiw-step">
+            <div className="hiw-step-num">1</div>
+            <div className="hiw-step-visual hiw-step-visual--signin">
+              <div className="hiw-google-btn">
+                <GoogleIcon />
+                Sign in with Google
+              </div>
+              <div className="hiw-visual-hint">Takes 30 seconds</div>
+            </div>
+            <div className="hiw-step-text">Sign in with your Google account. Pick a name for your player. Done.</div>
+          </div>
+
+          <div className="hiw-arrow">→</div>
+
+          <div className="hiw-step">
+            <div className="hiw-step-num">2</div>
+            <div className="hiw-step-visual hiw-step-visual--log">
+              <div className="hiw-shot-types">
+                <div className="hiw-shot-pill hiw-shot-pill--active">Wrist</div>
+                <div className="hiw-shot-pill">Snap</div>
+                <div className="hiw-shot-pill">Slap</div>
+                <div className="hiw-shot-pill">BH</div>
+              </div>
+              <div className="hiw-shot-count">
+                <span className="hiw-shot-num">50</span>
+                <span className="hiw-shot-save">Save →</span>
+              </div>
+            </div>
+            <div className="hiw-step-text">After practice, tap a shot type, enter how many, hit save. Takes 5 seconds.</div>
+          </div>
+
+          <div className="hiw-arrow">→</div>
+
+          <div className="hiw-step">
+            <div className="hiw-step-num">3</div>
+            <div className="hiw-step-visual hiw-step-visual--board">
+              {[
+                { name: 'Liam K.', shots: 191, you: false },
+                { name: 'You', shots: 168, you: true },
+                { name: 'Jake T.', shots: 84, you: false },
+              ].map((p, i) => (
+                <div key={p.name} className={`hiw-board-row${p.you ? ' hiw-board-row--you' : ''}`}>
+                  <span className="hiw-board-pos">#{i + 1}</span>
+                  <span className="hiw-board-name">{p.name}</span>
+                  <span className="hiw-board-shots">{p.shots}</span>
+                </div>
+              ))}
+            </div>
+            <div className="hiw-step-text">See exactly where you rank on your team. Your coach and parents can see it too.</div>
+          </div>
+
+        </div>
+        <div className="hiw-footer">
+          Next time you open the app — you're straight to your dashboard. Just log and go.
+        </div>
+      </section>
+
       {/* ── SQUAD BATTLES ── */}
       <section className="section section--compete">
         <div className="section-head">
@@ -235,6 +297,17 @@ export default function LandingScreen() {
 
       <style>{styles}</style>
     </div>
+  )
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 18 18" style={{ flexShrink: 0 }}>
+      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+      <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+      <path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
+    </svg>
   )
 }
 
@@ -509,6 +582,90 @@ body:has(.landing) { background: var(--bg) !important; }
 .hero-search-add {
   background: transparent; color: var(--accent); font-size: 13px;
   font-weight: 600; padding: 0; display: inline;
+}
+
+/* ── HOW IT WORKS ── */
+.hiw {
+  border-top: 0.5px solid var(--border-dim);
+  padding: 44px clamp(16px, 5vw, 40px);
+  max-width: 1100px; margin: 0 auto;
+  text-align: center;
+}
+.hiw-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 600;
+  color: var(--ice); letter-spacing: 2px; margin-bottom: 28px;
+}
+.hiw-steps {
+  display: flex; align-items: flex-start; justify-content: center;
+  gap: 8px; flex-wrap: wrap;
+}
+.hiw-arrow {
+  font-size: 20px; color: var(--border);
+  padding-top: 52px; flex-shrink: 0;
+}
+@media (max-width: 640px) { .hiw-arrow { display: none; } }
+.hiw-step {
+  flex: 1; min-width: 180px; max-width: 240px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.hiw-step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(41,121,255,0.15); border: 1px solid rgba(41,121,255,0.4);
+  color: #60a5fa; font-family: var(--font-display); font-size: 13px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.hiw-step-visual {
+  width: 100%; background: #0f1928;
+  border: 1px solid #1e2f4a; border-radius: 14px;
+  padding: 14px; min-height: 88px;
+  display: flex; flex-direction: column; justify-content: center; gap: 8px;
+}
+.hiw-google-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: white; color: #1a1a2e;
+  padding: 9px 12px; border-radius: 8px;
+  font-family: var(--font-display); font-size: 12px; font-weight: 700;
+}
+.hiw-visual-hint { font-size: 11px; color: #4a6080; text-align: center; }
+.hiw-shot-types { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+.hiw-shot-pill {
+  font-size: 11px; font-weight: 600; color: #4a6080;
+  background: #0a1220; border: 1px solid #1e2f4a;
+  border-radius: 6px; padding: 4px 8px;
+}
+.hiw-shot-pill--active {
+  background: rgba(41,121,255,0.2); border-color: rgba(41,121,255,0.5);
+  color: #60a5fa;
+}
+.hiw-shot-count {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #0a1220; border: 1px solid #1e2f4a;
+  border-radius: 8px; padding: 8px 12px;
+}
+.hiw-shot-num {
+  font-family: var(--font-display); font-size: 22px; font-weight: 800; color: white;
+}
+.hiw-shot-save {
+  font-family: var(--font-display); font-size: 12px; font-weight: 700;
+  color: white; background: var(--accent); padding: 5px 10px; border-radius: 6px;
+}
+.hiw-board-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; border-radius: 7px;
+}
+.hiw-board-row--you {
+  background: rgba(41,121,255,0.15); border: 1px solid rgba(41,121,255,0.3);
+}
+.hiw-board-pos { font-size: 11px; color: #4a6080; font-weight: 700; width: 20px; }
+.hiw-board-row--you .hiw-board-pos { color: #60a5fa; }
+.hiw-board-name { font-size: 12px; font-weight: 700; color: var(--text-soft); flex: 1; text-align: left; }
+.hiw-board-row--you .hiw-board-name { color: white; }
+.hiw-board-shots { font-family: var(--font-display); font-size: 13px; font-weight: 800; color: #60a5fa; }
+.hiw-step-text { font-size: 13px; color: var(--text-soft); line-height: 1.5; text-align: center; }
+.hiw-footer {
+  margin-top: 28px; font-size: 14px; color: var(--text-soft);
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border-dim);
+  border-radius: 10px; padding: 12px 20px; display: inline-block;
 }
 
 /* ── SECTIONS ── */
