@@ -44,7 +44,7 @@ export default function LandingScreen() {
   useEffect(() => {
     setSEO({
       title: null,
-      description: 'Free off-ice hockey tracker for players and coaches. Kids log shots and stickhandling every day. Coaches see who\'s putting in the work. Compete in weekly squad battles. Free for ages 6–18.',
+      description: 'Free off-ice hockey tracker for players and coaches. Kids log shots and stickhandling every day. Coaches see who\'s putting in the work. Compete in weekly 1v1 battles. Free for ages 6–18.',
       url: CANONICAL_URL,
     })
     addStructuredData({
@@ -76,7 +76,7 @@ export default function LandingScreen() {
       {/* ── HERO ── */}
       <section className="hero">
         <div className="hero-eyebrow">FREE · FOR HOCKEY PLAYERS · AGES 6–18</div>
-        <h1 className="hero-title">Shoot more. Track it. Beat your squad.</h1>
+        <h1 className="hero-title">Shoot more. Track it. Beat your rival.</h1>
         <p className="hero-sub">
           Log your shots and stickhandling after every practice. Your teammates, parents, and coach can all see how hard you're working.
         </p>
@@ -107,7 +107,7 @@ export default function LandingScreen() {
             <div className="hero-path-detail">
               <span>📊 Who logged this week</span>
               <span>📈 Shot counts</span>
-              <span>⚔️ Squad battles</span>
+              <span>⚔️ 1v1 battles</span>
             </div>
             <div className="hero-path-btn hero-path-btn--coach">Set up my team →</div>
           </button>
@@ -226,16 +226,16 @@ export default function LandingScreen() {
         </div>
       </section>
 
-      {/* ── SQUAD BATTLES ── */}
+      {/* ── 1V1 BATTLES ── */}
       <section className="section section--compete">
         <div className="section-head">
-          <div className="section-eyebrow">⚔️ SQUAD BATTLES</div>
-          <h2 className="section-title">4 vs 4. Real names. Daily pressure.</h2>
+          <div className="section-eyebrow">⚔️ 1V1 BATTLES</div>
+          <h2 className="section-title">You vs one rival. All week.</h2>
           <p className="section-sub">
-            Every Monday you get put with 3 teammates. You go up against a squad from another team. Every shot you log shows up for everyone to see. Most shots by Sunday wins.
+            Every Monday you get matched against one player from another team. Every shot you log counts. Most shots by Sunday wins. Then it resets and you get a new rival.
           </p>
         </div>
-        <SquadBattleMock />
+        <BattleMock />
       </section>
 
       {/* ── FAQ ── */}
@@ -323,77 +323,40 @@ function BrandMark() {
   )
 }
 
-function SquadBattleMock() {
-  const myMembers = [
-    { name: 'You', shots: 95, logged: true, isMe: true, isCap: true },
-    { name: 'Connor', shots: 50, logged: true, isMe: false },
-    { name: 'Liam', shots: 89, logged: true, isMe: false },
-    { name: 'Ethan', shots: 0, logged: false, isMe: false },
-  ]
-  const rivalMembers = [
-    { name: 'A', shots: 102, logged: true },
-    { name: 'B', shots: 78, logged: true },
-    { name: 'C', shots: 56, logged: true },
-    { name: 'D', shots: 0, logged: false },
-  ]
-  const myTotal = myMembers.reduce((s, m) => s + m.shots, 0)
-  const rivalTotal = rivalMembers.reduce((s, m) => s + m.shots, 0)
-  const total = myTotal + rivalTotal
-  const myPct = Math.round((myTotal / total) * 100)
+function BattleMock() {
+  const myShots = 147
+  const rivalShots = 189
+  const total = myShots + rivalShots
+  const myPct = Math.round((myShots / total) * 100)
 
   return (
     <div className="sbm-wrap">
       <div className="sbm-card">
         <div className="sbm-header">
-          <div className="sbm-eyebrow">⚔️ SQUAD BATTLE · 3 DAYS LEFT</div>
+          <div className="sbm-eyebrow">⚔️ 1V1 BATTLE · 3 DAYS LEFT</div>
           <div className="sbm-share-pill">Share</div>
         </div>
 
         <div className="sbm-matchup">
           <div className="sbm-side">
-            <div className="sbm-squad-name">THE SNIPERS <span className="sbm-edit">✎</span></div>
-            <div className="sbm-score sbm-score--trail">{myTotal}</div>
+            <div className="sbm-name sbm-name--me">You</div>
+            <div className="sbm-score">{myShots}</div>
+            <div className="sbm-logged">✓ logged today</div>
           </div>
           <div className="sbm-vs">VS</div>
           <div className="sbm-side sbm-side--right">
-            <div className="sbm-squad-name sbm-squad-name--rival">ICE BREAKERS</div>
-            <div className="sbm-rival-team">Oakville U14 AA</div>
-            <div className="sbm-score sbm-score--lead">{rivalTotal}</div>
+            <div className="sbm-name">Tyler B.</div>
+            <div className="sbm-score sbm-score--lead">{rivalShots}</div>
+            <div className="sbm-logged sbm-logged--rival">✓ logged today</div>
           </div>
         </div>
 
         <div className="sbm-bar-track">
           <div className="sbm-bar-fill" style={{ width: `${myPct}%` }} />
         </div>
+        <div className="sbm-rival-team">Oakville U14 AA · resets Monday</div>
 
-        <div className="sbm-rosters">
-          <div className="sbm-roster">
-            {myMembers.map((m) => (
-              <div key={m.name} className={`sbm-player${m.isMe ? ' sbm-player--me' : ''}`}>
-                <div className="sbm-player-row">
-                  <div className={`sbm-dot${m.logged ? ' sbm-dot--on' : ''}`} />
-                  <div className="sbm-player-name">{m.name}</div>
-                  {m.isCap && <div className="sbm-cap">C</div>}
-                </div>
-                <div className="sbm-player-shots">{m.shots > 0 ? m.shots : '—'}</div>
-              </div>
-            ))}
-          </div>
-          <div className="sbm-divider" />
-          <div className="sbm-roster sbm-roster--rival">
-            {rivalMembers.map((m) => (
-              <div key={m.name} className="sbm-player">
-                <div className="sbm-player-row">
-                  <div className={`sbm-dot sbm-dot--rival${m.logged ? ' sbm-dot--on' : ''}`} />
-                  <div className="sbm-player-name">{m.name}.</div>
-                </div>
-                <div className="sbm-player-shots">{m.shots > 0 ? m.shots : '—'}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="sbm-status">⚡ Ethan hasn't logged today. You need everyone.</div>
+        <div className="sbm-status">💪 Down 42 shots — time to push</div>
         <div className="sbm-log-btn">+ Log shots now</div>
       </div>
     </div>
@@ -700,50 +663,33 @@ body:has(.landing) { background: var(--bg) !important; }
 }
 .section-sub { font-size: 15px; color: var(--text-soft); line-height: 1.55; margin: 0; }
 
-/* ── SQUAD BATTLE MOCK ── */
+/* ── BATTLE MOCK ── */
 .section--compete {
   background: linear-gradient(180deg, var(--bg), rgba(41,121,255,0.04));
 }
-.sbm-wrap { max-width: 480px; margin: 0 auto; }
+.sbm-wrap { max-width: 420px; margin: 0 auto; }
 .sbm-card {
   background: var(--surface);
   border: 1px solid rgba(37,99,235,0.3);
   border-radius: 18px; padding: 18px 20px;
   box-shadow: 0 20px 60px rgba(37,99,235,0.12);
 }
-.sbm-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
-}
+.sbm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 .sbm-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: var(--text-mute); text-transform: uppercase; }
 .sbm-share-pill { font-size: 11px; font-weight: 700; color: var(--ice); border: 1px solid var(--border-dim); border-radius: 6px; padding: 3px 10px; }
-.sbm-matchup { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+.sbm-matchup { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
 .sbm-side { flex: 1; min-width: 0; }
 .sbm-side--right { text-align: right; }
-.sbm-squad-name { font-size: 14px; font-weight: 800; letter-spacing: 0.3px; color: white; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sbm-squad-name--rival { color: var(--text-soft); }
-.sbm-edit { font-size: 11px; color: var(--text-mute); margin-left: 4px; }
-.sbm-rival-team { font-size: 10px; color: var(--text-mute); margin-bottom: 4px; }
-.sbm-vs { font-size: 11px; font-weight: 800; color: var(--text-mute); padding-top: 20px; flex-shrink: 0; }
-.sbm-score { font-size: 32px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; color: var(--text-soft); }
-.sbm-score--lead { color: #ef4444; }
-.sbm-score--trail { color: var(--ice); }
-.sbm-bar-track { height: 7px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; margin-bottom: 16px; }
+.sbm-name { font-size: 14px; font-weight: 700; color: var(--text-soft); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sbm-name--me { color: var(--ice); }
+.sbm-vs { font-size: 12px; font-weight: 800; color: var(--text-mute); flex-shrink: 0; }
+.sbm-score { font-size: 38px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; color: var(--text-soft); }
+.sbm-score--lead { color: white; }
+.sbm-logged { font-size: 11px; color: var(--text-mute); margin-top: 3px; }
+.sbm-bar-track { height: 7px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
 .sbm-bar-fill { height: 100%; background: linear-gradient(90deg, #1d4ed8, #67e8f9); border-radius: 99px; }
-.sbm-rosters { display: flex; gap: 10px; margin-bottom: 12px; }
-.sbm-roster { display: flex; gap: 4px; flex: 1; min-width: 0; }
-.sbm-roster--rival { justify-content: flex-end; }
-.sbm-divider { width: 1px; background: var(--border-dim); align-self: stretch; flex-shrink: 0; }
-.sbm-player { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; min-width: 0; }
-.sbm-player--me .sbm-player-name { color: var(--ice); font-weight: 800; }
-.sbm-player--me .sbm-player-shots { color: var(--ice); }
-.sbm-player-row { display: flex; align-items: center; gap: 3px; }
-.sbm-player-name { font-size: 10px; font-weight: 600; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 48px; }
-.sbm-cap { font-size: 10px; font-weight: 800; color: #fbbf24; background: rgba(251,191,36,0.15); border-radius: 3px; padding: 0 3px; flex-shrink: 0; }
-.sbm-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-dim); flex-shrink: 0; }
-.sbm-dot--on { background: #22c55e; }
-.sbm-dot--rival.sbm-dot--on { background: #ef4444; }
-.sbm-player-shots { font-size: 15px; font-weight: 800; line-height: 1; color: var(--text-soft); font-variant-numeric: tabular-nums; }
-.sbm-status { font-size: 12px; font-weight: 600; color: #fb923c; background: rgba(255,255,255,0.04); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; line-height: 1.4; }
+.sbm-rival-team { font-size: 11px; color: var(--text-mute); text-align: center; margin-bottom: 10px; }
+.sbm-status { font-size: 12px; font-weight: 600; color: #f87171; background: rgba(255,255,255,0.04); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; line-height: 1.4; }
 .sbm-log-btn { width: 100%; background: var(--accent); color: white; border-radius: 10px; padding: 12px 16px; font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: 0.4px; text-align: center; }
 
 /* ── FAQ ── */

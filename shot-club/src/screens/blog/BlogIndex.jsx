@@ -12,7 +12,7 @@ const POSTS = [
   {
     slug: 'how-squad-battles-work',
     title: 'What Happens Every Week on Hockey Shot Challenge',
-    description: 'Squad battles, daily logging, ranks, streaks, and what coaches can see. Here\'s how a full week looks.',
+    description: '1v1 battles, daily logging, ranks, streaks, and what coaches can see. Here\'s how a full week looks.',
     date: 'July 2026',
   },
 ]

@@ -9,7 +9,7 @@ export default function CoachLandingScreen() {
   useEffect(() => {
     setSEO({
       title: 'Hockey Coaching Dashboard — Track Player Off-Ice Training Free',
-      description: 'Free hockey coaching tool. See which players are logging shots at home, track streaks and ranks, run squad battles, and motivate your team — no app required.',
+      description: 'Free hockey coaching tool. See which players are logging shots at home, track streaks and ranks, see weekly 1v1 battle results, and motivate your team — no app required.',
       url: `${CANONICAL_URL}/coach`,
     })
     addStructuredData({
@@ -20,7 +20,7 @@ export default function CoachLandingScreen() {
       applicationCategory: 'SportsApplication',
       operatingSystem: 'Web',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'CAD' },
-      description: 'Free hockey coaching dashboard. Track which players log shots and stickhandling at home, see weekly activity, run squad battles, and motivate your team.',
+      description: 'Free hockey coaching dashboard. Track which players log shots and stickhandling at home, see weekly activity, see 1v1 battle results, and motivate your team.',
       audience: { '@type': 'Audience', audienceType: 'Hockey coaches and club managers' },
     })
   }, [])
@@ -56,8 +56,8 @@ export default function CoachLandingScreen() {
           <div className="cl-feature">
             <div className="cl-feature-icon">🏆</div>
             <div className="cl-feature-body">
-              <div className="cl-feature-title">Squad battles</div>
-              <div className="cl-feature-text">Every week, your players compete in squads against other teams in the club. Most reps wins. You can see every result.</div>
+              <div className="cl-feature-title">Weekly 1v1 battles</div>
+              <div className="cl-feature-text">Every Monday, each player gets matched 1v1 against a player from another team. Most shots by Sunday wins. You can see every result.</div>
             </div>
           </div>
           <div className="cl-feature">

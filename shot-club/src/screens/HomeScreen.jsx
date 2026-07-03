@@ -6,11 +6,11 @@ import { getRank } from '../lib/ranks'
 import { claimAchievements, isStreakInRecovery } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
 import { getSkillVideos } from '../lib/videos'
-import { getTeamChallenge, getTeamWeeklyShots, getMySquadBattle } from '../lib/challenges'
+import { getTeamChallenge, getTeamWeeklyShots, getMyBattle } from '../lib/challenges'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
 import StreakRecoveryBanner from '../components/StreakRecoveryBanner'
-import SquadBattleCard from '../components/SquadBattleCard'
+import BattleCard from '../components/BattleCard'
 import AchievementUnlockModal from './AchievementUnlockModal'
 
 const SHOT_TYPES_SHOOTER = ['Wrist', 'Snap', 'Slap', 'Backhand']
@@ -45,11 +45,11 @@ export default function HomeScreen() {
       Promise.all([
         getTeamChallenge(player.team_id),
         getTeamWeeklyShots(player.team_id),
-        getMySquadBattle(player.id, player.team_id, player.club_id),
-      ]).then(([ch, wk, squad]) => {
+        getMyBattle(player.id, player.team_id, player.club_id),
+      ]).then(([ch, wk, battle]) => {
         setTeamChallenge(ch)
         setTeamWeekShots(wk)
-        setSquadBattle(squad)
+        setSquadBattle(battle)
       })
     }
   }, [player])
@@ -312,9 +312,8 @@ export default function HomeScreen() {
         </div>
       )}
 
-      <SquadBattleCard
-        squadBattle={squadBattle}
-        teamId={player.team_id}
+      <BattleCard
+        battle={squadBattle}
         onLogNow={() => setEntryType('Wrist')}
       />
 

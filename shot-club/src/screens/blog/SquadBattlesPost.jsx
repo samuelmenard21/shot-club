@@ -7,8 +7,8 @@ export default function SquadBattlesPost() {
 
   useEffect(() => {
     setSEO({
-      title: 'How Hockey Squad Battles Work — Weekly Competitions for Kids',
-      description: 'Squad battles, daily logging, ranks, streaks, and what coaches can see. Here\'s exactly how a full week looks on Hockey Shot Challenge.',
+      title: 'How Hockey 1v1 Weekly Battles Work — Off-Ice Competition for Kids',
+      description: '1v1 weekly battles, daily logging, ranks, streaks, and what coaches can see. Here\'s exactly how a full week looks on Hockey Shot Challenge.',
       url: `${CANONICAL_URL}/blog/how-squad-battles-work`,
       type: 'article',
     })
@@ -16,16 +16,16 @@ export default function SquadBattlesPost() {
       {
         '@context': 'https://schema.org',
         '@type': 'Article',
-        headline: 'How Hockey Squad Battles Work — Weekly Competitions for Kids',
-        description: 'Squad battles, daily logging, ranks, streaks, and what coaches can see on Hockey Shot Challenge.',
+        headline: 'How Hockey 1v1 Weekly Battles Work — Off-Ice Competition for Kids',
+        description: '1v1 weekly battles, daily logging, ranks, streaks, and what coaches can see on Hockey Shot Challenge.',
         datePublished: '2026-07-01',
-        dateModified: '2026-07-01',
+        dateModified: '2026-07-03',
         author: { '@type': 'Organization', name: 'Hockey Shot Challenge' },
         publisher: { '@type': 'Organization', name: 'Hockey Shot Challenge', url: 'https://hockeyshotchallenge.com' },
         url: `${CANONICAL_URL}/blog/how-squad-battles-work`,
         mainEntityOfPage: `${CANONICAL_URL}/blog/how-squad-battles-work`,
         articleSection: 'How It Works',
-        keywords: 'hockey squad battles, hockey team competition kids, off-ice hockey leaderboard, hockey shot tracker weekly',
+        keywords: 'hockey 1v1 battle, hockey weekly competition kids, off-ice hockey leaderboard, hockey shot tracker weekly',
       },
       {
         '@context': 'https://schema.org',
@@ -33,7 +33,7 @@ export default function SquadBattlesPost() {
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://hockeyshotchallenge.com' },
           { '@type': 'ListItem', position: 2, name: 'Guides', item: `${CANONICAL_URL}/blog` },
-          { '@type': 'ListItem', position: 3, name: 'How Squad Battles Work', item: `${CANONICAL_URL}/blog/how-squad-battles-work` },
+          { '@type': 'ListItem', position: 3, name: 'How Weekly Battles Work', item: `${CANONICAL_URL}/blog/how-squad-battles-work` },
         ],
       },
     ])
@@ -48,7 +48,7 @@ export default function SquadBattlesPost() {
 
       <article className="post-article">
         <header className="post-header">
-          <div className="post-eyebrow">HOW IT WORKS · SQUAD BATTLES</div>
+          <div className="post-eyebrow">HOW IT WORKS · WEEKLY BATTLES</div>
           <h1 className="post-title">What Happens Every Week on Hockey Shot Challenge</h1>
           <p className="post-date">July 2026</p>
         </header>
@@ -56,9 +56,9 @@ export default function SquadBattlesPost() {
         <div className="post-body">
           <p>Once your kid is set up, the app runs on a weekly rhythm. Here's exactly what a week looks like — from Monday to Sunday.</p>
 
-          <h2>Monday: A new squad battle starts</h2>
-          <p>Every Monday, your child gets placed with three teammates into a group called a squad. That squad gets matched against a rival squad from another team. The goal: log more total shots than the other squad by Sunday.</p>
-          <p>Kids can see exactly where they stand — who logged today, who's ahead, who needs to catch up. It creates real pressure in the best way. When your kid sees a teammate hasn't logged yet, they want to carry the team. When they're behind, they want to go outside and shoot.</p>
+          <h2>Monday: A new 1v1 battle starts</h2>
+          <p>Every Monday, your child gets matched against one player from another team. One rival. One week. The goal: log more shots than them by Sunday.</p>
+          <p>Kids can see exactly where they stand — their shot count vs. the rival's, updated live as both players log. It creates real pressure in the best way. When your kid sees they're behind, they want to go outside and shoot. When they're ahead, they want to extend the lead.</p>
 
           <h2>Every day: Log reps in 5 seconds</h2>
           <p>After a practice session at home, open the app and log what they did. Shots, stickhandling, or both. Tap a shot type, enter the number, hit save. The number goes up, the leaderboard updates, and their squad can see the contribution.</p>
@@ -69,7 +69,7 @@ export default function SquadBattlesPost() {
 
           <div className="post-callout">
             <div className="post-callout-title">Why this works</div>
-            <p>Kids don't practice because you tell them to. They practice because their name is on a scoreboard and their teammates are counting on them. That's the whole idea.</p>
+            <p>Kids don't practice because you tell them to. They practice because their name is on a scoreboard and there's one specific person they want to beat. That's the whole idea.</p>
           </div>
 
           <h2>Ranks and streaks</h2>
@@ -78,7 +78,7 @@ export default function SquadBattlesPost() {
 
           <h2>What coaches can see</h2>
           <p>If your child's coach is on the platform, they can see the whole team's weekly activity — who logged, how many shots, who's been consistent all month. It's a great conversation starter before practice and it lets coaches recognize the players who are quietly putting in work at home.</p>
-          <p>Coaches can also set weekly shot goals for the team, run team-vs-team challenges, and see stickhandling stats. All without any extra work on your part — just keep logging.</p>
+          <p>Coaches can see every 1v1 battle result for their players — who won, who lost, by how much. All without any extra work on your part — just keep logging.</p>
 
           <h2>What you track</h2>
           <p><strong>Shots</strong> — wrist shots, snap shots, slap shots, backhands. Goalies can track saves. Tap a type, tap a number, done.</p>

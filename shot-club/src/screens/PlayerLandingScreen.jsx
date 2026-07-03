@@ -44,7 +44,7 @@ export default function PlayerLandingScreen() {
   useEffect(() => {
     setSEO({
       title: 'Hockey Shot Tracker for Kids — Log Shots & Earn Ranks',
-      description: 'Free off-ice hockey practice tracker for kids ages 6–18. Log shots and stickhandling every day, earn ranks from Rookie to Legend, and compete in weekly squad battles.',
+      description: 'Free off-ice hockey practice tracker for kids ages 6–18. Log shots and stickhandling every day, earn ranks from Rookie to Legend, and compete in weekly 1v1 battles.',
       url: `${CANONICAL_URL}/player`,
     })
     addStructuredData([
@@ -56,7 +56,7 @@ export default function PlayerLandingScreen() {
         applicationCategory: 'SportsApplication',
         operatingSystem: 'Web',
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'CAD' },
-        description: 'Free off-ice hockey practice tracker for kids. Log shots and stickhandling reps, earn ranks, and compete in weekly squad battles.',
+        description: 'Free off-ice hockey practice tracker for kids. Log shots and stickhandling reps, earn ranks, and compete in weekly 1v1 battles.',
         audience: { '@type': 'Audience', audienceType: 'Hockey players ages 6–18 and their parents' },
       },
       {
@@ -165,7 +165,7 @@ export default function PlayerLandingScreen() {
             <div className="pl-step-num">3</div>
             <div className="pl-step-body">
               <div className="pl-step-title">Compete every week</div>
-              <div className="pl-step-text">Every Monday, you get placed with 3 teammates. Your squad faces a rival squad from another team. Most reps by Sunday wins.</div>
+              <div className="pl-step-text">Every Monday, you get matched against one player from another team. Most reps by Sunday wins. New rival every week.</div>
             </div>
           </div>
         </div>
