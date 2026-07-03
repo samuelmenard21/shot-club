@@ -1,16 +1,42 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { setSEO, CANONICAL_URL } from '../../lib/seo'
+import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
 
 export default function SquadBattlesPost() {
   const nav = useNavigate()
 
   useEffect(() => {
     setSEO({
-      title: 'What Happens Every Week on Hockey Shot Challenge',
-      description: 'Squad battles, daily logging, ranks, streaks, and what coaches can see. Here\'s how a full week looks on Hockey Shot Challenge.',
+      title: 'How Hockey Squad Battles Work — Weekly Competitions for Kids',
+      description: 'Squad battles, daily logging, ranks, streaks, and what coaches can see. Here\'s exactly how a full week looks on Hockey Shot Challenge.',
       url: `${CANONICAL_URL}/blog/how-squad-battles-work`,
+      type: 'article',
     })
+    addStructuredData([
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: 'How Hockey Squad Battles Work — Weekly Competitions for Kids',
+        description: 'Squad battles, daily logging, ranks, streaks, and what coaches can see on Hockey Shot Challenge.',
+        datePublished: '2026-07-01',
+        dateModified: '2026-07-01',
+        author: { '@type': 'Organization', name: 'Hockey Shot Challenge' },
+        publisher: { '@type': 'Organization', name: 'Hockey Shot Challenge', url: 'https://hockeyshotchallenge.com' },
+        url: `${CANONICAL_URL}/blog/how-squad-battles-work`,
+        mainEntityOfPage: `${CANONICAL_URL}/blog/how-squad-battles-work`,
+        articleSection: 'How It Works',
+        keywords: 'hockey squad battles, hockey team competition kids, off-ice hockey leaderboard, hockey shot tracker weekly',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://hockeyshotchallenge.com' },
+          { '@type': 'ListItem', position: 2, name: 'Guides', item: `${CANONICAL_URL}/blog` },
+          { '@type': 'ListItem', position: 3, name: 'How Squad Battles Work', item: `${CANONICAL_URL}/blog/how-squad-battles-work` },
+        ],
+      },
+    ])
   }, [])
 
   return (
@@ -60,7 +86,7 @@ export default function SquadBattlesPost() {
 
           <div className="post-cta-block">
             <p>Not signed up yet? It's free and takes less than 5 minutes.</p>
-            <button className="post-cta" onClick={() => nav('/start')}>Start free — sign in with Google →</button>
+            <button className="post-cta" onClick={() => nav('/player')}>Get started — it's free →</button>
             <p className="post-cta-hint">Also read: <button className="post-inline-link" onClick={() => nav('/blog/getting-started')}>How to get your kid set up →</button></p>
           </div>
         </div>

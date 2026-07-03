@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { setSEO, CANONICAL_URL } from '../lib/seo'
+import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import { searchClubs } from '../lib/clubs'
 
 export default function ForClubsScreen() {
@@ -13,9 +13,35 @@ export default function ForClubsScreen() {
 
   useEffect(() => {
     setSEO({
-      title: 'Find your club',
-      description: 'Find your hockey club on Hockey Shot Challenge. See team leaderboards, get sharing links for parents and coaches, and track off-ice training.',
+      title: 'Hockey Clubs — Team Leaderboards & Off-Ice Training Tracker',
+      description: 'Find your hockey club or association on Hockey Shot Challenge. See team leaderboards, share signup links with coaches and parents, and track off-ice training across your whole association.',
       url: `${CANONICAL_URL}/for-clubs`,
+    })
+    addStructuredData({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'What do players do on Hockey Shot Challenge?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Players log shots and stickhandling reps at home — driveway, basement, wherever. It takes 5 seconds. The more they log, the higher they climb on the team leaderboard.' },
+        },
+        {
+          '@type': 'Question',
+          name: 'What do coaches see on Hockey Shot Challenge?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Coaches see a dashboard showing every player\'s weekly shot count, streak, and rank. You know who\'s putting in work before practice even starts.' },
+        },
+        {
+          '@type': 'Question',
+          name: 'What does Hockey Shot Challenge cost?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Free. For coaches, players, parents, and clubs. No paid tier, no subscription, no app to download.' },
+        },
+        {
+          '@type': 'Question',
+          name: 'Do kids need a password for Hockey Shot Challenge?',
+          acceptedAnswer: { '@type': 'Answer', text: 'No. Parents sign in with their Google account and set up their child\'s profile. Kids just tap and log.' },
+        },
+      ],
     })
     // Auto-focus the search on load
     setTimeout(() => inputRef.current?.focus(), 100)
@@ -162,7 +188,8 @@ export default function ForClubsScreen() {
 
       <footer className="fcl-footer">
         <button className="fcl-foot-link" onClick={() => nav('/')}>← Home</button>
-        <span className="fcl-foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge · Burlington, ON</span>
+        <button className="fcl-foot-link" onClick={() => nav('/blog')}>Parent guides</button>
+        <span className="fcl-foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge</span>
       </footer>
 
       <style>{styles}</style>

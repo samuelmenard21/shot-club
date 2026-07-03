@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { setSEO, CANONICAL_URL } from '../../lib/seo'
+import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
 
 export default function GettingStartedPost() {
   const nav = useNavigate()
@@ -10,7 +10,47 @@ export default function GettingStartedPost() {
       title: 'How to Get Your Kid Started on Hockey Shot Challenge',
       description: 'A step-by-step guide for hockey parents. Sign in with Google, set up your player profile, find their team, and log the first session. Takes 5 minutes.',
       url: `${CANONICAL_URL}/blog/getting-started`,
+      type: 'article',
     })
+    addStructuredData([
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: 'How to Get Your Kid Started on Hockey Shot Challenge',
+        description: 'A step-by-step guide for hockey parents. Sign in with Google, set up your player profile, find their team, and log the first session. Takes 5 minutes.',
+        datePublished: '2026-07-01',
+        dateModified: '2026-07-01',
+        author: { '@type': 'Organization', name: 'Hockey Shot Challenge' },
+        publisher: { '@type': 'Organization', name: 'Hockey Shot Challenge', url: 'https://hockeyshotchallenge.com' },
+        url: `${CANONICAL_URL}/blog/getting-started`,
+        mainEntityOfPage: `${CANONICAL_URL}/blog/getting-started`,
+        articleSection: 'Getting Started',
+        keywords: 'hockey practice tracker, off-ice hockey training, hockey for kids, hockey shot log',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'HowTo',
+        name: 'How to Get Your Kid Started on Hockey Shot Challenge',
+        description: 'Sign up and start logging shots in 5 minutes.',
+        totalTime: 'PT5M',
+        step: [
+          { '@type': 'HowToStep', name: 'Go to hockeyshotchallenge.com', text: 'Open the site in any browser on your phone. No app to download.' },
+          { '@type': 'HowToStep', name: 'Sign in with your Google account', text: 'Use your Gmail to sign in. You are the account holder — kids never need passwords.' },
+          { '@type': 'HowToStep', name: 'Set up your player\'s profile', text: 'Pick a username, enter your child\'s age group. Takes about two minutes.' },
+          { '@type': 'HowToStep', name: 'Find their team', text: 'Search for their club and join. Your kid appears on the team leaderboard right away.' },
+          { '@type': 'HowToStep', name: 'Log the first session', text: 'After practice, open the app, tap Log shots, pick a shot type, enter the count, and save.' },
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://hockeyshotchallenge.com' },
+          { '@type': 'ListItem', position: 2, name: 'Guides', item: `${CANONICAL_URL}/blog` },
+          { '@type': 'ListItem', position: 3, name: 'Getting Started', item: `${CANONICAL_URL}/blog/getting-started` },
+        ],
+      },
+    ])
   }, [])
 
   return (

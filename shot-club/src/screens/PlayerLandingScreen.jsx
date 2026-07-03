@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState, useRef } from 'react'
-import { setSEO, CANONICAL_URL } from '../lib/seo'
+import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import { AppMockupSection, RoutineSection } from '../components/LandingSharedSections'
 import { searchClubs } from '../lib/clubs'
 
@@ -43,10 +43,44 @@ export default function PlayerLandingScreen() {
 
   useEffect(() => {
     setSEO({
-      title: 'For players and parents',
-      description: 'Log your shots and stickhandling at home. Compete in squad battles every week. Earn your rank. Free for hockey players ages 6–18.',
+      title: 'Hockey Shot Tracker for Kids — Log Shots & Earn Ranks',
+      description: 'Free off-ice hockey practice tracker for kids ages 6–18. Log shots and stickhandling every day, earn ranks from Rookie to Legend, and compete in weekly squad battles.',
       url: `${CANONICAL_URL}/player`,
     })
+    addStructuredData([
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        name: 'Hockey Shot Challenge',
+        url: 'https://hockeyshotchallenge.com',
+        applicationCategory: 'SportsApplication',
+        operatingSystem: 'Web',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'CAD' },
+        description: 'Free off-ice hockey practice tracker for kids. Log shots and stickhandling reps, earn ranks, and compete in weekly squad battles.',
+        audience: { '@type': 'Audience', audienceType: 'Hockey players ages 6–18 and their parents' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'Is Hockey Shot Challenge free for players?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Yes. Hockey Shot Challenge is completely free for players and parents. No subscription, no app to download, no hidden fees.' },
+          },
+          {
+            '@type': 'Question',
+            name: 'What age is Hockey Shot Challenge for?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Hockey Shot Challenge is designed for hockey players ages 6–18. Parents sign in with their Google account and set up their child\'s profile.' },
+          },
+          {
+            '@type': 'Question',
+            name: 'What do kids track on Hockey Shot Challenge?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Kids log wrist shots, snap shots, slap shots, backhand shots, and stickhandling reps (toe drags, figure eights, lateral moves). Sessions take 5 seconds to log.' },
+          },
+        ],
+      },
+    ])
   }, [])
 
   return (
@@ -195,8 +229,22 @@ export default function PlayerLandingScreen() {
           <button className="pl-cta" onClick={() => nav('/start')}>
             Sign up for my player →
           </button>
+          <p className="pl-cta-hint" style={{ marginTop: 20 }}>
+            New to this? Read our{' '}
+            <button className="pl-inline-link" onClick={() => nav('/blog/getting-started')}>5-step parent guide →</button>
+          </p>
         </div>
       </section>
+
+      <style>{`
+        .pl-inline-link {
+          background: transparent; color: #60a5fa;
+          font-size: inherit; font-family: inherit;
+          text-decoration: underline; text-underline-offset: 3px;
+          cursor: pointer; padding: 0;
+        }
+        .pl-inline-link:hover { color: white; }
+      `}</style>
 
       <style>{styles}</style>
     </div>

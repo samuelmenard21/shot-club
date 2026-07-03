@@ -61,16 +61,17 @@ export function setSEO({
   setLink('canonical', fullUrl)
 }
 
+// Accepts a single schema object or array of schema objects
 export function addStructuredData(data) {
-  // Remove any existing JSON-LD added by us
-  const existing = document.querySelector('script[data-seo-jsonld]')
-  if (existing) existing.remove()
-
-  const script = document.createElement('script')
-  script.type = 'application/ld+json'
-  script.setAttribute('data-seo-jsonld', 'true')
-  script.textContent = JSON.stringify(data)
-  document.head.appendChild(script)
+  document.querySelectorAll('script[data-seo-jsonld]').forEach(el => el.remove())
+  const schemas = Array.isArray(data) ? data : [data]
+  schemas.forEach((schema, i) => {
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.setAttribute('data-seo-jsonld', String(i))
+    script.textContent = JSON.stringify(schema)
+    document.head.appendChild(script)
+  })
 }
 
 export { CANONICAL_URL, DEFAULT_TITLE, DEFAULT_DESCRIPTION }

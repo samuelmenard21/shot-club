@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
-import { setSEO, CANONICAL_URL } from '../lib/seo'
+import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import { AppMockupSection, RoutineSection } from '../components/LandingSharedSections'
 
 export default function CoachLandingScreen() {
@@ -8,9 +8,20 @@ export default function CoachLandingScreen() {
 
   useEffect(() => {
     setSEO({
-      title: 'For coaches & clubs',
-      description: 'See which players are putting in the work. Activity feed, player stats, squad battles, and skill videos. Free for your whole team.',
+      title: 'Hockey Coaching Dashboard — Track Player Off-Ice Training Free',
+      description: 'Free hockey coaching tool. See which players are logging shots at home, track streaks and ranks, run squad battles, and motivate your team — no app required.',
       url: `${CANONICAL_URL}/coach`,
+    })
+    addStructuredData({
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'Hockey Shot Challenge — Coach Dashboard',
+      url: 'https://hockeyshotchallenge.com/coach',
+      applicationCategory: 'SportsApplication',
+      operatingSystem: 'Web',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'CAD' },
+      description: 'Free hockey coaching dashboard. Track which players log shots and stickhandling at home, see weekly activity, run squad battles, and motivate your team.',
+      audience: { '@type': 'Audience', audienceType: 'Hockey coaches and club managers' },
     })
   }, [])
 
@@ -138,10 +149,22 @@ export default function CoachLandingScreen() {
             Set up my team →
           </button>
           <p className="cl-cta-hint">Sign in with Google. Takes 2 minutes.</p>
+          <p style={{ marginTop: 20, fontSize: 14, color: '#4a6080' }}>
+            Managing a full association?{' '}
+            <button className="cl-assoc-link" onClick={() => nav('/for-clubs')}>See club & association tools →</button>
+          </p>
         </div>
       </section>
 
-      <style>{styles}</style>
+      <style>{styles + `
+        .cl-assoc-link {
+          background: transparent; color: #60a5fa;
+          font-size: inherit; font-family: inherit;
+          text-decoration: underline; text-underline-offset: 3px;
+          cursor: pointer; padding: 0;
+        }
+        .cl-assoc-link:hover { color: white; }
+      `}</style>
     </div>
   )
 }
