@@ -89,10 +89,10 @@ export default function LandingScreen() {
       <section className="hero">
         <div className="hero-eyebrow">FREE · AGES 6–18 · OFF-ICE TRAINING</div>
         <h1 className="hero-title">
-          Log shots. Compete every week.<br />Get better every day.
+          Your card. Your rank.<br />Beat your squad.
         </h1>
         <p className="hero-sub">
-          Kids log shots and stickhandling at home, compete with teammates, and earn ranks. Coaches see who's putting in the work. All free.
+          Track your shots and stickhandling at home. Climb from Rookie to Regional. Compete with your squad every week. Free.
         </p>
 
         {totalShots > 0 && (
@@ -124,6 +124,7 @@ export default function LandingScreen() {
                   <div className="hero-card-serial">#007</div>
                 </div>
               </div>
+
               <div className="hero-card-identity">
                 <div className="hero-card-avatar">
                   <svg viewBox="0 0 80 80" style={{ width: '100%', height: '100%' }}>
@@ -138,38 +139,58 @@ export default function LandingScreen() {
                     <span className="hero-card-pill">FORWARD</span>
                     <span className="hero-card-pill">Tier 2 Eagles</span>
                   </div>
+                  <div className="hero-card-streak">🔥 12-day streak</div>
                 </div>
               </div>
+
               <div className="hero-card-rank-row">
                 <div>
-                  <div className="hero-card-meta-label">CURRENT RANK</div>
+                  <div className="hero-card-meta-label">RANK</div>
                   <div className="hero-card-rank-name">Prospect <span style={{ color: '#a8d4f5' }}>II</span></div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div className="hero-card-meta-label">NEXT</div>
-                  <div className="hero-card-rank-next">Prospect III</div>
-                  <div className="hero-card-rank-togo">260 to go</div>
+                  <div className="hero-card-meta-label">THIS WEEK</div>
+                  <div className="hero-card-rank-name" style={{ color: '#fbbf24' }}>#3 on team</div>
                 </div>
               </div>
               <div className="hero-card-rank-bar">
                 <div className="hero-card-rank-fill" style={{ width: '68%' }} />
               </div>
-              <div className="hero-card-stats">
-                <div className="hero-card-stat">
-                  <div className="hero-card-stat-num">1,240</div>
-                  <div className="hero-card-stat-label">Lifetime</div>
+              <div className="hero-card-rank-togo">260 shots to Prospect III</div>
+
+              <div className="hero-card-shots-label">THIS WEEK'S SHOTS — 168 total</div>
+              <div className="hero-card-shot-bars">
+                <div className="hero-card-shot-row">
+                  <div className="hero-card-shot-type">Wrist</div>
+                  <div className="hero-card-shot-bar-wrap">
+                    <div className="hero-card-shot-bar" style={{ width: '75%', background: '#2979ff' }} />
+                  </div>
+                  <div className="hero-card-shot-count">85</div>
                 </div>
-                <div className="hero-card-stat">
-                  <div className="hero-card-stat-num">🔥 12</div>
-                  <div className="hero-card-stat-label">Streak</div>
+                <div className="hero-card-shot-row">
+                  <div className="hero-card-shot-type">Snap</div>
+                  <div className="hero-card-shot-bar-wrap">
+                    <div className="hero-card-shot-bar" style={{ width: '42%', background: '#a8d4f5' }} />
+                  </div>
+                  <div className="hero-card-shot-count">42</div>
                 </div>
-                <div className="hero-card-stat">
-                  <div className="hero-card-stat-num">#3</div>
-                  <div className="hero-card-stat-label">This week</div>
+                <div className="hero-card-shot-row">
+                  <div className="hero-card-shot-type">Slap</div>
+                  <div className="hero-card-shot-bar-wrap">
+                    <div className="hero-card-shot-bar" style={{ width: '24%', background: '#ff7a29' }} />
+                  </div>
+                  <div className="hero-card-shot-count">24</div>
+                </div>
+                <div className="hero-card-shot-row">
+                  <div className="hero-card-shot-type">Backhand</div>
+                  <div className="hero-card-shot-bar-wrap">
+                    <div className="hero-card-shot-bar" style={{ width: '15%', background: '#3dd68c' }} />
+                  </div>
+                  <div className="hero-card-shot-count">17</div>
                 </div>
               </div>
             </div>
-            {/* Sign-in overlay at bottom of card */}
+
             <div className="hero-card-overlay">
               <button className="hero-card-signin" onClick={() => nav('/start')}>
                 <GoogleIcon />
@@ -181,9 +202,8 @@ export default function LandingScreen() {
         </div>
 
         <div className="hero-secondary-paths">
-          <button className="hero-secondary-link" onClick={() => nav('/coach')}>I'm a coach →</button>
-          <span className="hero-secondary-div">·</span>
-          <button className="hero-secondary-link" onClick={() => nav('/for-clubs')}>I manage a club →</button>
+          <button className="hero-secondary-pill hero-secondary-pill--coach" onClick={() => nav('/coach')}>🏒 I'm a coach</button>
+          <button className="hero-secondary-pill hero-secondary-pill--club" onClick={() => nav('/for-clubs')}>📊 I manage a club</button>
         </div>
 
         <div className="hero-club-search">
@@ -1091,6 +1111,49 @@ body:has(.landing) { background: var(--bg) !important; }
 .hero-card-signin-hint {
   font-size: 12px; color: #4a6080; letter-spacing: 0.3px;
 }
+.hero-card-streak {
+  font-size: 13px; color: #fb923c; font-weight: 600; margin-top: 4px;
+}
+.hero-card-shots-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  color: var(--text-mute); text-transform: uppercase;
+  margin: 12px 0 8px;
+}
+.hero-card-shot-bars { display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px; }
+.hero-card-shot-row {
+  display: grid; grid-template-columns: 64px 1fr 28px;
+  align-items: center; gap: 8px;
+}
+.hero-card-shot-type { font-size: 12px; color: #8899b4; font-weight: 500; }
+.hero-card-shot-bar-wrap {
+  height: 6px; background: rgba(255,255,255,0.06);
+  border-radius: 999px; overflow: hidden;
+}
+.hero-card-shot-bar { height: 100%; border-radius: 999px; }
+.hero-card-shot-count { font-size: 12px; color: white; font-weight: 700; text-align: right; }
+
+.hero-secondary-paths {
+  display: flex; gap: 10px; justify-content: center;
+  flex-wrap: wrap; margin-bottom: 28px;
+}
+.hero-secondary-pill {
+  padding: 10px 18px; border-radius: 999px;
+  font-size: 14px; font-weight: 600;
+  transition: transform 0.1s;
+}
+.hero-secondary-pill:active { transform: scale(0.97); }
+.hero-secondary-pill--coach {
+  background: rgba(41,121,255,0.12);
+  border: 1px solid rgba(41,121,255,0.35);
+  color: #a8d4f5;
+}
+.hero-secondary-pill--coach:hover { background: rgba(41,121,255,0.2); }
+.hero-secondary-pill--club {
+  background: rgba(45,120,90,0.12);
+  border: 1px solid rgba(45,120,90,0.35);
+  color: #7dd3b8;
+}
+.hero-secondary-pill--club:hover { background: rgba(45,120,90,0.2); }
 
 /* Keep old card classes so rest of page still works */
 .hero-card-text {
