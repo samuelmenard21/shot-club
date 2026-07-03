@@ -90,7 +90,7 @@ export default function CoachLandingScreen() {
             </div>
             <div className="cl-dash-players">
               {[
-                { name: 'Connor M.', rank: 'Prospect II', shots: 168, streak: 12, active: true },
+                { name: 'Olivia M.', rank: 'Prospect II', shots: 168, streak: 12, active: true },
                 { name: 'Liam K.', rank: 'Prospect I', shots: 191, streak: 8, active: true },
                 { name: 'Jake T.', rank: 'Rookie III', shots: 84, streak: 3, active: false },
                 { name: 'Owen S.', rank: 'Rookie II', shots: 42, streak: 1, active: false },
