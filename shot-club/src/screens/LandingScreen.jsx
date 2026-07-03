@@ -117,7 +117,7 @@ export default function LandingScreen() {
               <div className="hero-card-meta">
                 <div>
                   <div className="hero-card-meta-label">HOCKEY SHOT CHALLENGE · 2026</div>
-                  <div className="hero-card-meta-handle">@connorm</div>
+                  <div className="hero-card-meta-handle">@oliviam</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div className="hero-card-meta-label">CARD</div>
@@ -131,10 +131,10 @@ export default function LandingScreen() {
                     <polygon points="40,4 72,22 72,58 40,76 8,58 8,22" fill="#1a2847" stroke="#2979ff" strokeWidth="1.5" />
                     <polygon points="40,12 66,26 66,54 40,68 14,54 14,26" fill="none" stroke="#4a92ff" strokeWidth="0.5" opacity="0.6" />
                   </svg>
-                  <div className="hero-card-avatar-letters">CM</div>
+                  <div className="hero-card-avatar-letters">OM</div>
                 </div>
                 <div>
-                  <div className="hero-card-name">Connor M.</div>
+                  <div className="hero-card-name">Olivia M.</div>
                   <div className="hero-card-pills">
                     <span className="hero-card-pill">FORWARD</span>
                     <span className="hero-card-pill">Tier 2 Eagles</span>
