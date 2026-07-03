@@ -98,7 +98,7 @@ export default function LandingScreen() {
               <span>🔥 Streaks</span>
               <span>🏅 Ranks</span>
             </div>
-            <div className="hero-path-cta">Start for free →</div>
+            <div className="hero-path-btn hero-path-btn--player">Start for free →</div>
           </button>
 
           <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
@@ -109,7 +109,7 @@ export default function LandingScreen() {
               <span>📈 Shot counts</span>
               <span>⚔️ Squad battles</span>
             </div>
-            <div className="hero-path-cta">Set up my team →</div>
+            <div className="hero-path-btn hero-path-btn--coach">Set up my team →</div>
           </button>
         </div>
 
@@ -519,12 +519,21 @@ body:has(.landing) { background: var(--bg) !important; }
   background: rgba(255,255,255,0.05);
   border-radius: 6px; padding: 3px 8px;
 }
-.hero-path-cta {
+.hero-path-btn {
   font-family: var(--font-display);
-  font-size: 14px; font-weight: 700;
+  font-size: 15px; font-weight: 800;
+  padding: 12px 16px; border-radius: 10px;
+  text-align: center; margin-top: 4px;
+  letter-spacing: 0.2px;
 }
-.hero-path--player .hero-path-cta { color: #60a5fa; }
-.hero-path--coach .hero-path-cta { color: #4ade80; }
+.hero-path-btn--player {
+  background: var(--accent); color: white;
+  box-shadow: 0 2px 12px rgba(41,121,255,0.4);
+}
+.hero-path-btn--coach {
+  background: rgba(45,180,100,0.18); color: #4ade80;
+  border: 1.5px solid rgba(45,180,100,0.45);
+}
 
 /* Club search */
 .hero-club-search {
