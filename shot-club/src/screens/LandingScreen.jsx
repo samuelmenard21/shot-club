@@ -98,7 +98,7 @@ export default function LandingScreen() {
               <span>🔥 Streaks</span>
               <span>🏅 Ranks</span>
             </div>
-            <div className="hero-path-btn hero-path-btn--player">Start for free →</div>
+            <div className="hero-path-btn hero-path-btn--player">Sign in to track shots →</div>
           </button>
 
           <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
