@@ -53,8 +53,14 @@ export default function AuthScreen() {
   // OAuth return: redirect if already has a profile, else show setup
   const isOAuthReturn = searchParams.get('oauth') === '1'
   useEffect(() => {
-    if (isOAuthReturn && !authLoading && player) {
-      nav('/home', { replace: true })
+    if (isOAuthReturn && !authLoading) {
+      if (player) {
+        // Player already exists, go to home
+        nav('/home', { replace: true })
+      } else {
+        // Player doesn't exist yet, show profile form on any path
+        setMode('create')
+      }
     }
   }, [isOAuthReturn, authLoading, player])
 
