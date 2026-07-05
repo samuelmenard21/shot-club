@@ -89,7 +89,7 @@ export default function LandingScreen() {
 
         {/* Two-path split */}
         <div className="hero-paths">
-          <button className="hero-path hero-path--player" onClick={() => nav('/player')}>
+          <button className="hero-path hero-path--player" onClick={() => nav('/start')}>
             <div className="hero-path-eyebrow">PLAYERS &amp; PARENTS</div>
             <div className="hero-path-title">Go outside. Shoot. Log it. Watch your rank climb.</div>
             <div className="hero-path-detail">
