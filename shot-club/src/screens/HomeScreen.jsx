@@ -215,6 +215,7 @@ export default function HomeScreen() {
         playerId={player.id}
         dailyGoal={player.daily_goal || 50}
         refreshKey={goalRefreshKey}
+        goalType="wrist"
       />
 
       {samLine && (

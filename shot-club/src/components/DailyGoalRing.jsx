@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getTodayProgress } from '../lib/progress'
 
-export default function DailyGoalRing({ playerId, dailyGoal, refreshKey }) {
+export default function DailyGoalRing({ playerId, dailyGoal, refreshKey, goalType = 'wrist' }) {
   const [progress, setProgress] = useState({ shotsToday: 0, goalMet: false, pctOfGoal: 0 })
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function DailyGoalRing({ playerId, dailyGoal, refreshKey }) {
         <div className="goal-ring-sub">/ {dailyGoal}</div>
       </div>
       <div className="goal-ring-label">
-        {progress.goalMet ? 'GOAL MET ✓' : 'DAILY GOAL'}
+        {progress.goalMet ? 'GOAL MET ✓' : `SHOOT ${dailyGoal} ${goalType.toUpperCase()} SHOTS`}
       </div>
       <style>{`
         .goal-ring-wrap {
