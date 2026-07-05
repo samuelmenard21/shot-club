@@ -233,7 +233,7 @@ export default function HomeScreen() {
           const todayCount = stats.todayByType[t] || 0
           return (
             <button key={t} className="shot-card" onClick={() => setEntryType(t)}>
-              <div className="shot-name">{t}</div>
+              <div className="shot-name">Add {t} shots</div>
               <div className="shot-value tnum">{todayCount}</div>
               <div className="shot-hint">today</div>
             </button>
@@ -251,7 +251,7 @@ export default function HomeScreen() {
             const todayCount = stats.todayByType[t] || 0
             return (
               <button key={t} className="stick-card" onClick={() => setEntryType(t)}>
-                <div className="stick-name">{t}</div>
+                <div className="stick-name">Add {t}</div>
                 <div className="stick-value tnum">{todayCount || '—'}</div>
               </button>
             )
