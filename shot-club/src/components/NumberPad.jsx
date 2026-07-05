@@ -25,7 +25,7 @@ export default function NumberPad({ type, onClose, onSave }) {
         <div className="numberpad-display">{count}</div>
 
         <div className="numberpad-grid">
-          {[1, 5, 10].map((n) => (
+          {[5, 10].map((n) => (
             <button
               key={n}
               className="numberpad-btn"
@@ -37,9 +37,9 @@ export default function NumberPad({ type, onClose, onSave }) {
         </div>
 
         <div className="numberpad-actions">
-          <button className="numberpad-clear" onClick={() => setCount(0)}>Clear</button>
+          <button className="numberpad-cancel" onClick={onClose}>Cancel</button>
           <button className="numberpad-save" onClick={handleSave} disabled={count <= 0}>
-            Save {count > 0 ? count : ''}
+            Save
           </button>
         </div>
 
@@ -70,80 +70,90 @@ const styles = `
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 .numberpad-title {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: white;
 }
 .numberpad-close {
-  font-size: 28px;
+  font-size: 32px;
   background: transparent;
   color: var(--text-soft);
   cursor: pointer;
   padding: 0;
+  transition: color 0.1s;
+}
+.numberpad-close:active {
+  color: var(--ice);
 }
 .numberpad-display {
   font-family: var(--font-display);
-  font-size: 48px;
+  font-size: 64px;
   font-weight: 800;
   color: var(--accent);
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
   line-height: 1;
 }
 .numberpad-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
 }
 .numberpad-btn {
-  background: var(--bg);
+  background: linear-gradient(135deg, var(--accent) 0%, #2563eb 100%);
   color: white;
+  border: none;
+  border-radius: 16px;
+  padding: 28px 16px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 0 4px 12px rgba(41, 121, 255, 0.3);
+}
+.numberpad-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 6px rgba(41, 121, 255, 0.5);
+}
+.numberpad-actions {
+  display: flex;
+  gap: 12px;
+}
+.numberpad-cancel {
+  flex: 1;
+  background: var(--surface);
+  color: var(--text-soft);
   border: 1px solid var(--border-dim);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 16px;
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: all 0.1s;
 }
-.numberpad-btn:active {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-.numberpad-actions {
-  display: flex;
-  gap: 10px;
-}
-.numberpad-clear {
-  flex: 1;
-  background: transparent;
-  color: var(--text-soft);
-  border: 1px solid var(--border-dim);
-  border-radius: 12px;
-  padding: 12px;
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
+.numberpad-cancel:active {
+  background: var(--bg);
 }
 .numberpad-save {
   flex: 1;
-  background: var(--accent);
+  background: linear-gradient(135deg, #3dd68c 0%, #2dbd72 100%);
   color: white;
   border: none;
-  border-radius: 12px;
-  padding: 12px;
+  border-radius: 14px;
+  padding: 16px;
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: opacity 0.1s;
+  box-shadow: 0 4px 12px rgba(61, 214, 140, 0.3);
 }
 .numberpad-save:disabled {
   opacity: 0.5;
