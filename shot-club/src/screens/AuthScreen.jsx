@@ -486,7 +486,7 @@ export default function AuthScreen() {
                       className={`for-btn ${signingUpFor === 'player' ? 'for-btn--active' : ''}`}
                       onClick={() => { setSigningUpFor('player'); setError('') }}
                     >
-                      My player
+                      My kid
                     </button>
                   </div>
                   {signingUpFor === 'player' && (
