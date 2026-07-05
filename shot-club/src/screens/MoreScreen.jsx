@@ -118,7 +118,7 @@ export default function MoreScreen() {
             Share your team name with friends so they can join and compete with you.
           </div>
           <button className="invite-btn" onClick={shareTeam}>
-            {shared || copiedWhat === 'share' ? '✓ Shared' : '↗ Invite teammates'}
+            {shared ? '✓ Shared' : '↗ Invite teammates'}
           </button>
         </div>
       )}
