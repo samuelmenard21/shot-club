@@ -265,76 +265,6 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      {hasRecentLog && (
-        <button className="undo-btn" onClick={handleUndo}>
-          <span className="undo-icon">↩</span>
-          <span className="undo-text">
-            <span className="undo-label">Undo last entry</span>
-            <span className="undo-detail">+{lastLog.count} {lastLog.type}</span>
-          </span>
-        </button>
-      )}
-
-      {newPB && (
-        <div className="pb-banner">
-          <span>🏆 New personal best — {stats.todayTotal} shots today!</span>
-          <button className="pb-share" onClick={async () => {
-            const text = `New personal best — ${stats.todayTotal} shots today! 🏒 #HockeyShotChallenge hockeyshotchallenge.com`
-            if (navigator.share) { try { await navigator.share({ text }) } catch (_) {} }
-            else { await navigator.clipboard.writeText(text) }
-          }}>Share</button>
-        </div>
-      )}
-
-      <div className="stats-row">
-        <div className="stat">
-          <div className="label-sm">Today</div>
-          <div className="stat-value tnum">{stats.todayTotal}</div>
-        </div>
-        <div className="stat">
-          <div className="label-sm">This week</div>
-          <div className="stat-value tnum">{stats.weekTotal}</div>
-        </div>
-        <div className="stat">
-          <div className="label-sm">Best day</div>
-          <div className="stat-value tnum" style={{ color: 'var(--ice)' }}>{personalBest || '—'}</div>
-        </div>
-      </div>
-
-      {teamChallenge && (
-        <div className="team-ch-bar">
-          <div className="team-ch-header">
-            <span className="team-ch-label">Team goal this week</span>
-            <span className="team-ch-fraction">{teamWeekShots.toLocaleString()} / {teamChallenge.goal_shots.toLocaleString()} shots</span>
-          </div>
-          <div className="team-ch-track">
-            <div
-              className="team-ch-fill"
-              style={{ width: `${Math.min(100, Math.round((teamWeekShots / teamChallenge.goal_shots) * 100))}%` }}
-            />
-          </div>
-          {teamWeekShots >= teamChallenge.goal_shots && (
-            <div className="team-ch-done">🏒 Goal reached! Keep it going.</div>
-          )}
-        </div>
-      )}
-
-      <BattleCard
-        battle={squadBattle}
-        onLogNow={() => setEntryType('Wrist')}
-      />
-
-      {rival && (
-        <div className={`chase chase--${chasingTagClass}`}>
-          <div>
-            <div className="label-sm">Rival this week 🏒</div>
-            <div className="chase-name">{chasingText}</div>
-            {chasingSub && <div className="chase-sub">{chasingSub}</div>}
-          </div>
-          <div className={`chase-tag chase-tag--${chasingTagClass} tnum`}>{chasingTag}</div>
-        </div>
-      )}
-
       {videos.length > 0 && (() => {
         const dayIndex = Math.floor(Date.now() / 86400000)
         const featured = videos[dayIndex % videos.length]
@@ -404,6 +334,76 @@ export default function HomeScreen() {
           </>
         )
       })()}
+
+      {hasRecentLog && (
+        <button className="undo-btn" onClick={handleUndo}>
+          <span className="undo-icon">↩</span>
+          <span className="undo-text">
+            <span className="undo-label">Undo last entry</span>
+            <span className="undo-detail">+{lastLog.count} {lastLog.type}</span>
+          </span>
+        </button>
+      )}
+
+      {newPB && (
+        <div className="pb-banner">
+          <span>🏆 New personal best — {stats.todayTotal} shots today!</span>
+          <button className="pb-share" onClick={async () => {
+            const text = `New personal best — ${stats.todayTotal} shots today! 🏒 #HockeyShotChallenge hockeyshotchallenge.com`
+            if (navigator.share) { try { await navigator.share({ text }) } catch (_) {} }
+            else { await navigator.clipboard.writeText(text) }
+          }}>Share</button>
+        </div>
+      )}
+
+      <div className="stats-row">
+        <div className="stat">
+          <div className="label-sm">Today</div>
+          <div className="stat-value tnum">{stats.todayTotal}</div>
+        </div>
+        <div className="stat">
+          <div className="label-sm">This week</div>
+          <div className="stat-value tnum">{stats.weekTotal}</div>
+        </div>
+        <div className="stat">
+          <div className="label-sm">Best day</div>
+          <div className="stat-value tnum" style={{ color: 'var(--ice)' }}>{personalBest || '—'}</div>
+        </div>
+      </div>
+
+      {teamChallenge && (
+        <div className="team-ch-bar">
+          <div className="team-ch-header">
+            <span className="team-ch-label">Team goal this week</span>
+            <span className="team-ch-fraction">{teamWeekShots.toLocaleString()} / {teamChallenge.goal_shots.toLocaleString()} shots</span>
+          </div>
+          <div className="team-ch-track">
+            <div
+              className="team-ch-fill"
+              style={{ width: `${Math.min(100, Math.round((teamWeekShots / teamChallenge.goal_shots) * 100))}%` }}
+            />
+          </div>
+          {teamWeekShots >= teamChallenge.goal_shots && (
+            <div className="team-ch-done">🏒 Goal reached! Keep it going.</div>
+          )}
+        </div>
+      )}
+
+      <BattleCard
+        battle={squadBattle}
+        onLogNow={() => setEntryType('Wrist')}
+      />
+
+      {rival && (
+        <div className={`chase chase--${chasingTagClass}`}>
+          <div>
+            <div className="label-sm">Rival this week 🏒</div>
+            <div className="chase-name">{chasingText}</div>
+            {chasingSub && <div className="chase-sub">{chasingSub}</div>}
+          </div>
+          <div className={`chase-tag chase-tag--${chasingTagClass} tnum`}>{chasingTag}</div>
+        </div>
+      )}
 
       {!player.team_id && <JoinTeamPanel playerId={player.id} onJoined={refresh} />}
 
