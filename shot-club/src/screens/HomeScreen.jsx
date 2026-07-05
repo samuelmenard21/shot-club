@@ -18,6 +18,18 @@ const SHOT_TYPES_SHOOTER = ['Wrist', 'Snap', 'Slap', 'Backhand']
 const SHOT_TYPES_GOALIE = ['Saves']
 const STICK_TYPES = ['Toe Drag', 'Figure 8', 'Lateral', 'One-Hand']
 
+const SHOT_EMOJIS = {
+  'Wrist': '🎯',
+  'Snap': '⚡',
+  'Slap': '💥',
+  'Backhand': '🔄',
+  'Saves': '🧤',
+  'Toe Drag': '👟',
+  'Figure 8': '8️⃣',
+  'Lateral': '↔️',
+  'One-Hand': '✋',
+}
+
 export default function HomeScreen() {
   const { player, refresh } = useAuth()
   const [stats, setStats] = useState({ todayTotal: 0, weekTotal: 0, todayByType: {} })
@@ -100,10 +112,21 @@ export default function HomeScreen() {
       setTimeout(refreshStats, 400)
       setGoalRefreshKey((k) => k + 1)
 
+      const newTotal = stats.todayTotal + count
+      const dailyGoal = player.daily_goal || 50
+
+      // Celebration messages for milestones
+      if (newTotal === dailyGoal) {
+        showToast('🔥 Daily goal reached!')
+      } else if (newTotal === 100) {
+        showToast('💪 100 shots today!')
+      } else if (newTotal === 50) {
+        showToast('⭐ 50 shots!')
+      }
+
       // Check for new personal best (shot types only, not stickhandling)
       const shotTypes = ['Wrist', 'Snap', 'Slap', 'Backhand', 'Saves']
       if (shotTypes.includes(type)) {
-        const newTotal = stats.todayTotal + count
         if (newTotal > personalBest && personalBest > 0) {
           setPersonalBest(newTotal)
           setNewPB(true)
@@ -239,7 +262,7 @@ export default function HomeScreen() {
           const todayCount = stats.todayByType[t] || 0
           return (
             <button key={t} className="shot-card" onClick={() => setEntryType(t)}>
-              <div className="shot-name">Add {t} shots</div>
+              <div className="shot-name">{SHOT_EMOJIS[t]} {t}</div>
               <div className="shot-value tnum">{todayCount}</div>
               <div className="shot-hint">today</div>
             </button>
@@ -249,7 +272,7 @@ export default function HomeScreen() {
 
       <div className="stick-section">
         <div className="stick-header">
-          <div className="label-sm">Stickhandling</div>
+          <div className="label-sm">Stick skills 🏑</div>
           <div className="stick-hint">reps today</div>
         </div>
         <div className="stick-grid">
@@ -257,7 +280,7 @@ export default function HomeScreen() {
             const todayCount = stats.todayByType[t] || 0
             return (
               <button key={t} className="stick-card" onClick={() => setEntryType(t)}>
-                <div className="stick-name">Add {t}</div>
+                <div className="stick-name">{SHOT_EMOJIS[t]} {t}</div>
                 <div className="stick-value tnum">{todayCount || '—'}</div>
               </button>
             )
@@ -270,7 +293,7 @@ export default function HomeScreen() {
         <div className="progress-section">
           <div style={{ marginBottom: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <div className="label-sm">Lifetime shots</div>
+              <div className="label-sm">Total shots 🎯</div>
               <div className="info-value tnum" style={{ fontSize: 11 }}>{player.lifetime_shots.toLocaleString()} / {player.lifetime_shot_goal.toLocaleString()}</div>
             </div>
             <div style={{
@@ -292,7 +315,7 @@ export default function HomeScreen() {
           {player.stickhandling_hour_goal && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <div className="label-sm">Stickhandling hours</div>
+                <div className="label-sm">Stick time ⏱️</div>
                 <div className="info-value tnum" style={{ fontSize: 11 }}>{(player.lifetime_drill_minutes / 60).toFixed(1)} / {player.stickhandling_hour_goal}</div>
               </div>
               <div style={{

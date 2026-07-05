@@ -159,11 +159,11 @@ export default function MoreScreen() {
       )}
 
       {/* Drills shortcut - NEW */}
-      <button className="drills-link" onClick={() => nav('/drills')}>
-        <div className="drills-link-icon">🎯</div>
+      <button className="drills-link" onClick={() => nav('/videos')}>
+        <div className="drills-link-icon">🎬</div>
         <div className="drills-link-text">
-          <div className="drills-link-title">Drills library</div>
-          <div className="drills-link-sub">Pro tutorials by shot type</div>
+          <div className="drills-link-title">Watch drills</div>
+          <div className="drills-link-sub">Learn new moves from pros</div>
         </div>
         <div className="drills-link-arrow">→</div>
       </button>
@@ -199,10 +199,10 @@ export default function MoreScreen() {
 
       {/* My Goals */}
       <div className="section">
-        <div className="label-sm" style={{ marginBottom: 8 }}>My goals</div>
+        <div className="label-sm" style={{ marginBottom: 8 }}>My goals 🎯</div>
         <div className="info-card">
           <div style={{ marginBottom: 16 }}>
-            <div className="info-label">Lifetime shots</div>
+            <div className="info-label">Total shots to reach 🎯</div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
               <input
                 type="number"
@@ -221,11 +221,10 @@ export default function MoreScreen() {
                   fontWeight: 600,
                 }}
               />
-              <div className="info-value tnum" style={{ fontSize: 12, color: 'var(--text-mute)' }}>goal</div>
             </div>
           </div>
           <div>
-            <div className="info-label">Stickhandling hours</div>
+            <div className="info-label">Stick time hours ⏱️</div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
               <input
                 type="number"
@@ -245,7 +244,6 @@ export default function MoreScreen() {
                   fontWeight: 600,
                 }}
               />
-              <div className="info-value tnum" style={{ fontSize: 12, color: 'var(--text-mute)' }}>hrs</div>
             </div>
           </div>
           <button
@@ -269,56 +267,6 @@ export default function MoreScreen() {
           </button>
           <div className="info-hint">
             Set your personal goals. Progress shows on the home screen.
-          </div>
-        </div>
-      </div>
-
-      {/* Player info */}
-      <div className="section">
-        <div className="label-sm" style={{ marginBottom: 8 }}>You</div>
-        <div className="info-card">
-          <div className="kv-row">
-            <div className="kv-label">Name</div>
-            <div className="kv-value">{player.display_name}</div>
-          </div>
-          <div className="kv-row">
-            <div className="kv-label">Card number</div>
-            <div className="kv-value tnum">{cardNumberDisplay}</div>
-          </div>
-          <div className="kv-row">
-            <div className="kv-label">Position</div>
-            <div className="kv-value">{player.position === 'F' ? 'Forward' : player.position === 'D' ? 'Defense' : 'Goalie'}</div>
-          </div>
-          <div className="kv-row">
-            <div className="kv-label">Age</div>
-            <div className="kv-value">{player.age_bracket}</div>
-          </div>
-          {player.team?.name && (
-            <div className="kv-row">
-              <div className="kv-label">Team</div>
-              <div className="kv-value">{player.team.name}</div>
-            </div>
-          )}
-          {player.club_name && (
-            <div className="kv-row">
-              <div className="kv-label">Club</div>
-              <div className="kv-value">{player.club_name}</div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* About */}
-      <div className="section">
-        <div className="label-sm" style={{ marginBottom: 8 }}>About</div>
-        <div className="info-card">
-          <div className="kv-row">
-            <div className="kv-label">App</div>
-            <div className="kv-value">Hockey Shot Challenge</div>
-          </div>
-          <div className="kv-row">
-            <div className="kv-label">Version</div>
-            <div className="kv-value">1.5</div>
           </div>
         </div>
       </div>
