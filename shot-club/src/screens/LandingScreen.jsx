@@ -4,9 +4,11 @@ import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import ContactSection from '../components/ContactSection'
 import { searchClubs } from '../lib/clubs'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth'
 
 export default function LandingScreen() {
   const nav = useNavigate()
+  const { player } = useAuth()
   const [clubQuery, setClubQuery] = useState('')
   const [clubResults, setClubResults] = useState([])
   const [searchingClubs, setSearchingClubs] = useState(false)
@@ -68,8 +70,16 @@ export default function LandingScreen() {
           <span>Hockey Shot Challenge</span>
         </button>
         <div className="land-nav-actions">
-          <button className="land-nav-link" onClick={() => nav('/start')}>Sign in</button>
-          <button className="land-nav-cta" onClick={() => nav('/start')}>Start free →</button>
+          {player ? (
+            <button className="land-nav-cta" onClick={() => nav('/home')}>
+              My Dashboard →
+            </button>
+          ) : (
+            <>
+              <button className="land-nav-link" onClick={() => nav('/start')}>Sign in</button>
+              <button className="land-nav-cta" onClick={() => nav('/start')}>Start free →</button>
+            </>
+          )}
         </div>
       </nav>
 
