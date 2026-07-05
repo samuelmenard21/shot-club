@@ -435,62 +435,6 @@ export default function HomeScreen() {
   )
 }
 
-function NumberPad({ type, onSave, onClose }) {
-  const [value, setValue] = useState('')
-
-  const add = (digit) => {
-    if (value.length >= 4) return
-    setValue((v) => (v === '0' ? String(digit) : v + String(digit)))
-  }
-
-  const backspace = () => setValue((v) => v.slice(0, -1))
-  const clear = () => setValue('')
-
-  const num = parseInt(value, 10) || 0
-  const save = () => { if (num > 0) onSave(num) }
-
-  const quickAmounts = [10, 25, 50, 100]
-
-  return (
-    <div className="pad-overlay" onClick={onClose}>
-      <div className="pad-sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="pad-header">
-          <div>
-            <div className="label-sm">How many</div>
-            <div className="pad-title">{type} shots</div>
-          </div>
-          <button className="pad-close" onClick={onClose} aria-label="Close">✕</button>
-        </div>
-
-        <div className="pad-display">
-          <div className="pad-value tnum">{value || '0'}</div>
-        </div>
-
-        <div className="pad-quick">
-          {quickAmounts.map((n) => (
-            <button key={n} className="pad-quick-btn" onClick={() => setValue(String(n))}>
-              {n}
-            </button>
-          ))}
-        </div>
-
-        <div className="pad-grid">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
-            <button key={d} className="pad-btn" onClick={() => add(d)}>{d}</button>
-          ))}
-          <button className="pad-btn pad-btn--sm" onClick={clear}>Clear</button>
-          <button className="pad-btn" onClick={() => add(0)}>0</button>
-          <button className="pad-btn pad-btn--sm" onClick={backspace}>⌫</button>
-        </div>
-
-        <button className="pad-save" onClick={save} disabled={num === 0}>
-          Log {num > 0 ? num : ''} {type} shot{num === 1 ? '' : 's'}
-        </button>
-      </div>
-    </div>
-  )
-}
-
 function JoinTeamPanel({ playerId, onJoined }) {
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
