@@ -18,6 +18,7 @@ import CoachDashboardScreen from './screens/CoachDashboardScreen'
 
 // Player (authenticated)
 import HomeScreen from './screens/HomeScreen'
+import VideosScreen from './screens/VideosScreen'
 import CardScreen from './screens/CardScreen'
 import RankScreen from './screens/RankScreen'
 import MoreScreen from './screens/MoreScreen'
@@ -67,11 +68,12 @@ function BottomNav() {
   const nav = useNavigate()
   const { player } = useAuth()
 
-  const authedPaths = ['/home', '/card', '/rank', '/more']
+  const authedPaths = ['/home', '/videos', '/card', '/rank', '/more']
   if (!authedPaths.includes(loc.pathname) || !player) return null
 
   const items = [
     { path: '/home', label: 'Home', icon: <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2 L3 8 V17 H8 V12 H12 V17 H17 V8 Z" fill="currentColor" /></svg> },
+    { path: '/videos', label: 'Videos', icon: <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="4" width="16" height="12" rx="2" fill="currentColor" /><path d="M8 9 L14 12 L8 15 Z" fill="var(--bg)" /></svg> },
     { path: '/card', label: 'Card', icon: <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="2" fill="currentColor" /></svg> },
     { path: '/rank', label: 'Rank', icon: <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="10" width="3" height="7" fill="currentColor" /><rect x="8.5" y="6" width="3" height="11" fill="currentColor" /><rect x="14" y="3" width="3" height="14" fill="currentColor" /></svg> },
     { path: '/more', label: 'More', icon: <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="5" cy="10" r="1.5" fill="currentColor" /><circle cx="10" cy="10" r="1.5" fill="currentColor" /><circle cx="15" cy="10" r="1.5" fill="currentColor" /></svg> },
@@ -97,7 +99,7 @@ function BottomNav() {
 
 function ShellWrapper() {
   const loc = useLocation()
-  const useAppShell = ['/home', '/card', '/rank', '/more'].includes(loc.pathname)
+  const useAppShell = ['/home', '/videos', '/card', '/rank', '/more'].includes(loc.pathname)
 
   return (
     <div className={useAppShell ? 'app-shell' : 'full-width'}>
@@ -122,6 +124,7 @@ function ShellWrapper() {
 
         {/* Authenticated player */}
         <Route path="/home" element={<Protected><HomeScreen /></Protected>} />
+        <Route path="/videos" element={<Protected><VideosScreen /></Protected>} />
         <Route path="/card" element={<Protected><CardScreen /></Protected>} />
         <Route path="/rank" element={<Protected><RankScreen /></Protected>} />
         <Route path="/teams" element={<Navigate to="/rank" replace />} />
