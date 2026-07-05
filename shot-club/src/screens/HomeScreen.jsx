@@ -114,14 +114,25 @@ export default function HomeScreen() {
 
       const newTotal = stats.todayTotal + count
       const dailyGoal = player.daily_goal || 50
+      const lifetimeShots = player.lifetime_shots + count
 
-      // Celebration messages for milestones
+      // Celebration messages for daily milestones
       if (newTotal === dailyGoal) {
         showToast('🔥 Daily goal reached!')
       } else if (newTotal === 100) {
         showToast('💪 100 shots today!')
       } else if (newTotal === 50) {
         showToast('⭐ 50 shots!')
+      }
+
+      // Celebration messages for lifetime milestones
+      const milestones = [250, 500, 1000, 2500, 5000]
+      for (const milestone of milestones) {
+        if (lifetimeShots === milestone) {
+          const badges = { 250: '🥈', 500: '🥇', 1000: '💎', 2500: '👑', 5000: '🏆' }
+          showToast(`${badges[milestone]} ${milestone.toLocaleString()} TOTAL SHOTS!`)
+          break
+        }
       }
 
       // Check for new personal best (shot types only, not stickhandling)
@@ -288,54 +299,100 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      {/* Progress toward lifetime goals */}
-      {player.lifetime_shot_goal && (
-        <div className="progress-section">
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <div className="label-sm">Total shots 🎯</div>
-              <div className="info-value tnum" style={{ fontSize: 11 }}>{player.lifetime_shots.toLocaleString()} / {player.lifetime_shot_goal.toLocaleString()}</div>
-            </div>
-            <div style={{
-              width: '100%',
-              height: 6,
-              background: 'rgba(255,255,255,0.1)',
-              borderRadius: 3,
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                height: '100%',
-                background: 'linear-gradient(90deg, var(--accent) 0%, #2563eb 100%)',
-                width: `${Math.min(100, Math.round((player.lifetime_shots / player.lifetime_shot_goal) * 100))}%`,
-                transition: 'width 0.3s ease',
-              }} />
-            </div>
-          </div>
+      {/* Progress toward lifetime goals - GAMIFIED */}
+      {player.lifetime_shot_goal && (() => {
+        const pct = Math.round((player.lifetime_shots / player.lifetime_shot_goal) * 100)
+        const remaining = player.lifetime_shot_goal - player.lifetime_shots
 
-          {player.stickhandling_hour_goal && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <div className="label-sm">Stick time ⏱️</div>
-                <div className="info-value tnum" style={{ fontSize: 11 }}>{(player.lifetime_drill_minutes / 60).toFixed(1)} / {player.stickhandling_hour_goal}</div>
+        // Milestone badges
+        const getBadge = (shots) => {
+          if (shots < 250) return '🥉 Bronze'
+          if (shots < 500) return '🥈 Silver'
+          if (shots < 1000) return '🥇 Gold'
+          if (shots < 2500) return '💎 Platinum'
+          return '👑 LEGEND'
+        }
+
+        // Encouraging messages based on progress
+        const getMessage = (pct) => {
+          if (pct === 100) return '🏆 CHAMPION! YOU DID IT!'
+          if (pct >= 75) return '💪 Almost there! Keep pushing!'
+          if (pct >= 50) return '🔥 Halfway! You\'re unstoppable!'
+          if (pct >= 25) return '⚡ Great momentum! Keep it up!'
+          if (pct >= 10) return '🚀 You\'re off to a hot start!'
+          return '📈 Let\'s go! Build that streak!'
+        }
+
+        return (
+          <div className="progress-section">
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <div>
+                  <div className="label-sm" style={{ marginBottom: 2 }}>Total shots 🎯</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--accent)' }}>{getBadge(player.lifetime_shots)}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div className="info-value tnum" style={{ fontSize: 14 }}>{player.lifetime_shots.toLocaleString()}</div>
+                  <div className="info-value tnum" style={{ fontSize: 10, color: 'var(--text-mute)' }}>of {player.lifetime_shot_goal.toLocaleString()}</div>
+                </div>
               </div>
+
               <div style={{
                 width: '100%',
-                height: 6,
+                height: 8,
                 background: 'rgba(255,255,255,0.1)',
-                borderRadius: 3,
+                borderRadius: 4,
                 overflow: 'hidden',
+                marginBottom: 8,
               }}>
                 <div style={{
                   height: '100%',
-                  background: 'linear-gradient(90deg, #3dd68c 0%, #2dbd72 100%)',
-                  width: `${Math.min(100, Math.round(((player.lifetime_drill_minutes / 60) / player.stickhandling_hour_goal) * 100))}%`,
-                  transition: 'width 0.3s ease',
+                  background: 'linear-gradient(90deg, var(--accent) 0%, #2563eb 100%)',
+                  width: `${Math.min(100, pct)}%`,
+                  transition: 'width 0.5s ease',
                 }} />
               </div>
+
+              <div style={{ fontSize: 12, color: 'var(--text-mute)', marginBottom: 8 }}>
+                {pct}% complete • {remaining.toLocaleString()} shots to go
+              </div>
+
+              <div style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'var(--ice)',
+                fontFamily: 'var(--font-display)',
+              }}>
+                {getMessage(pct)}
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            {player.stickhandling_hour_goal && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <div className="label-sm">Stick time ⏱️</div>
+                  <div className="info-value tnum" style={{ fontSize: 11 }}>{(player.lifetime_drill_minutes / 60).toFixed(1)} / {player.stickhandling_hour_goal}</div>
+                </div>
+                <div style={{
+                  width: '100%',
+                  height: 6,
+                  background: 'rgba(255,255,255,0.1)',
+                  borderRadius: 3,
+                  overflow: 'hidden',
+                }}>
+                  <div style={{
+                    height: '100%',
+                    background: 'linear-gradient(90deg, #3dd68c 0%, #2dbd72 100%)',
+                    width: `${Math.min(100, Math.round(((player.lifetime_drill_minutes / 60) / player.stickhandling_hour_goal) * 100))}%`,
+                    transition: 'width 0.3s ease',
+                  }} />
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
 
       {hasRecentLog && (
         <button className="undo-btn" onClick={handleUndo}>
