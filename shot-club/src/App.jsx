@@ -175,19 +175,23 @@ const navStyles = `
 }
 .nav-btn {
   display: flex; flex-direction: column; align-items: center;
-  gap: 3px;
-  color: var(--text-mute);
-  padding: 6px 16px;
+  gap: 4px;
+  color: var(--text-soft);
+  padding: 8px 16px;
   min-width: 60px;
-  min-height: 44px;
-  transition: color 0.1s;
+  min-height: 50px;
+  transition: all 0.1s;
+  border-radius: 12px;
 }
 .nav-btn span {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.5px;
-  font-weight: 500;
+  font-weight: 600;
 }
-.nav-btn--active { color: var(--ice); }
+.nav-btn--active {
+  color: var(--ice);
+  background: rgba(41, 121, 255, 0.1);
+}
 .nav-btn:active { transform: scale(0.95); }
 
 .full-width {
