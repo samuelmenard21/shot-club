@@ -16,11 +16,16 @@ export default function RankingsScreen() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([getAssociationRankings(), getTeamOfTheWeek()]).then(([data, totw]) => {
-      setRankings(data)
-      setTeamOfWeek(totw)
-      setLoading(false)
-    })
+    Promise.all([getAssociationRankings(), getTeamOfTheWeek()])
+      .then(([data, totw]) => {
+        setRankings(data || [])
+        setTeamOfWeek(totw)
+      })
+      .catch((err) => {
+        console.error('Rankings error:', err)
+        setRankings([])
+      })
+      .finally(() => setLoading(false))
   }, [])
 
   const shareUrl = 'https://hockeyshotchallenge.com/rankings'
