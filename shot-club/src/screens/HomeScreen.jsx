@@ -111,6 +111,7 @@ export default function HomeScreen() {
       const newCodes = await claimAchievements(player.id)
       if (newCodes.length > 0) setUnlockedCodes(newCodes)
     } catch (e) {
+      console.error('Shot log error:', e)
       setStats((s) => ({
         ...s,
         todayTotal: Math.max(0, s.todayTotal - count),
@@ -118,7 +119,7 @@ export default function HomeScreen() {
         todayByType: { ...s.todayByType, [type]: Math.max(0, (s.todayByType[type] || 0) - count) },
       }))
       setUndoStack((u) => u.slice(0, -1))
-      showToast('Save failed, try again')
+      showToast('Save failed: ' + (e.message || 'Unknown error'))
     }
   }
 
