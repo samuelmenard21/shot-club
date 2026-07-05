@@ -55,9 +55,22 @@ export default function MoreScreen() {
         setShared(true)
         setTimeout(() => setShared(false), 2000)
       } else {
-        await copyText(text, 'share')
+        // Fallback to copy on web
+        await navigator.clipboard.writeText(text)
+        setShared(true)
+        setTimeout(() => setShared(false), 2000)
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('Share failed:', e)
+      // Final fallback: copy just the team name
+      try {
+        await navigator.clipboard.writeText(teamName)
+        setShared(true)
+        setTimeout(() => setShared(false), 2000)
+      } catch (err) {
+        console.error('Copy failed:', err)
+      }
+    }
   }
 
   const updateGoal = async (newGoal) => {
