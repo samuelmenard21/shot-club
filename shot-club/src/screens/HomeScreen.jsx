@@ -39,19 +39,23 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!player) return
     refreshStats()
-    getTodayRival(player.team_id, player.id).then(setRival)
-    getSkillVideos().then(setVideos)
-    getPersonalBest(player.id).then(setPersonalBest)
+    getTodayRival(player.team_id, player.id).then(setRival).catch(() => {})
+    getSkillVideos().then(setVideos).catch(() => {})
+    getPersonalBest(player.id).then(setPersonalBest).catch(() => {})
     if (player.team_id) {
       Promise.all([
         getTeamChallenge(player.team_id),
         getTeamWeeklyShots(player.team_id),
         getMyBattle(player.id, player.team_id, player.club_id),
-      ]).then(([ch, wk, battle]) => {
-        setTeamChallenge(ch)
-        setTeamWeekShots(wk)
-        setSquadBattle(battle)
-      })
+      ])
+        .then(([ch, wk, battle]) => {
+          setTeamChallenge(ch)
+          setTeamWeekShots(wk)
+          setSquadBattle(battle)
+        })
+        .catch((err) => {
+          console.error('Battle/challenge load error:', err)
+        })
     }
   }, [player])
 
