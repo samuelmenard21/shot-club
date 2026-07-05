@@ -10,7 +10,6 @@ const GOAL_OPTIONS = [25, 50, 100, 200]
 export default function MoreScreen() {
   const { player, refresh } = useAuth()
   const nav = useNavigate()
-  const [copiedWhat, setCopiedWhat] = useState('')
   const [shared, setShared] = useState(false)
   const [goal, setGoal] = useState(player?.daily_goal || 50)
   const [savingGoal, setSavingGoal] = useState(false)
@@ -32,14 +31,6 @@ export default function MoreScreen() {
     localStorage.setItem('activePlayerId', p.id)
     await refresh()
     setSwitching(null)
-  }
-
-  const copyText = async (text, which) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      setCopiedWhat(which)
-      setTimeout(() => setCopiedWhat(''), 2000)
-    } catch (e) {}
   }
 
   const shareTeam = async () => {
@@ -177,25 +168,6 @@ export default function MoreScreen() {
           </div>
           <div className="info-hint">
             How many shots you're aiming for each day. The ring on Home fills as you log.
-          </div>
-        </div>
-      </div>
-
-      {/* Username recovery */}
-      <div className="section">
-        <div className="label-sm" style={{ marginBottom: 8 }}>Your sign-in</div>
-        <div className="info-card">
-          <div className="info-row">
-            <div>
-              <div className="info-label">Username</div>
-              <div className="info-value tnum">@{player.username}</div>
-            </div>
-            <button className={`copy-chip ${copiedWhat === 'username' ? 'copy-chip--done' : ''}`} onClick={() => copyText(player.username, 'username')}>
-              {copiedWhat === 'username' ? '✓' : 'Copy'}
-            </button>
-          </div>
-          <div className="info-hint">
-            Screenshot this or save it somewhere safe. It's how you sign in on other devices.
           </div>
         </div>
       </div>
