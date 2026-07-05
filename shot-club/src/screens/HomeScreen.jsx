@@ -265,6 +265,55 @@ export default function HomeScreen() {
         </div>
       </div>
 
+      {/* Progress toward lifetime goals */}
+      {player.lifetime_shot_goal && (
+        <div className="progress-section">
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div className="label-sm">Lifetime shots</div>
+              <div className="info-value tnum" style={{ fontSize: 11 }}>{player.lifetime_shots.toLocaleString()} / {player.lifetime_shot_goal.toLocaleString()}</div>
+            </div>
+            <div style={{
+              width: '100%',
+              height: 6,
+              background: 'rgba(255,255,255,0.1)',
+              borderRadius: 3,
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                height: '100%',
+                background: 'linear-gradient(90deg, var(--accent) 0%, #2563eb 100%)',
+                width: `${Math.min(100, Math.round((player.lifetime_shots / player.lifetime_shot_goal) * 100))}%`,
+                transition: 'width 0.3s ease',
+              }} />
+            </div>
+          </div>
+
+          {player.stickhandling_hour_goal && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div className="label-sm">Stickhandling hours</div>
+                <div className="info-value tnum" style={{ fontSize: 11 }}>{(player.lifetime_drill_minutes / 60).toFixed(1)} / {player.stickhandling_hour_goal}</div>
+              </div>
+              <div style={{
+                width: '100%',
+                height: 6,
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: 3,
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #3dd68c 0%, #2dbd72 100%)',
+                  width: `${Math.min(100, Math.round(((player.lifetime_drill_minutes / 60) / player.stickhandling_hour_goal) * 100))}%`,
+                  transition: 'width 0.3s ease',
+                }} />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {hasRecentLog && (
         <button className="undo-btn" onClick={handleUndo}>
           <span className="undo-icon">↩</span>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { signOut, deleteAccount, getPlayersForAccount } from '../lib/auth'
 import { setDailyGoal } from '../lib/progress'
+import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 
 const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
@@ -13,6 +14,9 @@ export default function MoreScreen() {
   const [shared, setShared] = useState(false)
   const [goal, setGoal] = useState(player?.daily_goal || 50)
   const [savingGoal, setSavingGoal] = useState(false)
+  const [lifetimeShotGoal, setLifetimeShotGoal] = useState(player?.lifetime_shot_goal || 5000)
+  const [stickhandlingHourGoal, setStickhandlingHourGoal] = useState(player?.stickhandling_hour_goal || 5)
+  const [savingLifetimeGoal, setSavingLifetimeGoal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
@@ -75,6 +79,27 @@ export default function MoreScreen() {
       setGoal(player.daily_goal || 50)
     } finally {
       setSavingGoal(false)
+    }
+  }
+
+  const updateLifetimeGoals = async () => {
+    setSavingLifetimeGoal(true)
+    try {
+      const { error } = await supabase
+        .from('players')
+        .update({
+          lifetime_shot_goal: Math.max(100, Math.min(50000, Math.round(lifetimeShotGoal))),
+          stickhandling_hour_goal: Math.max(1, Math.min(500, Math.round(stickhandlingHourGoal * 10) / 10)),
+        })
+        .eq('id', player.id)
+      if (error) throw error
+      await refresh()
+    } catch (e) {
+      console.error('Failed to save goals:', e)
+      setLifetimeShotGoal(player.lifetime_shot_goal || 5000)
+      setStickhandlingHourGoal(player.stickhandling_hour_goal || 5)
+    } finally {
+      setSavingLifetimeGoal(false)
     }
   }
 
@@ -168,6 +193,82 @@ export default function MoreScreen() {
           </div>
           <div className="info-hint">
             How many shots you're aiming for each day. The ring on Home fills as you log.
+          </div>
+        </div>
+      </div>
+
+      {/* My Goals */}
+      <div className="section">
+        <div className="label-sm" style={{ marginBottom: 8 }}>My goals</div>
+        <div className="info-card">
+          <div style={{ marginBottom: 16 }}>
+            <div className="info-label">Lifetime shots</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
+              <input
+                type="number"
+                value={lifetimeShotGoal}
+                onChange={(e) => setLifetimeShotGoal(Math.max(100, parseInt(e.target.value) || 100))}
+                disabled={savingLifetimeGoal}
+                style={{
+                  flex: 1,
+                  background: 'var(--bg)',
+                  border: '0.5px solid var(--border-dim)',
+                  borderRadius: 8,
+                  padding: '8px 12px',
+                  color: 'white',
+                  fontSize: 14,
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 600,
+                }}
+              />
+              <div className="info-value tnum" style={{ fontSize: 12, color: 'var(--text-mute)' }}>goal</div>
+            </div>
+          </div>
+          <div>
+            <div className="info-label">Stickhandling hours</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
+              <input
+                type="number"
+                step="0.5"
+                value={stickhandlingHourGoal}
+                onChange={(e) => setStickhandlingHourGoal(Math.max(1, parseFloat(e.target.value) || 1))}
+                disabled={savingLifetimeGoal}
+                style={{
+                  flex: 1,
+                  background: 'var(--bg)',
+                  border: '0.5px solid var(--border-dim)',
+                  borderRadius: 8,
+                  padding: '8px 12px',
+                  color: 'white',
+                  fontSize: 14,
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 600,
+                }}
+              />
+              <div className="info-value tnum" style={{ fontSize: 12, color: 'var(--text-mute)' }}>hrs</div>
+            </div>
+          </div>
+          <button
+            onClick={updateLifetimeGoals}
+            disabled={savingLifetimeGoal}
+            style={{
+              width: '100%',
+              marginTop: 14,
+              background: 'var(--accent)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 8,
+              padding: 10,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: savingLifetimeGoal ? 'not-allowed' : 'pointer',
+              opacity: savingLifetimeGoal ? 0.6 : 1,
+            }}
+          >
+            {savingLifetimeGoal ? 'Saving…' : 'Save goals'}
+          </button>
+          <div className="info-hint">
+            Set your personal goals. Progress shows on the home screen.
           </div>
         </div>
       </div>
