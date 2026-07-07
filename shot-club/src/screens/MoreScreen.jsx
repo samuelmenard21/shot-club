@@ -189,8 +189,12 @@ export default function MoreScreen() {
                 value={lifetimeShotGoal}
                 onChange={(e) => {
                   const val = e.target.value.trim()
-                  if (val === '') return
-                  setLifetimeShotGoal(Math.max(1, parseInt(val)))
+                  if (val === '') {
+                    setLifetimeShotGoal('')
+                    return
+                  }
+                  const num = parseInt(val)
+                  if (!isNaN(num)) setLifetimeShotGoal(Math.max(1, num))
                 }}
                 disabled={savingLifetimeGoal}
                 style={{
@@ -216,8 +220,12 @@ export default function MoreScreen() {
                 value={stickhandlingHourGoal}
                 onChange={(e) => {
                   const val = e.target.value.trim()
-                  if (val === '') return
-                  setStickhandlingHourGoal(Math.max(0.5, parseFloat(val)))
+                  if (val === '') {
+                    setStickhandlingHourGoal('')
+                    return
+                  }
+                  const num = parseFloat(val)
+                  if (!isNaN(num)) setStickhandlingHourGoal(Math.max(0.5, num))
                 }}
                 disabled={savingLifetimeGoal}
                 style={{
