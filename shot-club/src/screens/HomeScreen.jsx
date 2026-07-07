@@ -242,42 +242,56 @@ export default function HomeScreen() {
 
       {/* COMPACT PROGRESS + DAILY CHALLENGE */}
       {player.lifetime_shot_goal && (() => {
-        const pct = Math.round((player.lifetime_shots / player.lifetime_shot_goal) * 100)
         const dailyGoal = player.daily_goal || 50
         const dailyMet = stats.todayTotal >= dailyGoal
 
-        const getBadge = (shots) => {
-          if (shots < 250) return '🥉 Bronze'
-          if (shots < 500) return '🥈 Silver'
-          if (shots < 1000) return '🥇 Gold'
-          if (shots < 2500) return '💎 Platinum'
-          return '👑 LEGEND'
-        }
+        // Milestone tiers
+        const tiers = [
+          { name: '🥉 Bronze', threshold: 0, nextThreshold: 250 },
+          { name: '🥈 Silver', threshold: 250, nextThreshold: 500 },
+          { name: '🥇 Gold', threshold: 500, nextThreshold: 1000 },
+          { name: '💎 Platinum', threshold: 1000, nextThreshold: 2500 },
+          { name: '👑 LEGEND', threshold: 2500, nextThreshold: 5000 },
+        ]
+
+        const currentTier = tiers.find(t => player.lifetime_shots >= t.threshold && player.lifetime_shots < t.nextThreshold) || tiers[tiers.length - 1]
+        const shotsToNext = currentTier.nextThreshold - player.lifetime_shots
+        const progressToNext = Math.round(((player.lifetime_shots - currentTier.threshold) / (currentTier.nextThreshold - currentTier.threshold)) * 100)
+
+        const messages = [
+          '🚀 You\'re crushing it!',
+          '💪 Keep pushing!',
+          '🔥 Unstoppable!',
+          '⚡ On fire!',
+          '✨ You\'re amazing!',
+        ]
+        const message = messages[Math.floor(player.lifetime_shots / 100) % messages.length]
 
         return (
-          <div style={{ padding: '12px 14px 8px', marginBottom: 8 }}>
-            {/* Progress bar + goal label in one row */}
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-mute)' }}>GOAL TRACKER</div>
-                  <div style={{ fontSize: 10, color: 'var(--text-mute)' }}>{pct}%</div>
-                </div>
+          <div style={{ padding: '16px 14px 8px', marginBottom: 8 }}>
+            {/* Badge + progress to next */}
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div style={{ fontSize: 16, fontWeight: 700 }}>{currentTier.name}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{shotsToNext.toLocaleString()} to {currentTier.nextThreshold}</div>
+              </div>
+              <div style={{
+                width: '100%',
+                height: 8,
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: 4,
+                overflow: 'hidden',
+                marginBottom: 8,
+              }}>
                 <div style={{
-                  width: '100%',
-                  height: 6,
-                  background: 'rgba(255,255,255,0.1)',
-                  borderRadius: 3,
-                  overflow: 'hidden',
-                }}>
-                  <div style={{
-                    height: '100%',
-                    background: 'linear-gradient(90deg, var(--accent) 0%, #2563eb 100%)',
-                    width: `${Math.min(100, pct)}%`,
-                    transition: 'width 0.5s ease',
-                  }} />
-                </div>
-                <div style={{ fontSize: 9, color: 'var(--text-mute)', marginTop: 2 }}>{player.lifetime_shots.toLocaleString()} / {player.lifetime_shot_goal.toLocaleString()}</div>
+                  height: '100%',
+                  background: 'linear-gradient(90deg, var(--accent) 0%, #2563eb 100%)',
+                  width: `${Math.min(100, progressToNext)}%`,
+                  transition: 'width 0.5s ease',
+                }} />
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ice)', fontFamily: 'var(--font-display)' }}>
+                {message}
               </div>
             </div>
 
