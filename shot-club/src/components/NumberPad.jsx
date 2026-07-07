@@ -18,7 +18,12 @@ export default function NumberPad({ type, onClose, onSave }) {
     <div className="numberpad-overlay" onClick={onClose}>
       <div className="numberpad" onClick={(e) => e.stopPropagation()}>
         <div className="numberpad-header">
-          <div className="numberpad-title">How many {type.toLowerCase()} today?</div>
+          <div className="numberpad-title">
+            {type === 'Stickhandling'
+              ? 'How many stickhandling minutes today?'
+              : `How many ${type.toLowerCase()} shots today?`
+            }
+          </div>
           <button className="numberpad-close" onClick={onClose}>×</button>
         </div>
 
@@ -55,7 +60,8 @@ const styles = `
   inset: 0;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
   z-index: 999;
 }
 .numberpad {

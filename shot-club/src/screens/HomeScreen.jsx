@@ -256,11 +256,11 @@ export default function HomeScreen() {
 
         return (
           <div style={{ padding: '12px 14px 8px', marginBottom: 8 }}>
-            {/* Progress bar + badge in one row */}
+            {/* Progress bar + goal label in one row */}
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-mute)' }}>{getBadge(player.lifetime_shots)}</div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-mute)' }}>GOAL TRACKER</div>
                   <div style={{ fontSize: 10, color: 'var(--text-mute)' }}>{pct}%</div>
                 </div>
                 <div style={{
@@ -294,23 +294,16 @@ export default function HomeScreen() {
               <input type="checkbox" checked={dailyMet} disabled style={{ width: 18, height: 18, cursor: 'not-allowed', flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: dailyMet ? '#3dd68c' : 'white', marginBottom: 2 }}>
-                  {dailyMet ? '✓ Daily goal met!' : 'Daily goal'}
+                  {dailyMet ? '✓ Daily goal met!' : `${dailyGoal} wrist shots today`}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>
-                  {stats.todayTotal} of {dailyGoal} shots
+                  {stats.todayTotal} of {dailyGoal}
                 </div>
               </div>
             </div>
           </div>
         )
       })()}
-
-      {samLine && (
-        <div className="sam">
-          <div className="sam-bubble">🏒</div>
-          <div className="sam-text">{samLine}</div>
-        </div>
-      )}
 
       {player.lifetime_shots === 0 && (
         <div className="first-time-nudge">
@@ -319,7 +312,11 @@ export default function HomeScreen() {
         </div>
       )}
 
-      {player.lifetime_shots > 0 && <div className="tap-hint">Tap a shot type to log it</div>}
+      <div style={{ margin: '0 14px 12px', textAlign: 'center' }}>
+        <div style={{ fontSize: 12, color: 'var(--text-mute)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          TAP A SHOT TYPE TO LOG IT
+        </div>
+      </div>
 
       <div className="shots-grid">
         {shotTypes.map((t) => {
