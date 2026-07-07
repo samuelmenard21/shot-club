@@ -95,8 +95,8 @@ export default function MoreScreen() {
       const { error } = await supabase
         .from('players')
         .update({
-          lifetime_shot_goal: Math.max(100, Math.min(50000, Math.round(lifetimeShotGoal))),
-          stickhandling_hour_goal: Math.max(1, Math.min(500, Math.round(stickhandlingHourGoal * 10) / 10)),
+          lifetime_shot_goal: Math.max(1, Math.min(50000, Math.round(lifetimeShotGoal))),
+          stickhandling_hour_goal: Math.max(0.5, Math.min(500, Math.round(stickhandlingHourGoal * 10) / 10)),
           lifetime_shot_goal_date: targetDate,
         })
         .eq('id', player.id)
@@ -216,7 +216,7 @@ export default function MoreScreen() {
               <input
                 type="number"
                 value={lifetimeShotGoal}
-                onChange={(e) => setLifetimeShotGoal(Math.max(100, parseInt(e.target.value) || 100))}
+                onChange={(e) => setLifetimeShotGoal(Math.max(1, parseInt(e.target.value) || 5000))}
                 disabled={savingLifetimeGoal}
                 style={{
                   flex: 1,
@@ -239,7 +239,7 @@ export default function MoreScreen() {
                 type="number"
                 step="0.5"
                 value={stickhandlingHourGoal}
-                onChange={(e) => setStickhandlingHourGoal(Math.max(1, parseFloat(e.target.value) || 1))}
+                onChange={(e) => setStickhandlingHourGoal(Math.max(0.5, parseFloat(e.target.value) || 5))}
                 disabled={savingLifetimeGoal}
                 style={{
                   flex: 1,

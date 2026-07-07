@@ -336,10 +336,10 @@ export default function HomeScreen() {
               <input type="checkbox" checked={dailyMet} disabled style={{ width: 18, height: 18, cursor: 'not-allowed', flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: dailyMet ? '#3dd68c' : 'white', marginBottom: 2 }}>
-                  {dailyMet ? '✓ Daily goal met!' : `${dailyGoal} wrist shots today`}
+                  Today's Challenge
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>
-                  {stats.todayTotal} of {dailyGoal}
+                  {dailyMet ? '✓ Goal met!' : `${dailyGoal} wrist shots`}
                 </div>
               </div>
             </div>
