@@ -240,10 +240,11 @@ export default function HomeScreen() {
         )}
       </header>
 
-      {/* LIFETIME GOAL - MAIN RING AT TOP */}
+      {/* COMPACT PROGRESS + DAILY CHALLENGE */}
       {player.lifetime_shot_goal && (() => {
         const pct = Math.round((player.lifetime_shots / player.lifetime_shot_goal) * 100)
-        const remaining = player.lifetime_shot_goal - player.lifetime_shots
+        const dailyGoal = player.daily_goal || 50
+        const dailyMet = stats.todayTotal >= dailyGoal
 
         const getBadge = (shots) => {
           if (shots < 250) return '🥉 Bronze'
@@ -253,79 +254,51 @@ export default function HomeScreen() {
           return '👑 LEGEND'
         }
 
-        const getMessage = (pct) => {
-          if (pct === 100) return '🏆 CHAMPION! YOU DID IT!'
-          if (pct >= 75) return '💪 Almost there! Keep pushing!'
-          if (pct >= 50) return '🔥 Halfway! You\'re unstoppable!'
-          if (pct >= 25) return '⚡ Great momentum! Keep it up!'
-          if (pct >= 10) return '🚀 You\'re off to a hot start!'
-          return '📈 Let\'s go! Build that streak!'
-        }
-
         return (
-          <div style={{ padding: '16px 14px', textAlign: 'center', marginBottom: 12 }}>
-            <div style={{ marginBottom: 20 }}>
-              <div style={{
-                width: 160,
-                height: 160,
-                margin: '0 auto',
-                borderRadius: '50%',
-                background: `conic-gradient(var(--accent) 0deg ${pct * 3.6}deg, rgba(255,255,255,0.1) ${pct * 3.6}deg 360deg)`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 48,
-                fontWeight: 800,
-                fontFamily: 'var(--font-display)',
-                position: 'relative',
-              }}>
-                <div style={{
-                  width: 148,
-                  height: 148,
-                  borderRadius: '50%',
-                  background: 'var(--bg)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 2,
-                }}>
-                  <div style={{ fontSize: 36 }}>{player.lifetime_shots.toLocaleString()}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-mute)', fontWeight: 600 }}>of {player.lifetime_shot_goal.toLocaleString()}</div>
+          <div style={{ padding: '12px 14px 8px', marginBottom: 8 }}>
+            {/* Progress bar + badge in one row */}
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-mute)' }}>{getBadge(player.lifetime_shots)}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-mute)' }}>{pct}%</div>
                 </div>
+                <div style={{
+                  width: '100%',
+                  height: 6,
+                  background: 'rgba(255,255,255,0.1)',
+                  borderRadius: 3,
+                  overflow: 'hidden',
+                }}>
+                  <div style={{
+                    height: '100%',
+                    background: 'linear-gradient(90deg, var(--accent) 0%, #2563eb 100%)',
+                    width: `${Math.min(100, pct)}%`,
+                    transition: 'width 0.5s ease',
+                  }} />
+                </div>
+                <div style={{ fontSize: 9, color: 'var(--text-mute)', marginTop: 2 }}>{player.lifetime_shots.toLocaleString()} / {player.lifetime_shot_goal.toLocaleString()}</div>
               </div>
             </div>
-            <div style={{ marginBottom: 4 }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--accent)', marginBottom: 4 }}>{getBadge(player.lifetime_shots)}</div>
-              <div style={{ fontSize: 11, color: 'var(--text-mute)', marginBottom: 8 }}>{pct}% • {remaining.toLocaleString()} shots to go</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ice)', fontFamily: 'var(--font-display)' }}>{getMessage(pct)}</div>
-            </div>
-          </div>
-        )
-      })()}
 
-      {/* DAILY CHALLENGE CHECKBOX */}
-      {(() => {
-        const dailyGoal = player.daily_goal || 50
-        const met = stats.todayTotal >= dailyGoal
-        return (
-          <div style={{
-            margin: '0 14px 16px',
-            padding: 12,
-            background: met ? 'rgba(61, 214, 140, 0.1)' : 'rgba(41, 121, 255, 0.1)',
-            border: `1px solid ${met ? 'rgba(61, 214, 140, 0.3)' : 'rgba(41, 121, 255, 0.3)'}`,
-            borderRadius: 12,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-          }}>
-            <input type="checkbox" checked={met} disabled style={{ width: 20, height: 20, cursor: 'not-allowed' }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: met ? '#3dd68c' : 'var(--text-soft)' }}>
-                {met ? '✓ Daily challenge' : 'Daily challenge'}
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--text-mute)', marginTop: 2 }}>
-                {stats.todayTotal} / {dailyGoal} shots
+            {/* Daily challenge - prominent */}
+            <div style={{
+              padding: 12,
+              background: dailyMet ? 'rgba(61, 214, 140, 0.15)' : 'rgba(41, 121, 255, 0.15)',
+              border: `1.5px solid ${dailyMet ? 'rgba(61, 214, 140, 0.4)' : 'rgba(41, 121, 255, 0.4)'}`,
+              borderRadius: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}>
+              <input type="checkbox" checked={dailyMet} disabled style={{ width: 18, height: 18, cursor: 'not-allowed', flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: dailyMet ? '#3dd68c' : 'white', marginBottom: 2 }}>
+                  {dailyMet ? '✓ Daily goal met!' : 'Daily goal'}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>
+                  {stats.todayTotal} of {dailyGoal} shots
+                </div>
               </div>
             </div>
           </div>
@@ -361,22 +334,32 @@ export default function HomeScreen() {
         })}
       </div>
 
-      <div className="stick-section">
-        <div className="stick-header">
-          <div className="label-sm">Stick skills 🏑</div>
-          <div className="stick-hint">reps today</div>
-        </div>
-        <div className="stick-grid">
-          {STICK_TYPES.map((t) => {
-            const todayCount = stats.todayByType[t] || 0
-            return (
-              <button key={t} className="stick-card" onClick={() => setEntryType(t)}>
-                <div className="stick-name">{SHOT_EMOJIS[t]} {t}</div>
-                <div className="stick-value tnum">{todayCount || '—'}</div>
-              </button>
-            )
-          })}
-        </div>
+      {/* STICKHANDLING MINUTES */}
+      <div style={{ margin: '8px 14px' }}>
+        <button
+          onClick={() => setEntryType('Stickhandling')}
+          style={{
+            width: '100%',
+            padding: '12px 14px',
+            background: 'var(--surface)',
+            border: '0.5px solid var(--border-dim)',
+            borderRadius: 12,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+          onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+          onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          <div style={{ fontSize: 20 }}>🏑</div>
+          <div style={{ flex: 1, textAlign: 'left' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>Stickhandling</div>
+            <div style={{ fontSize: 11, color: 'var(--text-mute)', marginTop: 2 }}>{(stats.todayByType['Stickhandling'] || 0).toLocaleString()} mins today</div>
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent)' }}>→</div>
+        </button>
       </div>
 
 
