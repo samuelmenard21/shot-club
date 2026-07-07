@@ -86,13 +86,12 @@ async function fetchAllClubs(supabase) {
 async function main() {
   console.log('📋 Generating club sitemap…')
 
-  const url = process.env.SUPABASE_URL
-  const key = process.env.SUPABASE_ANON_KEY
+  const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
+  const key = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
   if (!url || !key) {
-    console.error('❌ Missing SUPABASE_URL or SUPABASE_ANON_KEY env vars')
-    console.error('   Set them in Netlify → Site config → Environment variables')
-    console.error('   Use the same values as VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY')
+    console.error('❌ Missing Supabase env vars')
+    console.error('   Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Netlify → Site config → Environment variables')
     process.exit(1)
   }
 
