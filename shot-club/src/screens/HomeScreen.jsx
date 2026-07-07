@@ -254,9 +254,11 @@ export default function HomeScreen() {
           { name: '👑 LEGEND', threshold: 2500, nextThreshold: 5000 },
         ]
 
-        const currentTier = tiers.find(t => player.lifetime_shots >= t.threshold && player.lifetime_shots < t.nextThreshold) || tiers[tiers.length - 1]
-        const shotsToNext = currentTier.nextThreshold - player.lifetime_shots
-        const progressToNext = Math.round(((player.lifetime_shots - currentTier.threshold) / (currentTier.nextThreshold - currentTier.threshold)) * 100)
+        // Include today's logged shots in the calculation
+        const currentLifetimeShots = player.lifetime_shots + stats.todayTotal
+        const currentTier = tiers.find(t => currentLifetimeShots >= t.threshold && currentLifetimeShots < t.nextThreshold) || tiers[tiers.length - 1]
+        const shotsToNext = currentTier.nextThreshold - currentLifetimeShots
+        const progressToNext = Math.round(((currentLifetimeShots - currentTier.threshold) / (currentTier.nextThreshold - currentTier.threshold)) * 100)
 
         const messages = [
           '🚀 You\'re crushing it!',
@@ -265,7 +267,7 @@ export default function HomeScreen() {
           '⚡ On fire!',
           '✨ You\'re amazing!',
         ]
-        const message = messages[Math.floor(player.lifetime_shots / 100) % messages.length]
+        const message = messages[Math.floor(currentLifetimeShots / 100) % messages.length]
 
         return (
           <div style={{ padding: '16px 14px 8px', marginBottom: 8 }}>
