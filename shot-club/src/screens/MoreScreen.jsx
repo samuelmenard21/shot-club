@@ -216,7 +216,11 @@ export default function MoreScreen() {
               <input
                 type="number"
                 value={lifetimeShotGoal}
-                onChange={(e) => setLifetimeShotGoal(Math.max(1, parseInt(e.target.value) || 5000))}
+                onChange={(e) => {
+                  const val = e.target.value.trim()
+                  if (val === '') return
+                  setLifetimeShotGoal(Math.max(1, parseInt(val)))
+                }}
                 disabled={savingLifetimeGoal}
                 style={{
                   flex: 1,
@@ -239,7 +243,11 @@ export default function MoreScreen() {
                 type="number"
                 step="0.5"
                 value={stickhandlingHourGoal}
-                onChange={(e) => setStickhandlingHourGoal(Math.max(0.5, parseFloat(e.target.value) || 5))}
+                onChange={(e) => {
+                  const val = e.target.value.trim()
+                  if (val === '') return
+                  setStickhandlingHourGoal(Math.max(0.5, parseFloat(val)))
+                }}
                 disabled={savingLifetimeGoal}
                 style={{
                   flex: 1,
