@@ -364,37 +364,17 @@ export default function AuthScreen() {
             <div className="brand-name">Hockey Shot<br/>Challenge</div>
           </div>
           <h2 className="auth-title">Welcome back.</h2>
-          <p className="auth-sub">Sign in with Google, or use your username if you set up an older account.</p>
+          <p className="auth-sub">Sign in with your Google account to get back to your dashboard.</p>
 
-          <button className="google-btn" onClick={() => signInWithGooglePlayer()} style={{ marginBottom: 16 }}>
+          <button className="google-btn" onClick={() => signInWithGooglePlayer()} style={{ marginBottom: 24 }}>
             <GoogleIcon />
             Continue with Google
           </button>
 
-          <div className="or-divider">or sign in with username</div>
-
-          <label className="input-label" style={{ marginTop: 8 }}>
-            <span>Username</span>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value.replace('@', ''))}
-              placeholder="e.g. connor7511"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck="false"
-              className="input-field"
-            />
-          </label>
-
-          {error && <div className="error">{error}</div>}
-
-          <button className="btn-primary" onClick={doSignIn} disabled={!username || loading}>
-            {loading ? 'Signing in…' : 'Sign in with username'}
+          <button className="btn-primary" onClick={() => { setMode('signup'); setError('') }} style={{ marginBottom: 8 }}>
+            New here? Create a card →
           </button>
-          <button className="btn-text" onClick={() => { setMode('signup'); setError('') }}>
-            New here? Create a card
-          </button>
+
           <button className="btn-text" onClick={() => nav('/')}>
             ← Back to home
           </button>
