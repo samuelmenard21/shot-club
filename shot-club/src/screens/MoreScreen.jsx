@@ -177,35 +177,6 @@ export default function MoreScreen() {
         <div className="drills-link-arrow">→</div>
       </button>
 
-      {/* Daily goal setting - NEW */}
-      <div className="section">
-        <div className="label-sm" style={{ marginBottom: 8 }}>Daily goal</div>
-        <div className="info-card">
-          <div className="goal-current-row">
-            <div>
-              <div className="info-label">Today's target</div>
-              <div className="info-value tnum">{goal} shots</div>
-            </div>
-            {savingGoal && <div style={{ color: 'var(--text-mute)', fontSize: 11 }}>saving…</div>}
-          </div>
-          <div className="goal-options">
-            {GOAL_OPTIONS.map((opt) => (
-              <button
-                key={opt}
-                className={`goal-chip ${goal === opt ? 'goal-chip--active' : ''}`}
-                onClick={() => updateGoal(opt)}
-                disabled={savingGoal}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-          <div className="info-hint">
-            How many shots you're aiming for each day. The ring on Home fills as you log.
-          </div>
-        </div>
-      </div>
-
       {/* My Goals */}
       <div className="section">
         <div className="label-sm" style={{ marginBottom: 8 }}>My goals 🎯</div>
