@@ -44,6 +44,8 @@ export default function AuthScreen() {
   const joinClubTimer = useRef(null)
 
   const [firstName, setFirstName] = useState('')
+  const [lifetimeShotGoal, setLifetimeShotGoal] = useState(5000)
+  const [stickhandlingHourGoal, setStickhandlingHourGoal] = useState(5)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const nav = useNavigate()
@@ -179,6 +181,8 @@ export default function AuthScreen() {
       displayName: displayName.trim(),
       position,
       ageBracket: ageBracketFromDivision(ageDivision),
+      lifetimeShotGoal: Math.max(100, Math.min(50000, lifetimeShotGoal || 5000)),
+      stickhandlingHourGoal: Math.max(1, Math.min(100, stickhandlingHourGoal || 5)),
     }
     localStorage.setItem('pendingProfile', JSON.stringify(pending))
     await signInWithGooglePlayer()
@@ -255,6 +259,8 @@ export default function AuthScreen() {
           teamId: teamIdToUse,
           clubId: pending.clubId,
           clubName: pending.clubName,
+          lifetimeShotGoal: pending.lifetimeShotGoal,
+          stickhandlingHourGoal: pending.stickhandlingHourGoal,
         })
         localStorage.removeItem('pendingProfile')
         await refresh()
@@ -750,6 +756,35 @@ export default function AuthScreen() {
                   <div className="chip-sub">{p === 'F' ? 'Forward' : p === 'D' ? 'Defense' : 'Goalie'}</div>
                 </button>
               ))}
+            </div>
+
+            <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="label-sm" style={{ marginBottom: 8 }}>What's your shot goal? 🎯</div>
+              <div className="label-sm" style={{ fontSize: 12, color: 'var(--text-mute)', marginBottom: 12, fontWeight: 400 }}>
+                This is your personal target. You can change it anytime.
+              </div>
+              <input
+                type="number"
+                value={lifetimeShotGoal}
+                onChange={(e) => setLifetimeShotGoal(Math.max(100, parseInt(e.target.value) || 5000))}
+                placeholder="5000"
+                className="input-field"
+                min="100"
+                max="50000"
+              />
+              <div className="label-sm" style={{ fontSize: 11, color: 'var(--text-mute)', marginTop: 8 }}>
+                Stickhandling goal (hours)
+              </div>
+              <input
+                type="number"
+                value={stickhandlingHourGoal}
+                onChange={(e) => setStickhandlingHourGoal(Math.max(1, parseInt(e.target.value) || 5))}
+                placeholder="5"
+                className="input-field"
+                min="1"
+                max="100"
+                style={{ marginTop: 6 }}
+              />
             </div>
 
             {error && <div className="error">{error}</div>}

@@ -32,6 +32,8 @@ export async function signUp({
   clubName,
   inviteCode,
   teamInviteCode,
+  lifetimeShotGoal = 5000,    // player's lifetime shot goal
+  stickhandlingHourGoal = 5,  // player's stickhandling hour goal
 }) {
   const username = makeUsername(displayName)
   const email = usernameToEmail(username)
@@ -93,6 +95,8 @@ export async function signUp({
     team_id: resolvedTeamId,
     club_id: clubId || clubIdFromInvite || null,
     club_name: resolvedClubName,
+    lifetime_shot_goal: lifetimeShotGoal,
+    stickhandling_hour_goal: stickhandlingHourGoal,
   }
   if (firstName?.trim()) playerRow.first_name = firstName.trim()
 
@@ -191,7 +195,17 @@ export async function getCurrentPlayer() {
 }
 
 // Create a player profile for a Google-OAuth user (family account support)
-export async function createPlayerWithGoogleAuth({ firstName, displayName, position, ageBracket, teamId, clubId, clubName }) {
+export async function createPlayerWithGoogleAuth({
+  firstName,
+  displayName,
+  position,
+  ageBracket,
+  teamId,
+  clubId,
+  clubName,
+  lifetimeShotGoal = 5000,
+  stickhandlingHourGoal = 5,
+}) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Must be signed in with Google')
 
@@ -209,6 +223,8 @@ export async function createPlayerWithGoogleAuth({ firstName, displayName, posit
     club_id: clubId || null,
     club_name: clubName || null,
     account_id: user.id,
+    lifetime_shot_goal: lifetimeShotGoal,
+    stickhandling_hour_goal: stickhandlingHourGoal,
   })
   if (error) throw error
 

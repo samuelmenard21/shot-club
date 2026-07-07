@@ -18,7 +18,7 @@ export default function NumberPad({ type, onClose, onSave }) {
     <div className="numberpad-overlay" onClick={onClose}>
       <div className="numberpad" onClick={(e) => e.stopPropagation()}>
         <div className="numberpad-header">
-          <div className="numberpad-title">Add {type} shots</div>
+          <div className="numberpad-title">How many {type.toLowerCase()} today?</div>
           <button className="numberpad-close" onClick={onClose}>×</button>
         </div>
 

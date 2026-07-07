@@ -229,7 +229,7 @@ export default function HomeScreen() {
           <div className="avatar">{player.display_name[0]?.toUpperCase()}</div>
           <div>
             <div className="me-name">{player.display_name}</div>
-            <div className="me-sub">{rank.fullName} · {player.lifetime_shots.toLocaleString()} shots</div>
+            <div className="me-sub">{rank.fullName}</div>
           </div>
         </div>
         {player.current_streak > 0 && (
@@ -240,17 +240,97 @@ export default function HomeScreen() {
         )}
       </header>
 
-      {isStreakInRecovery(player)
-        ? <StreakRecoveryBanner player={player} todayShots={stats.todayTotal} />
-        : <StreakRiskBanner player={player} />
-      }
+      {/* LIFETIME GOAL - MAIN RING AT TOP */}
+      {player.lifetime_shot_goal && (() => {
+        const pct = Math.round((player.lifetime_shots / player.lifetime_shot_goal) * 100)
+        const remaining = player.lifetime_shot_goal - player.lifetime_shots
 
-      <DailyGoalRing
-        playerId={player.id}
-        dailyGoal={player.daily_goal || 50}
-        refreshKey={goalRefreshKey}
-        goalType="wrist"
-      />
+        const getBadge = (shots) => {
+          if (shots < 250) return '🥉 Bronze'
+          if (shots < 500) return '🥈 Silver'
+          if (shots < 1000) return '🥇 Gold'
+          if (shots < 2500) return '💎 Platinum'
+          return '👑 LEGEND'
+        }
+
+        const getMessage = (pct) => {
+          if (pct === 100) return '🏆 CHAMPION! YOU DID IT!'
+          if (pct >= 75) return '💪 Almost there! Keep pushing!'
+          if (pct >= 50) return '🔥 Halfway! You\'re unstoppable!'
+          if (pct >= 25) return '⚡ Great momentum! Keep it up!'
+          if (pct >= 10) return '🚀 You\'re off to a hot start!'
+          return '📈 Let\'s go! Build that streak!'
+        }
+
+        return (
+          <div style={{ padding: '16px 14px', textAlign: 'center', marginBottom: 12 }}>
+            <div style={{ marginBottom: 20 }}>
+              <div style={{
+                width: 160,
+                height: 160,
+                margin: '0 auto',
+                borderRadius: '50%',
+                background: `conic-gradient(var(--accent) 0deg ${pct * 3.6}deg, rgba(255,255,255,0.1) ${pct * 3.6}deg 360deg)`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 48,
+                fontWeight: 800,
+                fontFamily: 'var(--font-display)',
+                position: 'relative',
+              }}>
+                <div style={{
+                  width: 148,
+                  height: 148,
+                  borderRadius: '50%',
+                  background: 'var(--bg)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 2,
+                }}>
+                  <div style={{ fontSize: 36 }}>{player.lifetime_shots.toLocaleString()}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-mute)', fontWeight: 600 }}>of {player.lifetime_shot_goal.toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
+            <div style={{ marginBottom: 4 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--accent)', marginBottom: 4 }}>{getBadge(player.lifetime_shots)}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-mute)', marginBottom: 8 }}>{pct}% • {remaining.toLocaleString()} shots to go</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ice)', fontFamily: 'var(--font-display)' }}>{getMessage(pct)}</div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* DAILY CHALLENGE CHECKBOX */}
+      {(() => {
+        const dailyGoal = player.daily_goal || 50
+        const met = stats.todayTotal >= dailyGoal
+        return (
+          <div style={{
+            margin: '0 14px 16px',
+            padding: 12,
+            background: met ? 'rgba(61, 214, 140, 0.1)' : 'rgba(41, 121, 255, 0.1)',
+            border: `1px solid ${met ? 'rgba(61, 214, 140, 0.3)' : 'rgba(41, 121, 255, 0.3)'}`,
+            borderRadius: 12,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+          }}>
+            <input type="checkbox" checked={met} disabled style={{ width: 20, height: 20, cursor: 'not-allowed' }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: met ? '#3dd68c' : 'var(--text-soft)' }}>
+                {met ? '✓ Daily challenge' : 'Daily challenge'}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-mute)', marginTop: 2 }}>
+                {stats.todayTotal} / {dailyGoal} shots
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {samLine && (
         <div className="sam">
@@ -298,100 +378,6 @@ export default function HomeScreen() {
           })}
         </div>
       </div>
-
-      {/* Progress toward lifetime goals - GAMIFIED */}
-      {player.lifetime_shot_goal && (() => {
-        const pct = Math.round((player.lifetime_shots / player.lifetime_shot_goal) * 100)
-        const remaining = player.lifetime_shot_goal - player.lifetime_shots
-
-        // Milestone badges
-        const getBadge = (shots) => {
-          if (shots < 250) return '🥉 Bronze'
-          if (shots < 500) return '🥈 Silver'
-          if (shots < 1000) return '🥇 Gold'
-          if (shots < 2500) return '💎 Platinum'
-          return '👑 LEGEND'
-        }
-
-        // Encouraging messages based on progress
-        const getMessage = (pct) => {
-          if (pct === 100) return '🏆 CHAMPION! YOU DID IT!'
-          if (pct >= 75) return '💪 Almost there! Keep pushing!'
-          if (pct >= 50) return '🔥 Halfway! You\'re unstoppable!'
-          if (pct >= 25) return '⚡ Great momentum! Keep it up!'
-          if (pct >= 10) return '🚀 You\'re off to a hot start!'
-          return '📈 Let\'s go! Build that streak!'
-        }
-
-        return (
-          <div className="progress-section">
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                <div>
-                  <div className="label-sm" style={{ marginBottom: 2 }}>Total shots 🎯</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--accent)' }}>{getBadge(player.lifetime_shots)}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div className="info-value tnum" style={{ fontSize: 14 }}>{player.lifetime_shots.toLocaleString()}</div>
-                  <div className="info-value tnum" style={{ fontSize: 10, color: 'var(--text-mute)' }}>of {player.lifetime_shot_goal.toLocaleString()}</div>
-                </div>
-              </div>
-
-              <div style={{
-                width: '100%',
-                height: 8,
-                background: 'rgba(255,255,255,0.1)',
-                borderRadius: 4,
-                overflow: 'hidden',
-                marginBottom: 8,
-              }}>
-                <div style={{
-                  height: '100%',
-                  background: 'linear-gradient(90deg, var(--accent) 0%, #2563eb 100%)',
-                  width: `${Math.min(100, pct)}%`,
-                  transition: 'width 0.5s ease',
-                }} />
-              </div>
-
-              <div style={{ fontSize: 12, color: 'var(--text-mute)', marginBottom: 8 }}>
-                {pct}% complete • {remaining.toLocaleString()} shots to go
-              </div>
-
-              <div style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: 'var(--ice)',
-                fontFamily: 'var(--font-display)',
-              }}>
-                {getMessage(pct)}
-              </div>
-            </div>
-
-            {player.stickhandling_hour_goal && (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <div className="label-sm">Stick time ⏱️</div>
-                  <div className="info-value tnum" style={{ fontSize: 11 }}>{(player.lifetime_drill_minutes / 60).toFixed(1)} / {player.stickhandling_hour_goal}</div>
-                </div>
-                <div style={{
-                  width: '100%',
-                  height: 6,
-                  background: 'rgba(255,255,255,0.1)',
-                  borderRadius: 3,
-                  overflow: 'hidden',
-                }}>
-                  <div style={{
-                    height: '100%',
-                    background: 'linear-gradient(90deg, #3dd68c 0%, #2dbd72 100%)',
-                    width: `${Math.min(100, Math.round(((player.lifetime_drill_minutes / 60) / player.stickhandling_hour_goal) * 100))}%`,
-                    transition: 'width 0.3s ease',
-                  }} />
-                </div>
-              </div>
-            )}
-          </div>
-        )
-      })()}
 
 
       {hasRecentLog && (
