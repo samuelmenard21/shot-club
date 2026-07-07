@@ -96,6 +96,14 @@ export default function AuthScreen() {
     return () => { if (joinClubTimer.current) clearTimeout(joinClubTimer.current) }
   }, [joinClubQuery])
 
+  // Check for mode query param (signin vs signup)
+  useEffect(() => {
+    const modeParam = searchParams.get('mode')
+    if (modeParam === 'signin') {
+      setMode('signin')
+    }
+  }, [searchParams])
+
   // Check for pre-selected club via URL (from /join/:slug redirect)
   useEffect(() => {
     const clubSlug = searchParams.get('club')
