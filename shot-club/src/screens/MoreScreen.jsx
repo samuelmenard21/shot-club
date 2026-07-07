@@ -16,7 +16,14 @@ export default function MoreScreen() {
   const [savingGoal, setSavingGoal] = useState(false)
   const [lifetimeShotGoal, setLifetimeShotGoal] = useState(player?.lifetime_shot_goal || 5000)
   const [stickhandlingHourGoal, setStickhandlingHourGoal] = useState(player?.stickhandling_hour_goal || 5)
+  const [targetDate, setTargetDate] = useState(player?.lifetime_shot_goal_date || getDefaultTargetDate())
   const [savingLifetimeGoal, setSavingLifetimeGoal] = useState(false)
+
+  function getDefaultTargetDate() {
+    const d = new Date()
+    d.setMonth(d.getMonth() + 3)
+    return d.toISOString().split('T')[0]
+  }
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
@@ -90,6 +97,7 @@ export default function MoreScreen() {
         .update({
           lifetime_shot_goal: Math.max(100, Math.min(50000, Math.round(lifetimeShotGoal))),
           stickhandling_hour_goal: Math.max(1, Math.min(500, Math.round(stickhandlingHourGoal * 10) / 10)),
+          lifetime_shot_goal_date: targetDate,
         })
         .eq('id', player.id)
       if (error) throw error
@@ -98,6 +106,7 @@ export default function MoreScreen() {
       console.error('Failed to save goals:', e)
       setLifetimeShotGoal(player.lifetime_shot_goal || 5000)
       setStickhandlingHourGoal(player.stickhandling_hour_goal || 5)
+      setTargetDate(player?.lifetime_shot_goal_date || getDefaultTargetDate())
     } finally {
       setSavingLifetimeGoal(false)
     }
@@ -223,7 +232,7 @@ export default function MoreScreen() {
               />
             </div>
           </div>
-          <div>
+          <div style={{ marginBottom: 16 }}>
             <div className="info-label">Stick time hours ⏱️</div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
               <input
@@ -231,6 +240,29 @@ export default function MoreScreen() {
                 step="0.5"
                 value={stickhandlingHourGoal}
                 onChange={(e) => setStickhandlingHourGoal(Math.max(1, parseFloat(e.target.value) || 1))}
+                disabled={savingLifetimeGoal}
+                style={{
+                  flex: 1,
+                  background: 'var(--bg)',
+                  border: '0.5px solid var(--border-dim)',
+                  borderRadius: 8,
+                  padding: '8px 12px',
+                  color: 'white',
+                  fontSize: 14,
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 600,
+                }}
+              />
+            </div>
+          </div>
+          <div>
+            <div className="info-label">Target date 📅</div>
+            <div style={{ fontSize: 12, color: 'var(--text-mute)', marginTop: 4, marginBottom: 8 }}>When do you want to hit 5000 shots?</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
+              <input
+                type="date"
+                value={targetDate}
+                onChange={(e) => setTargetDate(e.target.value)}
                 disabled={savingLifetimeGoal}
                 style={{
                   flex: 1,
