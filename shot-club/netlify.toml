@@ -5,11 +5,16 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# HTML: no cache (always check for updates)
+# Root and HTML: no cache (always revalidate)
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate, no-cache"
+
 [[headers]]
   for = "/*.html"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Cache-Control = "public, max-age=0, must-revalidate, no-cache"
 
 # JS/CSS/fonts: long cache (versioned by Vite)
 [[headers]]
