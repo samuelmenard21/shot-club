@@ -70,16 +70,9 @@ export default function LandingScreen() {
           <span>Hockey Shot Challenge</span>
         </button>
         <div className="land-nav-actions">
-          {player ? (
-            <button className="land-nav-cta" onClick={() => nav('/home')}>
-              My Dashboard →
-            </button>
-          ) : (
-            <>
-              <button className="land-nav-link" onClick={() => nav('/start')}>Sign in</button>
-              <button className="land-nav-cta" onClick={() => nav('/start')}>Start free →</button>
-            </>
-          )}
+          <button className="land-nav-cta" onClick={() => nav('/home')}>
+            My Dashboard →
+          </button>
         </div>
       </nav>
 
