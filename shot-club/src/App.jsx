@@ -36,6 +36,8 @@ import PracticeRoutinePost from './screens/blog/PracticeRoutinePost'
 import ParentsGuidePost from './screens/blog/ParentsGuidePost'
 import TenKChallengeScreen from './screens/TenKChallengeScreen'
 import AssociationPartnershipScreen from './screens/AssociationPartnershipScreen'
+import ChallengeSelector from './screens/ChallengeSelector'
+import ProvinceWideChallengeScreen from './screens/ProvinceWideChallengeScreen'
 
 function LoadingScreen() {
   return (
@@ -145,8 +147,10 @@ function ShellWrapper() {
         <Route path="/blog/off-ice-drills" element={<OffIceDrillsPost />} />
         <Route path="/blog/building-practice-routine" element={<PracticeRoutinePost />} />
         <Route path="/blog/parents-guide-youth-hockey" element={<ParentsGuidePost />} />
+        <Route path="/challenges" element={<ChallengeSelector />} />
         <Route path="/10000-shot-challenge" element={<TenKChallengeScreen />} />
         <Route path="/association-partnership" element={<AssociationPartnershipScreen />} />
+        <Route path="/province-wide-challenge" element={<ProvinceWideChallengeScreen />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

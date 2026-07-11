@@ -72,7 +72,8 @@ export default function LandingScreen() {
         <div className="land-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <a href="#how-it-works" className="land-nav-link" style={{ color: 'var(--text-soft)', fontSize: '14px', textDecoration: 'none' }}>How it works</a>
           <a href="#faq" className="land-nav-link" style={{ color: 'var(--text-soft)', fontSize: '14px', textDecoration: 'none' }}>FAQ</a>
-          <button className="land-nav-link" onClick={() => nav('/10000-shot-challenge')} style={{ color: 'var(--text-soft)', fontSize: '14px', background: 'transparent', cursor: 'pointer', border: 'none' }}>10K Challenge</button>
+          <button className="land-nav-link" onClick={() => nav('/challenges')} style={{ color: 'var(--text-soft)', fontSize: '14px', background: 'transparent', cursor: 'pointer', border: 'none' }}>Challenges</button>
+          <button className="land-nav-link" onClick={() => nav('/province-wide-challenge')} style={{ color: 'var(--text-soft)', fontSize: '14px', background: 'transparent', cursor: 'pointer', border: 'none' }}>For Leagues</button>
           <button className="land-nav-cta" onClick={() => nav(player ? '/home' : '/start?mode=signin')}>
             My Dashboard →
           </button>
