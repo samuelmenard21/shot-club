@@ -34,8 +34,8 @@
     <meta name="twitter:image" content="https://hockeyshotchallenge.com/og-image.svg" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" alt="Hockey Shot Challenge logo" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" alt="Hockey Shot Challenge app icon for Apple devices" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
     <!-- PWA -->
@@ -49,7 +49,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Structured data -->
+    <!-- Structured data: WebApplication -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -69,6 +69,64 @@
         "suggestedMinAge": "6",
         "suggestedMaxAge": "18"
       }
+    }
+    </script>
+
+    <!-- Structured data: FAQ Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Hockey Shot Challenge really free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, it's completely free. No hidden fees, no premium tiers. Players can sign up with Google and start tracking shots immediately."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do kids need an email or password?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Kids sign in with their parent's Google account. No passwords to remember, no complex setup."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What can players track?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Players track wrist shots, snap shots, slap shots, backhand shots, and stickhandling minutes. The app calculates streaks, ranks, and progress toward personal goals."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I join a team?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ask your coach for a 6-letter team code, then enter it in the app. You'll automatically appear on your team's leaderboard."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can coaches see what players are tracking?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Coaches get a dashboard showing who logged shots this week, shot counts by type, and 1v1 battle results."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do 1v1 battles work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Every Monday, players are matched with one player from another team. Whoever logs the most shots by Sunday wins. Rankings reset weekly."
+          }
+        }
+      ]
     }
     </script>
   </head>

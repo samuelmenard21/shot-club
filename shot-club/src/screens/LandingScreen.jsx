@@ -70,6 +70,8 @@ export default function LandingScreen() {
           <span>Hockey Shot Challenge</span>
         </button>
         <div className="land-nav-actions">
+          <a href="#how-it-works" className="land-nav-link" style={{ color: 'var(--text-soft)', fontSize: '14px', textDecoration: 'none' }}>How it works</a>
+          <a href="#faq" className="land-nav-link" style={{ color: 'var(--text-soft)', fontSize: '14px', textDecoration: 'none' }}>FAQ</a>
           <button className="land-nav-cta" onClick={() => nav(player ? '/home' : '/start?mode=signin')}>
             My Dashboard →
           </button>
@@ -168,7 +170,7 @@ export default function LandingScreen() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="hiw">
+      <section id="how-it-works" className="hiw">
         <div className="hiw-label">HOW IT WORKS</div>
         <div className="hiw-steps">
 
@@ -242,7 +244,7 @@ export default function LandingScreen() {
       </section>
 
       {/* ── FAQ ── */}
-      <section className="section">
+      <section id="faq" className="section">
         <div className="section-head">
           <div className="section-eyebrow">FAQ</div>
           <h2 className="section-title">Quick answers</h2>
@@ -297,6 +299,8 @@ export default function LandingScreen() {
           <button className="foot-link" onClick={() => nav('/blog')}>Guides</button>
           <button className="foot-link" onClick={() => nav('/start')}>Sign in</button>
           <button className="foot-link" onClick={() => nav('/privacy')}>Privacy</button>
+          <a href="https://www.usahockey.com" target="_blank" rel="noopener noreferrer" className="foot-link" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>USA Hockey</a>
+          <a href="https://www.hockeycanada.ca" target="_blank" rel="noopener noreferrer" className="foot-link" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>Hockey Canada</a>
         </div>
         <div className="foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge · Built in Burlington, ON</div>
       </footer>

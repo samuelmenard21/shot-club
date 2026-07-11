@@ -15,6 +15,24 @@ const POSTS = [
     description: '1v1 battles, daily logging, ranks, streaks, and what coaches can see. Here\'s how a full week looks.',
     date: 'July 2026',
   },
+  {
+    slug: 'off-ice-drills',
+    title: 'Top 5 Off-Ice Hockey Drills Your Kid Can Practice at Home',
+    description: 'Hockey training doesn\'t need ice. These five drills build shooting accuracy, stickhandling, and strength—and take 30 minutes.',
+    date: 'August 2026',
+  },
+  {
+    slug: 'building-practice-routine',
+    title: 'How to Build a Consistent Hockey Practice Routine (Without Burnout)',
+    description: 'Weekly practice schedules that work. How much time per day? What drills hit all the skills? Here\'s what coaches recommend.',
+    date: 'August 2026',
+  },
+  {
+    slug: 'parents-guide-youth-hockey',
+    title: 'Parent\'s Guide to Youth Hockey Training: What Coaches Actually Look For',
+    description: 'Not sure what your kid should be practicing? Here\'s what separates players who improve fast from those who plateau.',
+    date: 'August 2026',
+  },
 ]
 
 export default function BlogIndex() {
