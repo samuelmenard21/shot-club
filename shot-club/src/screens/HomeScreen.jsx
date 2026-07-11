@@ -363,6 +363,52 @@ export default function HomeScreen() {
         )
       })()}
 
+      {/* 10K CHALLENGE TRACKER - PROMINENT */}
+      {(() => {
+        const currentLifetimeShots = player.lifetime_shots + stats.todayTotal
+        const tenKGoal = 10000
+        const progress = Math.round((currentLifetimeShots / tenKGoal) * 100)
+        const remaining = Math.max(0, tenKGoal - currentLifetimeShots)
+
+        return (
+          <div style={{ margin: '16px 14px', padding: '16px', background: 'linear-gradient(135deg, rgba(61, 214, 140, 0.15) 0%, rgba(41, 121, 255, 0.1) 100%)', border: '1.5px solid rgba(61, 214, 140, 0.3)', borderRadius: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 10K CHALLENGE</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: 'white' }}>{currentLifetimeShots.toLocaleString()}<span style={{ fontSize: 14, color: 'var(--text-soft)' }}> / 10,000</span></div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent)' }}>{progress}%</div>
+                <div style={{ fontSize: 11, color: 'var(--text-soft)', marginTop: 2 }}>{remaining.toLocaleString()} shots left</div>
+              </div>
+            </div>
+
+            <div style={{
+              width: '100%',
+              height: 12,
+              background: 'rgba(0,0,0,0.2)',
+              borderRadius: 6,
+              overflow: 'hidden',
+              marginBottom: 12,
+            }}>
+              <div style={{
+                height: '100%',
+                background: 'linear-gradient(90deg, #3dd68c 0%, #2dbd72 100%)',
+                width: `${Math.min(100, progress)}%`,
+                transition: 'width 0.5s ease',
+              }} />
+            </div>
+
+            <div style={{ fontSize: 13, color: 'var(--ice)', fontWeight: 600 }}>
+              {currentLifetimeShots >= tenKGoal
+                ? '🎉 You hit 10,000! Keep going for 20K!'
+                : `${Math.ceil(remaining / 7)} shots/week to finish by summer end`
+              }
+            </div>
+          </div>
+        )
+      })()}
+
       {player.lifetime_shots === 0 && (
         <div className="first-time-nudge">
           <div className="ftn-title">Log your first shots 🏒</div>

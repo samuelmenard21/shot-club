@@ -69,9 +69,10 @@ export default function LandingScreen() {
           <BrandMark />
           <span>Hockey Shot Challenge</span>
         </button>
-        <div className="land-nav-actions">
+        <div className="land-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <a href="#how-it-works" className="land-nav-link" style={{ color: 'var(--text-soft)', fontSize: '14px', textDecoration: 'none' }}>How it works</a>
           <a href="#faq" className="land-nav-link" style={{ color: 'var(--text-soft)', fontSize: '14px', textDecoration: 'none' }}>FAQ</a>
+          <button className="land-nav-link" onClick={() => nav('/10000-shot-challenge')} style={{ color: 'var(--text-soft)', fontSize: '14px', background: 'transparent', cursor: 'pointer', border: 'none' }}>10K Challenge</button>
           <button className="land-nav-cta" onClick={() => nav(player ? '/home' : '/start?mode=signin')}>
             My Dashboard →
           </button>
