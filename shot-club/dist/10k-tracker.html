@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>10,000 Shot Challenge Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: white;
+    }
+    .tracker {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border: 2px solid #333;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 3px solid #333;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+      color: #1a3a52;
+    }
+    .header p {
+      margin: 5px 0 0 0;
+      font-size: 14px;
+      color: #666;
+    }
+    .instructions {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 13px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+    th {
+      background: #1a3a52;
+      color: white;
+      padding: 10px;
+      text-align: left;
+      font-weight: bold;
+      border: 1px solid #333;
+    }
+    td {
+      padding: 12px 10px;
+      border: 1px solid #ccc;
+      font-size: 13px;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    .name-cell {
+      width: 25%;
+      font-weight: bold;
+    }
+    .week-cell {
+      width: 10%;
+      text-align: center;
+    }
+    .total-cell {
+      width: 12%;
+      text-align: center;
+      background: #f0f0f0;
+      font-weight: bold;
+    }
+    .notes {
+      font-size: 12px;
+      color: #666;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #ccc;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 12px;
+      color: #999;
+    }
+    .cta {
+      background: #2979ff;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      text-align: center;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    @media print {
+      body { padding: 0; }
+      .tracker { border: none; padding: 0; }
+      .cta { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="tracker">
+    <div class="header">
+      <h1>🏒 10,000 Shot Challenge</h1>
+      <p>Track your summer hockey practice progress</p>
+    </div>
+
+    <div class="instructions">
+      <strong>How to use this tracker:</strong><br>
+      Fill in player names and log shots after each practice session. Add up the weekly totals to see who's leading the challenge. First to 10,000 wins!
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th class="name-cell">Player Name</th>
+          <th class="week-cell">Week 1</th>
+          <th class="week-cell">Week 2</th>
+          <th class="week-cell">Week 3</th>
+          <th class="week-cell">Week 4</th>
+          <th class="week-cell">Week 5</th>
+          <th class="week-cell">Week 6</th>
+          <th class="week-cell">Week 7</th>
+          <th class="week-cell">Week 8</th>
+          <th class="total-cell">TOTAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="name-cell">_________________</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="total-cell">_______</td></tr>
+        <tr><td class="name-cell">_________________</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="total-cell">_______</td></tr>
+        <tr><td class="name-cell">_________________</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="total-cell">_______</td></tr>
+        <tr><td class="name-cell">_________________</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="total-cell">_______</td></tr>
+        <tr><td class="name-cell">_________________</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="total-cell">_______</td></tr>
+        <tr><td class="name-cell">_________________</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="total-cell">_______</td></tr>
+        <tr><td class="name-cell">_________________</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="total-cell">_______</td></tr>
+        <tr><td class="name-cell">_________________</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="total-cell">_______</td></tr>
+        <tr><td class="name-cell">_________________</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="total-cell">_______</td></tr>
+        <tr><td class="name-cell">_________________</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="week-cell">___</td><td class="total-cell">_______</td></tr>
+      </tbody>
+    </table>
+
+    <div class="cta">
+      <strong>Want a live leaderboard instead of printing?</strong><br>
+      Visit hockeyshotchallenge.com to track online and compete in real-time.
+    </div>
+
+    <div class="notes">
+      <strong>Tips:</strong>
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Log shots after every practice session</li>
+        <li>All shot types count: wrist, snap, slap, backhand</li>
+        <li>Post this sheet somewhere visible to keep players motivated</li>
+        <li>Update weekly to keep the competition fun</li>
+        <li>First player to 10,000 shots wins!</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <p>🏒 Hockey Shot Challenge — Free 10,000 Shot Challenge Tracker</p>
+      <p>Print this tracker or use our online app at hockeyshotchallenge.com</p>
+    </div>
+  </div>
+
+  <script>
+    // Auto-download as PDF when opened directly
+    if (window.location.href.includes('10k-tracker') && !window.location.href.includes('print')) {
+      window.print();
+    }
+  </script>
+</body>
+</html>
