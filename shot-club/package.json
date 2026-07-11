@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-static-pages.js && node scripts/generate-club-sitemap.js",
+    "build": "vite build && node scripts/generate-static-pages.js && node scripts/generate-club-sitemap.js || true",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -16,6 +16,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
+    "prerender-spa-plugin": "^3.4.0",
+    "puppeteer": "^22.0.0",
     "vite": "^5.4.0"
   }
 }
