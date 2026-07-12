@@ -64,7 +64,10 @@ export default function ChallengeSelector() {
       description: 'Set your own goal and track progress in real-time',
       pace: 'Your pace',
       color: 'from-purple-500 to-pink-600',
-      onClick: () => nav('/challenges/custom'),
+      onClick: () => {
+        if (player) nav('/challenges/custom')
+        else nav('/start')
+      },
     },
   ]
 

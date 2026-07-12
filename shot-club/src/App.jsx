@@ -39,6 +39,7 @@ import ParentsGuidePost from './screens/blog/ParentsGuidePost'
 import TenKChallengeScreen from './screens/TenKChallengeScreen'
 import AssociationPartnershipScreen from './screens/AssociationPartnershipScreen'
 import ChallengeSelector from './screens/ChallengeSelector'
+import CustomChallengeScreen from './screens/CustomChallengeScreen'
 import ProvinceWideChallengeScreen from './screens/ProvinceWideChallengeScreen'
 
 function LoadingScreen() {
@@ -152,6 +153,7 @@ function ShellWrapper() {
         <Route path="/blog/building-practice-routine" element={<PracticeRoutinePost />} />
         <Route path="/blog/parents-guide-youth-hockey" element={<ParentsGuidePost />} />
         <Route path="/challenges" element={<ChallengeSelector />} />
+        <Route path="/challenges/custom" element={<Protected><CustomChallengeScreen /></Protected>} />
         <Route path="/10000-shot-challenge" element={<TenKChallengeScreen />} />
         <Route path="/association-partnership" element={<AssociationPartnershipScreen />} />
         <Route path="/province-wide-challenge" element={<ProvinceWideChallengeScreen />} />
