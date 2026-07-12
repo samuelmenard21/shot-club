@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useNotifications } from '../hooks/useNotifications'
 import { logShots, getStats, getTodayRival, getPersonalBest } from '../lib/shots'
 import { pickLineStable } from '../lib/coachSam'
 import { getRank } from '../lib/ranks'
@@ -7,6 +8,7 @@ import { claimAchievements, isStreakInRecovery } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
 import { getSkillVideos } from '../lib/videos'
 import { getTeamChallenge, getTeamWeeklyShots, getMyBattle, getPlayerChallenge, getPlayerChallengeProgress } from '../lib/challenges'
+import { checkMilestone, getMilestoneMessage, getGoalCompletionMessage } from '../lib/milestones'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
 import StreakRecoveryBanner from '../components/StreakRecoveryBanner'
@@ -32,11 +34,12 @@ const SHOT_EMOJIS = {
 
 export default function HomeScreen() {
   const { player, refresh } = useAuth()
+  const { toast } = useNotifications()
   const [stats, setStats] = useState({ todayTotal: 0, weekTotal: 0, todayByType: {} })
   const [rival, setRival] = useState(null)
   const [entryType, setEntryType] = useState(null)
   const [undoStack, setUndoStack] = useState([])
-  const [toast, setToast] = useState('')
+  const [toastMsg, setToast] = useState('')
   const [unlockedCodes, setUnlockedCodes] = useState([])
   const [goalRefreshKey, setGoalRefreshKey] = useState(0)
   const [videos, setVideos] = useState([])
@@ -47,6 +50,7 @@ export default function HomeScreen() {
   const [squadBattle, setSquadBattle] = useState(null)
   const [playerChallenge, setPlayerChallenge] = useState(null)
   const [playerChallengeProgress, setPlayerChallengeProgress] = useState(null)
+  const prevChallengeProgressRef = useRef(null)
 
   const shotTypes = player?.position === 'G' ? SHOT_TYPES_GOALIE : SHOT_TYPES_SHOOTER
 
@@ -94,6 +98,30 @@ export default function HomeScreen() {
     const t = setInterval(() => { refresh() }, 4000)
     return () => clearInterval(t)
   }, [player, refresh])
+
+  // Detect challenge milestones
+  useEffect(() => {
+    if (!playerChallengeProgress) return
+
+    const prev = prevChallengeProgressRef.current
+    if (prev && prev.current_shots !== playerChallengeProgress.current_shots) {
+      const milestone = checkMilestone(
+        playerChallengeProgress.current_shots,
+        prev.current_shots,
+        playerChallengeProgress.goal_shots
+      )
+
+      if (milestone) {
+        if (milestone === playerChallengeProgress.goal_shots) {
+          toast(getGoalCompletionMessage(milestone), 'success', 4000)
+        } else {
+          toast(getMilestoneMessage(milestone), 'success', 3000)
+        }
+      }
+    }
+
+    prevChallengeProgressRef.current = playerChallengeProgress
+  }, [playerChallengeProgress, toast])
 
   const rank = useMemo(() => getRank(player?.lifetime_shots || 0), [player?.lifetime_shots])
 
@@ -195,6 +223,7 @@ export default function HomeScreen() {
   const showToast = (msg) => {
     setToast(msg)
     setTimeout(() => setToast(''), 2000)
+    toast(msg, 'info', 2000)
   }
 
   if (!player) return null

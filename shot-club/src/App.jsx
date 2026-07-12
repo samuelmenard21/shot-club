@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
+import { NotificationProvider } from './hooks/useNotifications'
+import Toast from './components/Toast'
 
 // Public screens
 import LandingScreen from './screens/LandingScreen'
@@ -37,6 +39,7 @@ import OffIceDrillsPost from './screens/blog/OffIceDrillsPost'
 import PracticeRoutinePost from './screens/blog/PracticeRoutinePost'
 import ParentsGuidePost from './screens/blog/ParentsGuidePost'
 import TenKChallengeScreen from './screens/TenKChallengeScreen'
+import FiveKChallengeScreen from './screens/FiveKChallengeScreen'
 import AssociationPartnershipScreen from './screens/AssociationPartnershipScreen'
 import ChallengeSelector from './screens/ChallengeSelector'
 import CustomChallengeScreen from './screens/CustomChallengeScreen'
@@ -154,6 +157,7 @@ function ShellWrapper() {
         <Route path="/blog/parents-guide-youth-hockey" element={<ParentsGuidePost />} />
         <Route path="/challenges" element={<ChallengeSelector />} />
         <Route path="/challenges/custom" element={<Protected><CustomChallengeScreen /></Protected>} />
+        <Route path="/5000-shot-challenge" element={<FiveKChallengeScreen />} />
         <Route path="/10000-shot-challenge" element={<TenKChallengeScreen />} />
         <Route path="/association-partnership" element={<AssociationPartnershipScreen />} />
         <Route path="/province-wide-challenge" element={<ProvinceWideChallengeScreen />} />
@@ -168,9 +172,12 @@ function ShellWrapper() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ShellWrapper />
-    </AuthProvider>
+    <NotificationProvider>
+      <AuthProvider>
+        <Toast />
+        <ShellWrapper />
+      </AuthProvider>
+    </NotificationProvider>
   )
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useNotifications } from '../hooks/useNotifications'
 import { getMyCoachProfile, getClubStats, getClubTeams, getClubPlayers, getClubTeamRankings, getClubWeeklyRecap, getClubDrillStats } from '../lib/clubs'
 import { getMyTeams, getOrCreateTeamInvite, getPendingCoachesForOwnedTeams, approveTeamCoach } from '../lib/teams'
 import { getTeamChallenge, setTeamChallenge, getTeamWeeklyShots } from '../lib/challenges'
@@ -9,6 +10,7 @@ import { setSEO, CANONICAL_URL } from '../lib/seo'
 
 export default function CoachDashboardScreen() {
   const nav = useNavigate()
+  const { toast } = useNotifications()
   const [coach, setCoach] = useState(null)
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({ playerCount: 0, teamCount: 0, totalShots: 0 })
@@ -98,8 +100,14 @@ export default function CoachDashboardScreen() {
       setGoalInput(ch?.goal_shots ? String(ch.goal_shots) : '')
       setActiveBattle(battle)
       setOpponents(opps)
+
+      // Team nudge: if lagging behind weekly goal
+      if (ch && ch.goal_shots && wk < ch.goal_shots * 0.5) {
+        const shotsNeeded = Math.round((ch.goal_shots - wk) / 4) // Remaining days in week
+        toast(`📢 Team is at ${wk}/${ch.goal_shots} shots. Need ~${shotsNeeded}/day to hit goal`, 'warning', 5000)
+      }
     })()
-  }, [activeTeamId, coach])
+  }, [activeTeamId, coach, toast])
 
   if (loading) {
     return (
