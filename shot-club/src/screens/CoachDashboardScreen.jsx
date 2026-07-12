@@ -563,6 +563,21 @@ export default function CoachDashboardScreen() {
               <div className="dash-section">
                 <div className="dash-section-head">
                   <div className="dash-label">Team Challenge — this week</div>
+                  <button
+                    onClick={() => nav('/coach/challenge')}
+                    style={{
+                      background: 'var(--accent)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 6,
+                      padding: '6px 12px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Create →
+                  </button>
                 </div>
                 {challenge && (
                   <div className="ch-progress-wrap">

@@ -15,6 +15,7 @@ import AuthScreen from './screens/AuthScreen'
 // Coach
 import CoachAuthScreen from './screens/CoachAuthScreen'
 import CoachDashboardScreen from './screens/CoachDashboardScreen'
+import CoachChallengeScreen from './screens/CoachChallengeScreen'
 
 // Player (authenticated)
 import HomeScreen from './screens/HomeScreen'
@@ -127,7 +128,8 @@ function ShellWrapper() {
         {/* Coach */}
         <Route path="/coach" element={<CoachLandingScreen />} />
         <Route path="/coach/start" element={<CoachAuthScreen />} />
-        <Route path="/coach/dashboard" element={<CoachDashboardScreen />} />
+        <Route path="/coach/dashboard" element={<Protected><CoachDashboardScreen /></Protected>} />
+        <Route path="/coach/challenge" element={<Protected><CoachChallengeScreen /></Protected>} />
 
         {/* Authenticated player */}
         <Route path="/home" element={<Protected><HomeScreen /></Protected>} />
