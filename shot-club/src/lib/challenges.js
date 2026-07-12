@@ -194,3 +194,152 @@ export async function getTeamWeeklyShots(teamId) {
 
   return (logs || []).reduce((sum, r) => sum + r.count, 0)
 }
+
+// ============ PLAYER CHALLENGES ============
+
+export async function getPlayerChallenge(playerId) {
+  if (!playerId) return null
+  const { data } = await supabase
+    .from('player_challenges')
+    .select('*')
+    .eq('player_id', playerId)
+    .maybeSingle()
+  return data
+}
+
+export async function setPlayerChallenge(playerId, challengeType, goalShots, targetDate = null) {
+  if (!playerId || !challengeType || !goalShots) return null
+  const { data, error } = await supabase
+    .from('player_challenges')
+    .upsert(
+      {
+        player_id: playerId,
+        challenge_type: challengeType,
+        goal_shots: goalShots,
+        target_completion_date: targetDate,
+        started_at: new Date().toISOString(),
+      },
+      { onConflict: 'player_id' }
+    )
+    .select()
+    .maybeSingle()
+  if (error) throw error
+  return data
+}
+
+export async function getPlayerChallengeProgress(playerId) {
+  if (!playerId) return null
+  const challenge = await getPlayerChallenge(playerId)
+  if (!challenge) return null
+
+  const { data: player } = await supabase
+    .from('players')
+    .select('lifetime_shots')
+    .eq('id', playerId)
+    .single()
+
+  return {
+    ...challenge,
+    current_shots: player?.lifetime_shots || 0,
+    progress_pct: Math.round(((player?.lifetime_shots || 0) / challenge.goal_shots) * 100),
+    shots_remaining: Math.max(0, challenge.goal_shots - (player?.lifetime_shots || 0)),
+  }
+}
+
+// ============ TEAM CHALLENGES ============
+
+export async function getTeamChallengeProgress(teamId, weekStart = null) {
+  if (!teamId) return null
+  const ws = weekStart || getWeekStart()
+  const { data } = await supabase
+    .from('team_challenges')
+    .select('*')
+    .eq('team_id', teamId)
+    .eq('week_start', ws)
+    .maybeSingle()
+
+  if (!data) return null
+
+  const weekShots = await getTeamWeeklyShots(teamId)
+  return {
+    ...data,
+    current_shots: weekShots,
+    progress_pct: Math.round((weekShots / data.goal_shots) * 100),
+    shots_remaining: Math.max(0, data.goal_shots - weekShots),
+  }
+}
+
+export async function createTeamChallenge(teamId, name, goalShots, challengeType, weekStart = null, weekEnd = null) {
+  if (!teamId || !name || !goalShots) return null
+  const ws = weekStart || getWeekStart()
+  const we = weekEnd || new Date(new Date(ws).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data, error } = await supabase
+    .from('team_challenges')
+    .insert({
+      team_id: teamId,
+      name,
+      goal_shots: goalShots,
+      challenge_type: challengeType,
+      week_start: ws,
+      week_end: we,
+      created_by: user?.id,
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+// ============ ASSOCIATION CHALLENGES ============
+
+export async function getAssociationChallenges(clubId) {
+  if (!clubId) return []
+  const { data } = await supabase
+    .from('association_challenges')
+    .select('*')
+    .eq('club_id', clubId)
+    .order('start_date', { ascending: false })
+  return data || []
+}
+
+export async function createAssociationChallenge(clubId, name, goalShots, challengeType, startDate, endDate, description = null) {
+  if (!clubId || !name || !goalShots || !startDate || !endDate) return null
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data, error } = await supabase
+    .from('association_challenges')
+    .insert({
+      club_id: clubId,
+      name,
+      description,
+      goal_shots: goalShots,
+      challenge_type: challengeType,
+      start_date: startDate,
+      end_date: endDate,
+      created_by: user?.id,
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function joinAssociationChallenge(challengeId, playerId, teamId = null) {
+  if (!challengeId || !playerId) return null
+  const { data, error } = await supabase
+    .from('challenge_participants')
+    .insert({
+      challenge_id: challengeId,
+      player_id: playerId,
+      team_id: teamId,
+    })
+    .select()
+    .single()
+
+  if (error && error.code !== 'PGRST116') throw error // Ignore duplicate error
+  return data
+}

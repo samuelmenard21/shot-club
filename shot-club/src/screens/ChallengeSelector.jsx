@@ -1,9 +1,14 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO } from '../lib/seo'
+import { useAuth } from '../hooks/useAuth'
+import { setPlayerChallenge } from '../lib/challenges'
 
 export default function ChallengeSelector() {
   const nav = useNavigate()
+  const { player } = useAuth()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     setSEO({
@@ -12,6 +17,20 @@ export default function ChallengeSelector() {
       url: 'https://hockeyshotchallenge.com/challenges',
     })
   }, [])
+
+  const handleChallengeSelect = async (challengeType, goalShots) => {
+    if (!player) return
+    setLoading(true)
+    setError('')
+    try {
+      await setPlayerChallenge(player.id, challengeType, goalShots)
+      nav('/')
+    } catch (err) {
+      console.error('Error selecting challenge:', err)
+      setError('Failed to save challenge. Please try again.')
+      setLoading(false)
+    }
+  }
 
   const challenges = [
     {
@@ -23,7 +42,7 @@ export default function ChallengeSelector() {
       description: 'Perfect for young players or a 2-month challenge',
       pace: '625 shots/week',
       color: 'from-orange-500 to-red-600',
-      onClick: () => nav('/challenges/5k'),
+      onClick: () => handleChallengeSelect('5k', 5000),
     },
     {
       id: '10k',
@@ -34,7 +53,7 @@ export default function ChallengeSelector() {
       description: 'The classic summer challenge for dedicated players',
       pace: '1,250 shots/week',
       color: 'from-blue-500 to-cyan-600',
-      onClick: () => nav('/challenges/10k'),
+      onClick: () => handleChallengeSelect('10k', 10000),
     },
     {
       id: 'custom',
@@ -80,25 +99,35 @@ export default function ChallengeSelector() {
         </p>
       </section>
 
+      {error && (
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '12px 20px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, color: '#fca5a5', fontSize: 14, marginBottom: 24 }}>
+          {error}
+        </div>
+      )}
+
       {/* CHALLENGE CARDS */}
       <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px 60px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
         {challenges.map((c) => (
           <button
             key={c.id}
             onClick={c.onClick}
+            disabled={loading}
             style={{
               background: `linear-gradient(135deg, rgba(${c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.1) 0%, rgba(${c.id === '5k' ? '220, 38, 38' : c.id === '10k' ? '6, 182, 212' : '236, 72, 153'}, 0.05) 100%)`,
               border: `1.5px solid rgba(${c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.3)`,
               borderRadius: 16,
               padding: 32,
-              cursor: 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
               textAlign: 'left',
               color: 'white',
+              opacity: loading ? 0.6 : 1,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)'
-              e.currentTarget.style.borderColor = `rgba(${c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.6)`
+              if (!loading) {
+                e.currentTarget.style.transform = 'translateY(-4px)'
+                e.currentTarget.style.borderColor = `rgba(${c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.6)`
+              }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'

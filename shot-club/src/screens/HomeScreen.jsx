@@ -6,7 +6,7 @@ import { getRank } from '../lib/ranks'
 import { claimAchievements, isStreakInRecovery } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
 import { getSkillVideos } from '../lib/videos'
-import { getTeamChallenge, getTeamWeeklyShots, getMyBattle } from '../lib/challenges'
+import { getTeamChallenge, getTeamWeeklyShots, getMyBattle, getPlayerChallenge, getPlayerChallengeProgress } from '../lib/challenges'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
 import StreakRecoveryBanner from '../components/StreakRecoveryBanner'
@@ -45,6 +45,8 @@ export default function HomeScreen() {
   const [teamChallenge, setTeamChallenge] = useState(null)
   const [teamWeekShots, setTeamWeekShots] = useState(0)
   const [squadBattle, setSquadBattle] = useState(null)
+  const [playerChallenge, setPlayerChallenge] = useState(null)
+  const [playerChallengeProgress, setPlayerChallengeProgress] = useState(null)
 
   const shotTypes = player?.position === 'G' ? SHOT_TYPES_GOALIE : SHOT_TYPES_SHOOTER
 
@@ -54,6 +56,16 @@ export default function HomeScreen() {
     getTodayRival(player.team_id, player.id).then(setRival).catch(() => {})
     getSkillVideos().then(setVideos).catch(() => {})
     getPersonalBest(player.id).then(setPersonalBest).catch(() => {})
+
+    // Load player's challenge
+    getPlayerChallenge(player.id)
+      .then((ch) => {
+        setPlayerChallenge(ch)
+        if (ch) return getPlayerChallengeProgress(player.id)
+      })
+      .then((progress) => setPlayerChallengeProgress(progress))
+      .catch(() => {})
+
     if (player.team_id) {
       Promise.all([
         getTeamChallenge(player.team_id),
@@ -363,23 +375,43 @@ export default function HomeScreen() {
         )
       })()}
 
-      {/* 10K CHALLENGE TRACKER - PROMINENT */}
+      {/* CHALLENGE TRACKER - PROMINENT */}
       {(() => {
-        const currentLifetimeShots = player.lifetime_shots + stats.todayTotal
-        const tenKGoal = 10000
-        const progress = Math.round((currentLifetimeShots / tenKGoal) * 100)
-        const remaining = Math.max(0, tenKGoal - currentLifetimeShots)
+        if (!playerChallenge || !playerChallengeProgress) {
+          return (
+            <div style={{ margin: '16px 14px', padding: '16px', background: 'linear-gradient(135deg, rgba(61, 214, 140, 0.15) 0%, rgba(41, 121, 255, 0.1) 100%)', border: '1.5px solid rgba(61, 214, 140, 0.3)', borderRadius: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 NO CHALLENGE YET</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-soft)' }}>Pick a challenge to get started</div>
+                </div>
+                <button
+                  onClick={() => {
+                    const nav = window.location
+                    nav.href = '/challenges'
+                  }}
+                  style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 8, padding: '8px 14px', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}
+                >
+                  Choose →
+                </button>
+              </div>
+            </div>
+          )
+        }
+
+        const { current_shots, goal_shots, challenge_type, progress_pct, shots_remaining } = playerChallengeProgress
+        const challengeLabels = { '5k': '5K', '10k': '10K', 'custom': 'CUSTOM' }
 
         return (
           <div style={{ margin: '16px 14px', padding: '16px', background: 'linear-gradient(135deg, rgba(61, 214, 140, 0.15) 0%, rgba(41, 121, 255, 0.1) 100%)', border: '1.5px solid rgba(61, 214, 140, 0.3)', borderRadius: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 10K CHALLENGE</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: 'white' }}>{currentLifetimeShots.toLocaleString()}<span style={{ fontSize: 14, color: 'var(--text-soft)' }}> / 10,000</span></div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 {challengeLabels[challenge_type]} CHALLENGE</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: 'white' }}>{current_shots.toLocaleString()}<span style={{ fontSize: 14, color: 'var(--text-soft)' }}> / {goal_shots.toLocaleString()}</span></div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent)' }}>{progress}%</div>
-                <div style={{ fontSize: 11, color: 'var(--text-soft)', marginTop: 2 }}>{remaining.toLocaleString()} shots left</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent)' }}>{progress_pct}%</div>
+                <div style={{ fontSize: 11, color: 'var(--text-soft)', marginTop: 2 }}>{shots_remaining.toLocaleString()} left</div>
               </div>
             </div>
 
@@ -394,15 +426,15 @@ export default function HomeScreen() {
               <div style={{
                 height: '100%',
                 background: 'linear-gradient(90deg, #3dd68c 0%, #2dbd72 100%)',
-                width: `${Math.min(100, progress)}%`,
+                width: `${Math.min(100, progress_pct)}%`,
                 transition: 'width 0.5s ease',
               }} />
             </div>
 
             <div style={{ fontSize: 13, color: 'var(--ice)', fontWeight: 600 }}>
-              {currentLifetimeShots >= tenKGoal
-                ? '🎉 You hit 10,000! Keep going for 20K!'
-                : `${Math.ceil(remaining / 7)} shots/week to finish by summer end`
+              {current_shots >= goal_shots
+                ? `🎉 Challenge complete! Pick a new one`
+                : `${Math.ceil(shots_remaining / 7)} shots/week to finish`
               }
             </div>
           </div>
