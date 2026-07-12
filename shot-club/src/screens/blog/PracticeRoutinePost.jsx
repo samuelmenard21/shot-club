@@ -107,7 +107,7 @@ export default function PracticeRoutinePost() {
 
           <h2>The Bottom Line</h2>
           <p>Your kid doesn't need to practice 3 hours a day to improve. They need to practice consistently — 3–4x per week, focused on skill, with variety — and actually show up every week.</p>
-          <p>Consistency > intensity. Every time.</p>
+          <p>Consistency &gt; intensity. Every time.</p>
           <p>Start with your kid's age group, add one extra session per week, and build from there. Check in every month. If they're still hungry, add more. If they're burned out, dial it back.</p>
           <p>The goal is to build a player (and a person) who loves hockey. The wins will follow.</p>
         </div>
