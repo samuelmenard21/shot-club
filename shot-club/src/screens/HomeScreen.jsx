@@ -375,20 +375,19 @@ export default function HomeScreen() {
         )
       })()}
 
-      {/* CHALLENGE TRACKER - PROMINENT */}
+      {/* PERSONAL CHALLENGE TRACKER */}
       {(() => {
         if (!playerChallenge || !playerChallengeProgress) {
           return (
             <div style={{ margin: '16px 14px', padding: '16px', background: 'linear-gradient(135deg, rgba(61, 214, 140, 0.15) 0%, rgba(41, 121, 255, 0.1) 100%)', border: '1.5px solid rgba(61, 214, 140, 0.3)', borderRadius: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 NO CHALLENGE YET</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 NO PERSONAL CHALLENGE YET</div>
                   <div style={{ fontSize: 14, color: 'var(--text-soft)' }}>Pick a challenge to get started</div>
                 </div>
                 <button
                   onClick={() => {
-                    const nav = window.location
-                    nav.href = '/challenges'
+                    window.location.href = '/challenges'
                   }}
                   style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 8, padding: '8px 14px', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}
                 >
@@ -436,6 +435,46 @@ export default function HomeScreen() {
                 ? `🎉 Challenge complete! Pick a new one`
                 : `${Math.ceil(shots_remaining / 7)} shots/week to finish`
               }
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* TEAM CHALLENGE TRACKER */}
+      {teamChallenge && (() => {
+        const progress = Math.round((teamWeekShots / teamChallenge.goal_shots) * 100)
+        const remaining = Math.max(0, teamChallenge.goal_shots - teamWeekShots)
+        return (
+          <div style={{ margin: '12px 14px', padding: '16px', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%)', border: '1.5px solid rgba(59, 130, 246, 0.3)', borderRadius: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#60a5fa', marginBottom: 4 }}>👥 TEAM CHALLENGE</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: 'white' }}>{teamChallenge.name}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#60a5fa' }}>{progress}%</div>
+                <div style={{ fontSize: 11, color: 'var(--text-soft)', marginTop: 2 }}>{remaining.toLocaleString()} left</div>
+              </div>
+            </div>
+
+            <div style={{
+              width: '100%',
+              height: 12,
+              background: 'rgba(0,0,0,0.2)',
+              borderRadius: 6,
+              overflow: 'hidden',
+              marginBottom: 12,
+            }}>
+              <div style={{
+                height: '100%',
+                background: 'linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%)',
+                width: `${Math.min(100, progress)}%`,
+                transition: 'width 0.5s ease',
+              }} />
+            </div>
+
+            <div style={{ fontSize: 13, color: 'var(--ice)', fontWeight: 600 }}>
+              Team: {teamWeekShots.toLocaleString()} / {teamChallenge.goal_shots.toLocaleString()} shots
             </div>
           </div>
         )
