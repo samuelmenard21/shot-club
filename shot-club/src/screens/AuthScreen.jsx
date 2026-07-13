@@ -754,10 +754,9 @@ export default function AuthScreen() {
               <input
                 type="number"
                 value={lifetimeShotGoal}
-                onChange={(e) => setLifetimeShotGoal(Math.max(100, parseInt(e.target.value) || 5000))}
+                onChange={(e) => setLifetimeShotGoal(e.target.value)}
                 placeholder="5000"
                 className="input-field"
-                min="100"
                 max="50000"
               />
               <div className="label-sm" style={{ fontSize: 11, color: 'var(--text-mute)', marginTop: 8 }}>
@@ -766,10 +765,9 @@ export default function AuthScreen() {
               <input
                 type="number"
                 value={stickhandlingHourGoal}
-                onChange={(e) => setStickhandlingHourGoal(Math.max(1, parseInt(e.target.value) || 5))}
+                onChange={(e) => setStickhandlingHourGoal(e.target.value)}
                 placeholder="5"
                 className="input-field"
-                min="1"
                 max="100"
                 style={{ marginTop: 6 }}
               />
