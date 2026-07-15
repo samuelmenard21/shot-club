@@ -19,7 +19,10 @@ export default function ChallengeSelector() {
   }, [])
 
   const handleChallengeSelect = async (challengeType, goalShots) => {
-    if (!player) return
+    if (!player) {
+      nav('/start')
+      return
+    }
     setLoading(true)
     setError('')
     try {
