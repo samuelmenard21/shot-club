@@ -115,10 +115,10 @@ export default function LandingScreen() {
           </div>
         )}
 
-        {/* Two-path split */}
-        <div className="hero-paths">
+        {/* Three-path split */}
+        <div className="hero-paths hero-paths--three">
           <button className="hero-path hero-path--player" onClick={() => nav('/start')}>
-            <div className="hero-path-eyebrow">PLAYERS &amp; PARENTS</div>
+            <div className="hero-path-eyebrow">FOR PLAYERS</div>
             <div className="hero-path-title">Go outside. Shoot. Log it. Watch your rank climb.</div>
             <div className="hero-path-detail">
               <span>🥅 Shots</span>
@@ -129,8 +129,20 @@ export default function LandingScreen() {
             <div className="hero-path-btn hero-path-btn--player">Sign in to track shots →</div>
           </button>
 
+          <button className="hero-path hero-path--parent" onClick={() => nav('/start')}>
+            <div className="hero-path-eyebrow">FOR PARENTS</div>
+            <div className="hero-path-title">Manage multiple kids. Watch them grow.</div>
+            <div className="hero-path-detail">
+              <span>👧 Multiple kids</span>
+              <span>📊 Real-time stats</span>
+              <span>📤 Share progress</span>
+              <span>🔒 Private &amp; safe</span>
+            </div>
+            <div className="hero-path-btn hero-path-btn--parent">Start free →</div>
+          </button>
+
           <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
-            <div className="hero-path-eyebrow">COACHES</div>
+            <div className="hero-path-eyebrow">FOR COACHES</div>
             <div className="hero-path-title">Know who's been shooting before they walk into practice.</div>
             <div className="hero-path-detail">
               <span>📊 Who logged this week</span>
@@ -511,13 +523,19 @@ body:has(.landing) { background: var(--bg) !important; }
 }
 .hero-stat strong { color: white; font-weight: 700; }
 
-/* Two-path cards */
+/* Multi-path cards */
 .hero-paths {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 14px;
   margin-bottom: 32px;
   text-align: left;
+}
+.hero-paths--three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+@media (max-width: 900px) {
+  .hero-paths--three { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 560px) {
   .hero-paths { grid-template-columns: 1fr; }
@@ -534,6 +552,11 @@ body:has(.landing) { background: var(--bg) !important; }
   background: #0f1e3a;
   border: 1.5px solid rgba(41,121,255,0.5);
   box-shadow: 0 4px 24px rgba(41,121,255,0.12);
+}
+.hero-path--parent {
+  background: #1a0f2e;
+  border: 1.5px solid rgba(168,100,215,0.5);
+  box-shadow: 0 4px 24px rgba(168,100,215,0.12);
 }
 .hero-path--coach {
   background: #0e1a14;
@@ -570,6 +593,10 @@ body:has(.landing) { background: var(--bg) !important; }
 .hero-path-btn--player {
   background: var(--accent); color: white;
   box-shadow: 0 2px 12px rgba(41,121,255,0.4);
+}
+.hero-path-btn--parent {
+  background: rgba(168,100,215,0.18); color: #d8b4fe;
+  border: 1.5px solid rgba(168,100,215,0.45);
 }
 .hero-path-btn--coach {
   background: rgba(45,180,100,0.18); color: #4ade80;
