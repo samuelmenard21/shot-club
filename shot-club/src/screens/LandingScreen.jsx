@@ -154,7 +154,7 @@ export default function LandingScreen() {
         </div>
 
         {/* Club search */}
-        <div className="hero-club-search">
+        <div className="hero-club-search hero-club-search--hide-mobile">
           <div className="hero-club-search-label">Is your team already on here?</div>
           <div style={{ position: 'relative', maxWidth: 420, margin: '0 auto' }}>
             <input
@@ -240,9 +240,9 @@ export default function LandingScreen() {
             <div className="hiw-step-text">After practice, tap a shot type, enter how many, hit save. Takes 5 seconds.</div>
           </div>
 
-          <div className="hiw-arrow">→</div>
+          <div className="hiw-arrow hiw-arrow--hide-mobile">→</div>
 
-          <div className="hiw-step">
+          <div className="hiw-step hiw-step--hide-mobile">
             <div className="hiw-step-num">3</div>
             <div className="hiw-step-visual hiw-step-visual--board">
               {[
@@ -334,18 +334,30 @@ export default function LandingScreen() {
             <summary>How do coaches get their team on it?</summary>
             <p>Sign in with Google, set up your team, and you get one invite link. Send it to parents — they tap it, sign up, and their kid appears on your team leaderboard.</p>
           </details>
-          <details className="faq-item">
+          <details className="faq-item faq-item--hide-mobile">
             <summary>Can parents manage multiple kids?</summary>
             <p>Yes. Sign in once with your Google account, add all your kids, and switch between them instantly. You'll see all their stats on one dashboard.</p>
           </details>
-          <details className="faq-item">
+          <details className="faq-item faq-item--hide-mobile">
             <summary>Can kids share their progress?</summary>
             <p>Yes. Share 1v1 battles, rank-ups, and milestones with anyone. Send a link to grandparents, relatives, coaches—whoever you want to show.</p>
           </details>
-          <details className="faq-item">
+          <details className="faq-item faq-item--hide-mobile">
             <summary>Is my data private?</summary>
             <p>Completely. You control what's public and what's private. We don't sell data or show ads. It's just hockey.</p>
           </details>
+          <div style={{ textAlign: 'center', marginTop: 20 }}>
+            <button
+              className="faq-view-all"
+              onClick={() => {
+                const hiddenItems = document.querySelectorAll('.faq-item--hide-mobile')
+                hiddenItems.forEach(item => item.classList.toggle('faq-item--show-mobile'))
+                event.target.textContent = event.target.textContent === 'View all FAQ' ? 'Show less' : 'View all FAQ'
+              }}
+            >
+              View all FAQ →
+            </button>
+          </div>
         </div>
       </section>
 
@@ -374,13 +386,13 @@ export default function LandingScreen() {
           <span>Hockey Shot Challenge</span>
         </button>
         <div className="foot-links">
-          <button className="foot-link" onClick={() => nav('/for-clubs')}>For clubs</button>
-          <button className="foot-link" onClick={() => nav('/coach')}>Coaches</button>
-          <button className="foot-link" onClick={() => nav('/blog')}>Guides</button>
           <button className="foot-link" onClick={() => nav('/start')}>Sign in</button>
           <button className="foot-link" onClick={() => nav('/privacy')}>Privacy</button>
-          <a href="https://www.usahockey.com" target="_blank" rel="noopener noreferrer" className="foot-link" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>USA Hockey</a>
-          <a href="https://www.hockeycanada.ca" target="_blank" rel="noopener noreferrer" className="foot-link" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>Hockey Canada</a>
+          <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/for-clubs')}>For clubs</button>
+          <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/coach')}>Coaches</button>
+          <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/blog')}>Guides</button>
+          <a href="https://www.usahockey.com" target="_blank" rel="noopener noreferrer" className="foot-link foot-link--hide-mobile" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>USA Hockey</a>
+          <a href="https://www.hockeycanada.ca" target="_blank" rel="noopener noreferrer" className="foot-link foot-link--hide-mobile" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>Hockey Canada</a>
         </div>
         <div className="foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge · Built in Burlington, ON</div>
       </footer>
@@ -480,7 +492,23 @@ body:has(.landing) { background: var(--bg) !important; }
 }
 .land-nav-actions { display: flex; gap: 8px; align-items: center; }
 .land-nav-link { color: var(--ice); padding: 8px 14px; font-size: 14px; font-weight: 500; }
-@media (max-width: 600px) { .land-nav-link { display: none; } }
+@media (max-width: 600px) {
+  .land-nav-link { display: none; }
+
+  /* Hide 3rd step of "How it works" on mobile */
+  .hiw-step--hide-mobile { display: none; }
+  .hiw-arrow--hide-mobile { display: none; }
+
+  /* Hide club search on mobile */
+  .hero-club-search--hide-mobile { display: none; }
+
+  /* Hide extra FAQ items on mobile, show with toggle */
+  .faq-item--hide-mobile { display: none; }
+  .faq-item--show-mobile { display: block !important; }
+
+  /* Hide extra footer links on mobile */
+  .foot-link--hide-mobile { display: none; }
+}
 .land-nav-cta {
   background: var(--accent); color: white;
   padding: 9px 18px; border-radius: 999px;
@@ -825,6 +853,18 @@ body:has(.landing) { background: var(--bg) !important; }
 .faq-item summary::after { content: '+'; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-family: var(--font-display); font-size: 22px; font-weight: 400; color: var(--text-mute); }
 .faq-item[open] summary::after { content: '−'; }
 .faq-item p { padding: 0 18px 16px; margin: 0; font-size: 14px; color: var(--text-soft); line-height: 1.55; }
+.faq-view-all {
+  background: transparent;
+  color: var(--ice);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 0;
+  cursor: pointer;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.faq-view-all:hover { color: white; }
 
 /* ── FINAL CTA ── */
 .final-cta {
