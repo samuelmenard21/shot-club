@@ -47,7 +47,13 @@ export default function DrillsScreen() {
             className="drill-card"
           >
             <div className="drill-thumb-wrap">
-              <img src={youtubeThumbUrl(drill.youtubeId)} alt={drill.title} className="drill-thumb" />
+              <img
+                src={youtubeThumbUrl(drill.youtubeId)}
+                alt={drill.title}
+                className="drill-thumb"
+                loading="lazy"
+                decoding="async"
+              />
               <div className="drill-play-overlay">
                 <div className="drill-play-btn">
                   <div className="drill-play-tri" />

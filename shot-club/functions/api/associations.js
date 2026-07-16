@@ -21,6 +21,21 @@ export async function onRequest(context) {
     })
   }
 
+  // Rate limiting: 100 requests per minute per IP
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown'
+  const key = `ratelimit:${ip}`
+  const countStr = await env.RATE_LIMIT.get(key)
+  const count = countStr ? parseInt(countStr) : 0
+
+  if (count > 100) {
+    return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+      status: 429,
+      headers: { ...headers, 'Retry-After': '60' },
+    })
+  }
+
+  await env.RATE_LIMIT.put(key, String(count + 1), { expirationTtl: 60 })
+
   try {
     // Get query params
     const url = new URL(request.url)

@@ -21,14 +21,17 @@ const SITE_URL = 'https://hockeyshotchallenge.com'
 
 // Static pages of the site — these always exist and should always be in the sitemap
 const STATIC_PAGES = [
-  { loc: '/',          priority: '1.0', changefreq: 'weekly'  },
-  { loc: '/for-clubs', priority: '0.9', changefreq: 'monthly' },
-  { loc: '/player',    priority: '0.8', changefreq: 'monthly' },
-  { loc: '/coach',     priority: '0.7', changefreq: 'monthly' },
-  { loc: '/start',     priority: '0.6', changefreq: 'monthly' },
-  { loc: '/blog',                          priority: '0.7', changefreq: 'monthly' },
-  { loc: '/blog/getting-started',          priority: '0.7', changefreq: 'monthly' },
-  { loc: '/blog/how-squad-battles-work',   priority: '0.7', changefreq: 'monthly' },
+  { loc: '/',                        priority: '1.0', changefreq: 'weekly'  },
+  { loc: '/for-clubs',               priority: '0.9', changefreq: 'monthly' },
+  { loc: '/player',                  priority: '0.8', changefreq: 'monthly' },
+  { loc: '/coach',                   priority: '0.7', changefreq: 'monthly' },
+  { loc: '/start',                   priority: '0.6', changefreq: 'monthly' },
+  { loc: '/challenges',              priority: '0.8', changefreq: 'monthly' },
+  { loc: '/5000-shot-challenge',     priority: '0.8', changefreq: 'monthly' },
+  { loc: '/10000-shot-challenge',    priority: '0.8', changefreq: 'monthly' },
+  { loc: '/blog',                    priority: '0.7', changefreq: 'monthly' },
+  { loc: '/blog/getting-started',    priority: '0.7', changefreq: 'monthly' },
+  { loc: '/blog/how-squad-battles-work', priority: '0.7', changefreq: 'monthly' },
 ]
 
 const __filename = fileURLToPath(import.meta.url)

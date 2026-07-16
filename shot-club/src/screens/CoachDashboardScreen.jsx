@@ -710,6 +710,8 @@ function QRPreview({ url }) {
       alt="Team join QR code"
       width="220"
       height="220"
+      loading="lazy"
+      decoding="async"
       style={{ display: 'block', borderRadius: 12, border: '0.5px solid var(--border-dim)', margin: '0 auto' }}
     />
   )

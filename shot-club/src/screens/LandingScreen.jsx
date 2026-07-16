@@ -45,19 +45,40 @@ export default function LandingScreen() {
 
   useEffect(() => {
     setSEO({
-      title: null,
-      description: 'Free off-ice hockey tracker for players and coaches. Kids log shots and stickhandling every day. Coaches see who\'s putting in the work. Compete in weekly 1v1 battles. Free for ages 6–18.',
+      title: 'Hockey Shot Challenge — Track every shot. Climb the rankings.',
+      description: 'Free off-ice hockey tracker for players ages 6–18. Log shots and stickhandling every day. Compete on leaderboards. Join your team. Track progress in real-time. Completely free.',
       url: CANONICAL_URL,
     })
     addStructuredData({
       '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
+      '@type': 'WebApplication',
       name: 'Hockey Shot Challenge',
-      description: 'Off-ice hockey training app for kids. Track shots and stickhandling reps, compete on leaderboards, coaches see who\'s working.',
+      url: CANONICAL_URL,
+      description: 'Off-ice hockey training tracker for youth players. Log shots, track progress, climb leaderboards, compete in 1v1 battles.',
       applicationCategory: 'SportsApplication',
       operatingSystem: 'Web',
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'CAD' },
-      aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', ratingCount: '50' },
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'CAD',
+        availability: 'https://schema.org/InStock',
+      },
+      audience: {
+        '@type': 'PeopleAudience',
+        suggestedMinAge: '6',
+        suggestedMaxAge: '18',
+      },
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: '4.9',
+        ratingCount: '50',
+        bestRating: '5',
+        worstRating: '1',
+      },
+      creator: {
+        '@type': 'Organization',
+        name: 'Hockey Shot Challenge',
+      },
     })
   }, [])
 

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { NotificationProvider } from './hooks/useNotifications'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import Toast from './components/Toast'
 
 // Public screens
@@ -116,7 +117,12 @@ function ShellWrapper() {
 
   return (
     <div className={useAppShell ? 'app-shell' : 'full-width'}>
-      <Routes>
+      <Routes
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
         {/* Public */}
         <Route path="/" element={<RootRoute />} />
         <Route path="/for-clubs" element={<ForClubsScreen />} />
@@ -172,12 +178,14 @@ function ShellWrapper() {
 
 export default function App() {
   return (
-    <NotificationProvider>
-      <AuthProvider>
-        <Toast />
-        <ShellWrapper />
-      </AuthProvider>
-    </NotificationProvider>
+    <ErrorBoundary>
+      <NotificationProvider>
+        <AuthProvider>
+          <Toast />
+          <ShellWrapper />
+        </AuthProvider>
+      </NotificationProvider>
+    </ErrorBoundary>
   )
 }
 
