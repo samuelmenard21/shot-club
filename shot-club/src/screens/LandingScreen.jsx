@@ -106,7 +106,7 @@ export default function LandingScreen() {
         <div className="hero-eyebrow">FREE · FOR HOCKEY PLAYERS · AGES 6–18</div>
         <h1 className="hero-title">Shoot more. Track it. Beat your rival.</h1>
         <p className="hero-sub">
-          Log your shots and stickhandling after every practice. Your teammates, parents, and coach can all see how hard you're working.
+          Log your shots and stickhandling after every practice. Parents can manage multiple kids. Your teammates, parents, and coach can all see how hard you're working.
         </p>
 
         {totalShots > 0 && (
@@ -254,6 +254,39 @@ export default function LandingScreen() {
         </div>
       </section>
 
+      {/* ── FAMILY ACCOUNTS ── */}
+      <section className="section section--family">
+        <div className="section-head">
+          <div className="section-eyebrow">👨‍👩‍👧‍👦 FAMILY ACCOUNTS</div>
+          <h2 className="section-title">One parent account. Multiple kids.</h2>
+          <p className="section-sub">
+            Parents sign in once. Add all your kids. Switch between them instantly. See all their stats in real-time from your dashboard.
+          </p>
+        </div>
+        <div className="family-features">
+          <div className="family-feature">
+            <div className="family-icon">👧</div>
+            <div className="family-feature-title">Manage Multiple Players</div>
+            <div className="family-feature-text">Coach all your kids from one account. Track their progress side-by-side.</div>
+          </div>
+          <div className="family-feature">
+            <div className="family-icon">📊</div>
+            <div className="family-feature-title">See Real-Time Progress</div>
+            <div className="family-feature-text">Watch shot counts, streaks, and rankings update instantly after each practice.</div>
+          </div>
+          <div className="family-feature">
+            <div className="family-icon">📤</div>
+            <div className="family-feature-title">Share Achievements</div>
+            <div className="family-feature-text">Share 1v1 battles, rank ups, and milestones with grandparents, relatives, and friends.</div>
+          </div>
+          <div className="family-feature">
+            <div className="family-icon">🔒</div>
+            <div className="family-feature-title">Private & Secure</div>
+            <div className="family-feature-text">You control who sees what. No ads. No data selling. Just hockey.</div>
+          </div>
+        </div>
+      </section>
+
       {/* ── 1V1 BATTLES ── */}
       <section className="section section--compete">
         <div className="section-head">
@@ -288,6 +321,18 @@ export default function LandingScreen() {
           <details className="faq-item">
             <summary>How do coaches get their team on it?</summary>
             <p>Sign in with Google, set up your team, and you get one invite link. Send it to parents — they tap it, sign up, and their kid appears on your team leaderboard.</p>
+          </details>
+          <details className="faq-item">
+            <summary>Can parents manage multiple kids?</summary>
+            <p>Yes. Sign in once with your Google account, add all your kids, and switch between them instantly. You'll see all their stats on one dashboard.</p>
+          </details>
+          <details className="faq-item">
+            <summary>Can kids share their progress?</summary>
+            <p>Yes. Share 1v1 battles, rank-ups, and milestones with anyone. Send a link to grandparents, relatives, coaches—whoever you want to show.</p>
+          </details>
+          <details className="faq-item">
+            <summary>Is my data private?</summary>
+            <p>Completely. You control what's public and what's private. We don't sell data or show ads. It's just hockey.</p>
           </details>
         </div>
       </section>
@@ -721,6 +766,28 @@ body:has(.landing) { background: var(--bg) !important; }
 .sbm-rival-team { font-size: 11px; color: var(--text-mute); text-align: center; margin-bottom: 10px; }
 .sbm-status { font-size: 12px; font-weight: 600; color: #f87171; background: rgba(255,255,255,0.04); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; line-height: 1.4; }
 .sbm-log-btn { width: 100%; background: var(--accent); color: white; border-radius: 10px; padding: 12px 16px; font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: 0.4px; text-align: center; }
+
+/* ── FAMILY ACCOUNTS ── */
+.section--family { border-top: 0.5px solid var(--border-dim); background: rgba(45,180,100,0.04); }
+.family-features {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px; margin-top: 32px;
+}
+.family-feature {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: 24px; background: var(--surface);
+  border: 1px solid rgba(45,180,100,0.2); border-radius: 16px;
+}
+.family-icon {
+  font-size: 40px; margin-bottom: 12px;
+}
+.family-feature-title {
+  font-family: var(--font-display); font-size: 16px; font-weight: 700;
+  color: white; margin-bottom: 8px; letter-spacing: 0.2px;
+}
+.family-feature-text {
+  font-size: 14px; color: var(--text-soft); line-height: 1.5;
+}
 
 /* ── FAQ ── */
 .faq-list { display: flex; flex-direction: column; gap: 6px; max-width: 680px; margin: 0 auto; }
