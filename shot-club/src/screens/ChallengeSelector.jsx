@@ -20,17 +20,25 @@ export default function ChallengeSelector() {
 
   const handleChallengeSelect = async (challengeType, goalShots) => {
     if (!player) {
+      console.log('No player found, redirecting to sign-in')
       nav('/start')
       return
     }
     setLoading(true)
     setError('')
     try {
-      await setPlayerChallenge(player.id, challengeType, goalShots)
+      console.log('Setting challenge:', { playerId: player.id, challengeType, goalShots })
+      const result = await setPlayerChallenge(player.id, challengeType, goalShots)
+      console.log('Challenge set successfully:', result)
+      if (!result) {
+        setError('Failed to save challenge. Please try again.')
+        setLoading(false)
+        return
+      }
       nav('/')
     } catch (err) {
-      console.error('Error selecting challenge:', err)
-      setError('Failed to save challenge. Please try again.')
+      console.error('Error selecting challenge:', err.message, err)
+      setError(`Error: ${err.message || 'Failed to save challenge. Please try again.'}`)
       setLoading(false)
     }
   }
