@@ -6,7 +6,7 @@ import { setPlayerChallenge } from '../lib/challenges'
 
 export default function ChallengeSelector() {
   const nav = useNavigate()
-  const { player } = useAuth()
+  const { player, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -117,20 +117,20 @@ export default function ChallengeSelector() {
           <button
             key={c.id}
             onClick={c.onClick}
-            disabled={loading}
+            disabled={loading || authLoading}
             style={{
               background: `linear-gradient(135deg, rgba(${c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.1) 0%, rgba(${c.id === '5k' ? '220, 38, 38' : c.id === '10k' ? '6, 182, 212' : '236, 72, 153'}, 0.05) 100%)`,
               border: `1.5px solid rgba(${c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.3)`,
               borderRadius: 16,
               padding: 32,
-              cursor: loading ? 'not-allowed' : 'pointer',
+              cursor: loading || authLoading ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
               textAlign: 'left',
               color: 'white',
-              opacity: loading ? 0.6 : 1,
+              opacity: loading || authLoading ? 0.6 : 1,
             }}
             onMouseEnter={(e) => {
-              if (!loading) {
+              if (!loading && !authLoading) {
                 e.currentTarget.style.transform = 'translateY(-4px)'
                 e.currentTarget.style.borderColor = `rgba(${c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.6)`
               }
