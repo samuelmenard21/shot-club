@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useNotifications } from '../hooks/useNotifications'
 import { logShots, getStats, getTodayRival, getPersonalBest } from '../lib/shots'
@@ -33,6 +34,7 @@ const SHOT_EMOJIS = {
 }
 
 export default function HomeScreen() {
+  const nav = useNavigate()
   const { player, refresh } = useAuth()
   const { toast } = useNotifications()
   const [stats, setStats] = useState({ todayTotal: 0, weekTotal: 0, todayByType: {} })
@@ -415,9 +417,7 @@ export default function HomeScreen() {
                   <div style={{ fontSize: 14, color: 'var(--text-soft)' }}>Pick a challenge to get started</div>
                 </div>
                 <button
-                  onClick={() => {
-                    window.location.href = '/challenges'
-                  }}
+                  onClick={() => nav('/challenges')}
                   style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 8, padding: '8px 14px', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}
                 >
                   Choose →

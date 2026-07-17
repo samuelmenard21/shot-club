@@ -167,6 +167,21 @@ export default function ChallengeSelector() {
                 <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ice)' }}>{c.pace}</div>
               </div>
             </div>
+            <div
+              style={{
+                marginTop: 24,
+                width: '100%',
+                background: `rgba(${c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.9)`,
+                color: 'white',
+                borderRadius: 10,
+                padding: '14px 20px',
+                fontWeight: 800,
+                fontSize: 15,
+                textAlign: 'center',
+              }}
+            >
+              {loading ? 'Saving…' : `Start This Challenge →`}
+            </div>
           </button>
         ))}
       </section>
