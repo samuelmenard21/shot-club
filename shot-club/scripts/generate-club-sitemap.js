@@ -29,6 +29,7 @@ const STATIC_PAGES = [
   { loc: '/challenges',              priority: '0.8', changefreq: 'monthly' },
   { loc: '/5000-shot-challenge',     priority: '0.8', changefreq: 'monthly' },
   { loc: '/10000-shot-challenge',    priority: '0.8', changefreq: 'monthly' },
+  { loc: '/how-many-shots-per-day',  priority: '0.9', changefreq: 'monthly' },
   { loc: '/blog',                    priority: '0.7', changefreq: 'monthly' },
   { loc: '/blog/getting-started',    priority: '0.7', changefreq: 'monthly' },
   { loc: '/blog/how-squad-battles-work', priority: '0.7', changefreq: 'monthly' },
