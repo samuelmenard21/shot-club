@@ -57,6 +57,9 @@ export default function ClubScreen() {
         title: `${c.name}${cityPart} — Off-Ice Training`,
         description: `Off-ice shot tracking and skill training for ${c.name}${cityPart}. Coaches set up teams in 2 minutes. Players log shots and compete on the leaderboard. Free.`,
         url: `${CANONICAL_URL}/clubs/${slug}`,
+        // Noindex until clubs have real traction — keeps rendered DOM consistent
+        // with the noindex the Pages Function injects into the raw HTML.
+        noindex: true,
       })
       addStructuredData({
         '@context': 'https://schema.org',

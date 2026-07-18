@@ -65,6 +65,12 @@ export async function onRequest(context) {
   const description = `${clubName} players track off-ice shots and stickhandling on Hockey Shot Challenge — free team leaderboards, ranks, and skill videos.`
 
   return new HTMLRewriter()
+    // Club pages are noindex until they have real activity (no active clubs
+    // yet). Indexing thousands of empty template pages would flag the whole
+    // domain as thin content and suppress the pages that matter. Flip this to
+    // activity-gated indexing once clubs start logging shots. 'follow' still
+    // lets Google crawl the links within the page.
+    .on('meta[name="robots"]', new AttrRewriter('content', 'noindex, follow'))
     .on('link[rel="canonical"]', new AttrRewriter('href', canonical))
     .on('meta[property="og:url"]', new AttrRewriter('content', canonical))
     .on('meta[name="twitter:url"]', new AttrRewriter('content', canonical))

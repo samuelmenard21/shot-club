@@ -111,15 +111,11 @@ async function main() {
   }
 
   // === Build sitemap-clubs.xml ===
-  const clubUrls = clubs
-    .filter((c) => c.slug && typeof c.slug === 'string') // safety
-    .map((c) => buildUrlEntry({
-      loc: `${SITE_URL}/clubs/${c.slug}`,
-      lastmod: c.created_at ? c.created_at.slice(0, 10) : undefined,
-      changefreq: 'monthly',
-      priority: '0.5',
-    }))
-    .join('\n')
+  // Club pages are noindex until they have real activity (see functions/clubs/[slug].js).
+  // We deliberately emit an EMPTY club sitemap so Google isn't pointed at thousands
+  // of empty template pages. When clubs gain traction, filter here to only the
+  // active ones and drop the noindex for those slugs.
+  const clubUrls = ''
 
   const clubsSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -145,14 +141,12 @@ ${staticUrls}
 `
 
   // === Build sitemap index (points to both above) ===
+  // Only advertise the static (real, useful) pages. The clubs sitemap is
+  // intentionally omitted while club pages are noindex.
   const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>${SITE_URL}/sitemap-static.xml</loc>
-    <lastmod>${today}</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>${SITE_URL}/sitemap-clubs.xml</loc>
     <lastmod>${today}</lastmod>
   </sitemap>
 </sitemapindex>
@@ -165,9 +159,9 @@ ${staticUrls}
   writeFileSync(join(PUBLIC_DIR, 'sitemap-static.xml'), staticSitemap)
   writeFileSync(join(PUBLIC_DIR, 'sitemap.xml'),        sitemapIndex)
 
-  console.log(`✅ Wrote sitemap-clubs.xml  (${clubs.length} club URLs)`)
+  console.log(`✅ Wrote sitemap-clubs.xml  (empty — club pages noindex until traction; ${clubs.length} clubs skipped)`)
   console.log(`✅ Wrote sitemap-static.xml (${STATIC_PAGES.length} static URLs)`)
-  console.log(`✅ Wrote sitemap.xml        (index pointing to both)`)
+  console.log(`✅ Wrote sitemap.xml        (index → static only)`)
   console.log('📋 Sitemap generation complete')
 }
 
