@@ -6,7 +6,9 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [player, setPlayer] = useState(null)
-  const [loading, setLoading] = useState(true)
+  // On the server (SSR prerender) there's no session — start resolved so public
+  // pages render their real content instead of the loading state.
+  const [loading, setLoading] = useState(typeof window !== 'undefined')
 
   const refresh = useCallback(async () => {
     const p = await getCurrentPlayer()

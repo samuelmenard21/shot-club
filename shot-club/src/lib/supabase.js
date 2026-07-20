@@ -11,8 +11,9 @@ export const supabase = createClient(url, key, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    // kids never sign out on their own — session persists forever on this device
-    storage: localStorage,
+    // kids never sign out on their own — session persists forever on this device.
+    // Guard localStorage so the module is importable under Node (SSR prerender).
+    storage: typeof localStorage !== 'undefined' ? localStorage : undefined,
     storageKey: 'hsc-auth',
   },
 })
