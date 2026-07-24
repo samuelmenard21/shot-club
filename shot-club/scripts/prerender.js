@@ -17,50 +17,118 @@ const DIST = 'dist'
 const SITE = 'https://hockeyshotchallenge.com'
 
 // Public routes to prerender, with their per-page <head> metadata.
+// Titles are kept to ~50-60 chars. `crumb` is the breadcrumb label; `article:true`
+// marks blog posts (get Article schema). `section` groups breadcrumb parents.
 const PAGES = [
-  { route: '/', title: 'Hockey Shot Challenge — Track every shot. Climb the rankings.',
+  { route: '/', crumb: 'Home', title: 'Hockey Shot Challenge — Track Every Shot, Climb Ranks',
     description: 'Off-ice hockey practice tracking for kids ages 6-18. Log your shots, climb team and global leaderboards, earn ranks, and get better every day.' },
-  { route: '/for-clubs', title: 'Free 10K Shot Challenge Platform for Hockey Clubs & Associations',
+  { route: '/for-clubs', crumb: 'For Clubs', title: 'Free Shot Challenge Platform for Hockey Clubs & Leagues',
     description: 'Run your club or association shot challenge on Hockey Shot Challenge. Free branded leaderboards, real-time tracking, zero setup hassle.' },
-  { route: '/player', title: 'For Hockey Players — Track Shots, Climb Leaderboards',
+  { route: '/player', crumb: 'For Players', title: 'For Hockey Players — Track Shots, Climb Leaderboards',
     description: 'Free for players ages 6-18. Track your shots and stickhandling, build streaks, earn ranks, and compete with teammates.' },
-  { route: '/coach', title: 'For Coaches — See Who Is Putting In the Work Off-Ice',
+  { route: '/coach', crumb: 'For Coaches', title: 'For Coaches — See Who Is Putting In the Work Off-Ice',
     description: 'Set up your team in 2 minutes. See who logged shots this week, shot counts by type, and 1v1 battle results. Free for coaches.' },
-  { route: '/challenges', title: 'Choose Your Hockey Challenge — 5K, 10K, or Custom',
+  { route: '/challenges', crumb: 'Challenges', title: 'Choose Your Hockey Shot Challenge — 5K, 10K, Custom',
     description: 'Pick your hockey challenge: 5000 shot challenge, 10000 shot challenge, or create a custom goal. Free tracking with live leaderboards.' },
-  { route: '/5000-shot-challenge', title: '5,000 Shot Challenge Tracker — Free Online Log Sheet',
+  { route: '/5000-shot-challenge', crumb: '5,000 Shot Challenge', title: '5,000 Shot Challenge Tracker — Free Online Log Sheet',
     description: 'Free 5000 shot challenge tracker. Log your shots, track progress, compete with teammates. Perfect for a summer of hockey training.' },
-  { route: '/10000-shot-challenge', title: '10,000 Shot Challenge Tracker — Free Printable & Online Tracker',
+  { route: '/10000-shot-challenge', crumb: '10,000 Shot Challenge', title: '10,000 Shot Challenge Tracker — Free Online & Printable',
     description: 'Free printable 10000 shot challenge tracker + online app. Log your shots, track progress, compete with teammates. Perfect for summer hockey training.' },
-  { route: '/association-partnership', title: 'Free 10K Challenge Tracking for Hockey Associations — Partner With Us',
+  { route: '/association-partnership', crumb: 'Associations', title: 'Free Shot Challenge Tracking for Hockey Associations',
     description: "Run your association's 10,000 shot challenge on Hockey Shot Challenge. Free branded leaderboards, zero setup hassle. We handle the tech." },
-  { route: '/province-wide-challenge', title: 'Province-Wide Hockey Challenge Platform — For Leagues & Associations',
+  { route: '/province-wide-challenge', crumb: 'Province-Wide', title: 'Province-Wide Hockey Challenge Platform for Leagues',
     description: 'Run your province-wide 5K or 10K challenge digitally. Live leaderboards, real-time tracking. Free platform for OMHA, OWHA, and regional hockey organizations.' },
-  { route: '/blog', title: 'Hockey Training Blog — Off-Ice Drills, Practice Routines, Player Development',
+  { route: '/blog', crumb: 'Blog', title: 'Hockey Training Blog — Off-Ice Drills & Player Tips',
     description: 'Hockey training tips, off-ice drills, practice routines, and player development guides for youth hockey players and parents.' },
-  { route: '/blog/getting-started', title: 'Getting Started with Hockey Shot Challenge',
+  { route: '/blog/getting-started', crumb: 'Getting Started', section: 'Blog', article: true,
+    title: 'Getting Started with Hockey Shot Challenge — Setup',
     description: 'How to set up your account, log your first shots, and start climbing the leaderboard on Hockey Shot Challenge.' },
-  { route: '/blog/how-squad-battles-work', title: 'How Squad Battles Work — Weekly 1v1 Hockey Challenges',
+  { route: '/blog/how-squad-battles-work', crumb: 'Squad Battles', section: 'Blog', article: true,
+    title: 'How Squad Battles Work — Weekly 1v1 Hockey Battles',
     description: 'Every Monday players are matched against a rival. Whoever logs the most shots by Sunday wins. Here is how squad battles keep kids motivated.' },
-  { route: '/blog/off-ice-drills', title: 'Top 5 Off-Ice Hockey Drills Your Kid Can Practice at Home',
+  { route: '/blog/off-ice-drills', crumb: 'Off-Ice Drills', section: 'Blog', article: true,
+    title: 'Top 5 Off-Ice Hockey Drills to Practice at Home',
     description: 'The best off-ice hockey drills: wrist shot accuracy, stickhandling, agility, footwork. No ice required.' },
-  { route: '/blog/building-practice-routine', title: 'How to Build a Consistent Hockey Practice Routine (Without Burnout)',
+  { route: '/blog/building-practice-routine', crumb: 'Practice Routine', section: 'Blog', article: true,
+    title: 'Build a Consistent Hockey Practice Routine (No Burnout)',
     description: 'Age-based hockey practice schedules, the consistency formula, and burnout prevention for youth hockey players.' },
-  { route: '/blog/parents-guide-youth-hockey', title: "Parent's Guide to Youth Hockey Training: What Coaches Actually Look For",
+  { route: '/blog/parents-guide-youth-hockey', crumb: "Parent's Guide", section: 'Blog', article: true,
+    title: "Parent's Guide to Youth Hockey Training & Development",
     description: 'What hockey coaches evaluate: shot accuracy, stickhandling, hockey IQ, work ethic, skating. Parent tips for player development.' },
-  { route: '/privacy', title: 'Privacy Policy — Hockey Shot Challenge',
+  { route: '/privacy', crumb: 'Privacy', title: 'Privacy Policy — Hockey Shot Challenge',
     description: 'Privacy policy and data handling practices for Hockey Shot Challenge.' },
 ]
+
+// Build date, used for schema dateModified.
+const TODAY = new Date().toISOString().slice(0, 10)
+const PUBLISHER = {
+  '@type': 'Organization',
+  name: 'Hockey Shot Challenge',
+  url: SITE,
+  logo: { '@type': 'ImageObject', url: `${SITE}/apple-touch-icon.png` },
+}
 
 function escapeAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 }
 
-function applyHead(html, { route, title, description }) {
+// Breadcrumb trail: Home › [Section] › This page.
+function breadcrumbSchema(page) {
+  const items = [{ name: 'Home', url: SITE }]
+  if (page.section === 'Blog') items.push({ name: 'Blog', url: `${SITE}/blog` })
+  if (page.route !== '/') items.push({ name: page.crumb, url: `${SITE}${page.route}` })
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((it, i) => ({
+      '@type': 'ListItem', position: i + 1, name: it.name, item: it.url,
+    })),
+  }
+}
+
+function buildSchema(page) {
+  const url = `${SITE}${page.route}`
+  const schemas = []
+  // Home already ships WebApplication + FAQPage schema in index.html; don't dupe.
+  if (page.route !== '/') schemas.push(breadcrumbSchema(page))
+  if (page.article) {
+    schemas.push({
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: page.title,
+      description: page.description,
+      author: PUBLISHER,
+      publisher: PUBLISHER,
+      dateModified: TODAY,
+      mainEntityOfPage: url,
+      inLanguage: 'en',
+    })
+  }
+  return schemas
+}
+
+function schemaTags(page) {
+  return buildSchema(page)
+    .map((s) => `<script type="application/ld+json">${JSON.stringify(s)}</script>`)
+    .join('\n    ')
+}
+
+// The homepage's WebApplication + FAQPage schema lives in index.html (our
+// template). Those describe the app/homepage, so strip them from every OTHER
+// page — a blog post shouldn't carry FAQPage schema for FAQs it doesn't show.
+function stripHomeSchema(html) {
+  return html.replace(
+    /\s*<script type="application\/ld\+json">[\s\S]*?<\/script>/g,
+    (block) => (/"WebApplication"|"FAQPage"/.test(block) ? '' : block)
+  )
+}
+
+function applyHead(html, page) {
+  const { route, title, description } = page
   const url = `${SITE}${route}`
   const t = escapeAttr(title)
   const d = escapeAttr(description)
-  return html
+  let out = route === '/' ? html : stripHomeSchema(html)
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`)
     .replace(/(<meta name="description" content=")[^"]*/, `$1${d}`)
     .replace(/(<meta property="og:title" content=")[^"]*/, `$1${t}`)
@@ -70,6 +138,10 @@ function applyHead(html, { route, title, description }) {
     .replace(/(<link rel="canonical" href=")[^"]*/, `$1${url}`)
     .replace(/(<meta property="og:url" content=")[^"]*/, `$1${url}`)
     .replace(/(<meta name="twitter:url" content=")[^"]*/, `$1${url}`)
+
+  const tags = schemaTags(page)
+  if (tags) out = out.replace('</head>', `    ${tags}\n  </head>`)
+  return out
 }
 
 async function main() {
