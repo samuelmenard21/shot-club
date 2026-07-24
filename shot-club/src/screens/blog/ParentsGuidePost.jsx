@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
+import AuthorBio from '../../components/AuthorBio'
 
 export default function ParentsGuidePost() {
   const nav = useNavigate()
@@ -105,6 +106,9 @@ export default function ParentsGuidePost() {
           <p>Your job as a parent isn't to make them a pro. It's to help them become the best version of themselves. And to show them that work compounds.</p>
           <p>Do that, and they'll succeed at hockey. And life.</p>
         </div>
+
+        <AuthorBio />
+
 
         <div className="post-footer">
           <button className="post-foot-link" onClick={() => nav('/blog')}>← All guides</button>

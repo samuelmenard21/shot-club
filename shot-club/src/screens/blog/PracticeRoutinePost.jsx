@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
+import AuthorBio from '../../components/AuthorBio'
 
 export default function PracticeRoutinePost() {
   const nav = useNavigate()
@@ -111,6 +112,9 @@ export default function PracticeRoutinePost() {
           <p>Start with your kid's age group, add one extra session per week, and build from there. Check in every month. If they're still hungry, add more. If they're burned out, dial it back.</p>
           <p>The goal is to build a player (and a person) who loves hockey. The wins will follow.</p>
         </div>
+
+        <AuthorBio />
+
 
         <div className="post-footer">
           <button className="post-foot-link" onClick={() => nav('/blog')}>← All guides</button>

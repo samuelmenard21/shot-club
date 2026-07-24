@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
+import AuthorBio from '../../components/AuthorBio'
 
 export default function SquadBattlesPost() {
   const nav = useNavigate()
@@ -91,6 +92,9 @@ export default function SquadBattlesPost() {
           </div>
         </div>
       </article>
+
+      <AuthorBio />
+
 
       <footer className="post-footer">
         <button className="post-foot-link" onClick={() => nav('/blog')}>← All guides</button>

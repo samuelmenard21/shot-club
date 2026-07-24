@@ -68,6 +68,14 @@ const PUBLISHER = {
   logo: { '@type': 'ImageObject', url: `${SITE}/apple-touch-icon.png` },
 }
 
+// Named human author for E-A-T. LinkedIn as sameAs establishes identity.
+const AUTHOR = {
+  '@type': 'Person',
+  name: 'Sam Menard',
+  url: 'https://www.linkedin.com/in/sammenard/',
+  sameAs: ['https://www.linkedin.com/in/sammenard/'],
+}
+
 function escapeAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 }
@@ -97,7 +105,7 @@ function buildSchema(page) {
       '@type': 'Article',
       headline: page.title,
       description: page.description,
-      author: PUBLISHER,
+      author: AUTHOR,
       publisher: PUBLISHER,
       dateModified: TODAY,
       mainEntityOfPage: url,

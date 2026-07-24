@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
+import AuthorBio from '../../components/AuthorBio'
 
 export default function OffIceDrillsPost() {
   const nav = useNavigate()
@@ -80,6 +81,9 @@ export default function OffIceDrillsPost() {
           <p>You don't need an ice rink to get better at hockey. You need 30 minutes, some space, and a willingness to grind. These five drills hit every skill that matters, and they work anywhere.</p>
           <p>Start with two drills this week. Add one more next week. By September, your player will feel a real difference.</p>
         </div>
+
+        <AuthorBio />
+
 
         <div className="post-footer">
           <button className="post-foot-link" onClick={() => nav('/blog')}>← All guides</button>
