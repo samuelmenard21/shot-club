@@ -13,3 +13,8 @@ dist-server/
 # Misc
 .DS_Store
 *.log
+
+# TikTok autonomous posting system
+logs/
+dist/cards/
+tiktok-publish-queue.json

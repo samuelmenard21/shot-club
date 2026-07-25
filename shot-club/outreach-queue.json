@@ -1,0 +1,14 @@
+{
+  "date": "2026-07-25",
+  "drafts": [
+    {
+      "associationId": "example-club-123",
+      "clubName": "Stoney Creek Sabres",
+      "contactName": "Coach Smith",
+      "email": "coach@stoneycreksabres.com",
+      "message": "Subject: Stoney Creek Sabres — Premium Meat Pack Fundraiser for Your Team\n\nHi Coach Smith,\n\nWe work with youth hockey teams to run premium meat pack fundraisers. Local butchers sponsor the packs, your team keeps 40%, and families get the sponsorship story on every trading card your players create.\n\nStoney Creek Sabres would get:\n- $850-1200 from local butcher sponsorship\n- Trading cards for your whole team featuring butcher branding\n- Direct reach to families who care about local food sourcing\n\nInterested? Reply to this message or call 905-555-0123.\n\n—\nPull My Card",
+      "status": "ready-to-send",
+      "sentDate": null
+    }
+  ]
+}
