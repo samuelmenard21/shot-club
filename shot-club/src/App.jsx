@@ -1,35 +1,15 @@
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { NotificationProvider } from './hooks/useNotifications'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import Toast from './components/Toast'
 
-// Public screens
+// ── EAGER: public content screens that are PRERENDERED at build time.
+// These MUST be statically imported — renderToString can't wait on React.lazy,
+// so lazy-loading them would ship empty HTML and break AI-search rendering.
 import LandingScreen from './screens/LandingScreen'
 import ForClubsScreen from './screens/ForClubsScreen'
-import ClubScreen from './screens/ClubScreen'
-import ClubsScreen from './screens/ClubsScreen'
-import ClubJoinScreen from './screens/ClubJoinScreen'
-import CardPublicScreen from './screens/CardPublicScreen'
-import RankingsScreen from './screens/RankingsScreen'
-import AuthScreen from './screens/AuthScreen'
-
-// Coach
-import CoachAuthScreen from './screens/CoachAuthScreen'
-import CoachDashboardScreen from './screens/CoachDashboardScreen'
-import CoachChallengeScreen from './screens/CoachChallengeScreen'
-import AssociationDashboardScreen from './screens/AssociationDashboardScreen'
-
-// Player (authenticated)
-import HomeScreen from './screens/HomeScreen'
-import VideosScreen from './screens/VideosScreen'
-import CardScreen from './screens/CardScreen'
-import RankScreen from './screens/RankScreen'
-import MoreScreen from './screens/MoreScreen'
-import AddPlayerScreen from './screens/AddPlayerScreen'
-
-// Public static
 import PrivacyScreen from './screens/PrivacyScreen'
 import PlayerLandingScreen from './screens/PlayerLandingScreen'
 import CoachLandingScreen from './screens/CoachLandingScreen'
@@ -43,8 +23,28 @@ import TenKChallengeScreen from './screens/TenKChallengeScreen'
 import FiveKChallengeScreen from './screens/FiveKChallengeScreen'
 import AssociationPartnershipScreen from './screens/AssociationPartnershipScreen'
 import ChallengeSelector from './screens/ChallengeSelector'
-import CustomChallengeScreen from './screens/CustomChallengeScreen'
 import ProvinceWideChallengeScreen from './screens/ProvinceWideChallengeScreen'
+
+// ── LAZY: authenticated app + dynamic screens that are never prerendered.
+// Code-split so search visitors landing on a content page don't download the
+// whole app up front.
+const ClubScreen = lazy(() => import('./screens/ClubScreen'))
+const ClubsScreen = lazy(() => import('./screens/ClubsScreen'))
+const ClubJoinScreen = lazy(() => import('./screens/ClubJoinScreen'))
+const CardPublicScreen = lazy(() => import('./screens/CardPublicScreen'))
+const RankingsScreen = lazy(() => import('./screens/RankingsScreen'))
+const AuthScreen = lazy(() => import('./screens/AuthScreen'))
+const CoachAuthScreen = lazy(() => import('./screens/CoachAuthScreen'))
+const CoachDashboardScreen = lazy(() => import('./screens/CoachDashboardScreen'))
+const CoachChallengeScreen = lazy(() => import('./screens/CoachChallengeScreen'))
+const AssociationDashboardScreen = lazy(() => import('./screens/AssociationDashboardScreen'))
+const HomeScreen = lazy(() => import('./screens/HomeScreen'))
+const VideosScreen = lazy(() => import('./screens/VideosScreen'))
+const CardScreen = lazy(() => import('./screens/CardScreen'))
+const RankScreen = lazy(() => import('./screens/RankScreen'))
+const MoreScreen = lazy(() => import('./screens/MoreScreen'))
+const AddPlayerScreen = lazy(() => import('./screens/AddPlayerScreen'))
+const CustomChallengeScreen = lazy(() => import('./screens/CustomChallengeScreen'))
 
 function LoadingScreen() {
   return (
@@ -117,6 +117,7 @@ function ShellWrapper() {
 
   return (
     <div className={useAppShell ? 'app-shell' : 'full-width'}>
+      <Suspense fallback={<LoadingScreen />}>
       <Routes
         future={{
           v7_startTransition: true,
@@ -171,6 +172,7 @@ function ShellWrapper() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
       <BottomNav />
     </div>
   )
