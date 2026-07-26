@@ -27,12 +27,9 @@ export default function TenKChallengeScreen() {
   }, [])
 
   const downloadPDF = () => {
-    const element = document.createElement('a')
-    element.href = '/10k-challenge-tracker.pdf'
-    element.download = '10K-Shot-Challenge-Tracker.pdf'
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
+    // Opens the print-friendly tracker sheet, which auto-opens the print dialog
+    // (print it, or Save as PDF). The old link pointed at a PDF that didn't exist.
+    window.open('/10k-tracker.html', '_blank', 'noopener')
   }
 
   return (
