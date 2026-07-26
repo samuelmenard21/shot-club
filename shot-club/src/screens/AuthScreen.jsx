@@ -17,7 +17,9 @@ export default function AuthScreen() {
   const [mode, setMode] = useState('signup')
   const [step, setStep] = useState(1)
   const [signingUpFor, setSigningUpFor] = useState(null) // 'self' | 'player'
-  const [path, setPath] = useState(null) // 'club' | 'join' | 'solo'
+  // Default to 'solo' so a kid can blow straight through — they can join a team
+  // later once they're hooked. Job 1 is getting them tracking, not onboarding.
+  const [path, setPath] = useState('solo') // 'club' | 'join' | 'solo'
   const [teamName, setTeamName] = useState('')
   const [clubName, setClubName] = useState('')
   const [preClub, setPreClub] = useState(null) // when arriving from /join/<slug>
@@ -172,7 +174,10 @@ export default function AuthScreen() {
 
   const saveAndGoogleAuth = async () => {
     if (!firstName.trim()) { setError('Add your first name so your coach knows who you are.'); return }
-    if (!displayName.trim() || !position) { setError('Fill in your name and position.'); return }
+    if (!position) { setError('Pick your position.'); return }
+    // Leaderboard name is optional at signup — default it to the first name so
+    // kids get straight in. They can set a nickname later once they're hooked.
+    const leaderboardName = displayName.trim() || firstName.trim()
     const activeClub = (path === 'club' && preClub) ? preClub : joinClub
     if (activeClub && (!ageDivision || !tier)) { setError('Pick your age division and tier.'); return }
     setError('')
@@ -186,7 +191,7 @@ export default function AuthScreen() {
       ageDivision: ageDivision || null,
       tier: tier || null,
       firstName: firstName.trim(),
-      displayName: displayName.trim(),
+      displayName: leaderboardName,
       position,
       ageBracket: ageBracketFromDivision(ageDivision),
       lifetimeShotGoal: Math.max(100, Math.min(50000, lifetimeShotGoal || 5000)),
@@ -722,12 +727,12 @@ export default function AuthScreen() {
             </label>
 
             <label className="input-label" style={{ marginTop: 12 }}>
-              <span>{signingUpFor === 'player' ? "Player name (on leaderboards)" : 'Player name (on leaderboards)'}</span>
+              <span>Player name <span style={{ color: 'var(--text-mute)', fontWeight: 400 }}>(optional — on leaderboards)</span></span>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder={signingUpFor === 'player' ? "What do they go by?" : "Same as your name, or a nickname"}
+                placeholder={signingUpFor === 'player' ? "What do they go by?" : "Add a nickname, or skip"}
                 className="input-field"
               />
             </label>
@@ -746,46 +751,21 @@ export default function AuthScreen() {
               ))}
             </div>
 
-            <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-              <div className="label-sm" style={{ marginBottom: 8 }}>What's your shot goal? 🎯</div>
-              <div className="label-sm" style={{ fontSize: 12, color: 'var(--text-mute)', marginBottom: 12, fontWeight: 400 }}>
-                This is your personal target. You can change it anytime.
-              </div>
-              <input
-                type="number"
-                value={lifetimeShotGoal}
-                onChange={(e) => setLifetimeShotGoal(e.target.value)}
-                placeholder="5000"
-                className="input-field"
-                max="50000"
-              />
-              <div className="label-sm" style={{ fontSize: 11, color: 'var(--text-mute)', marginTop: 8 }}>
-                Stickhandling goal (hours)
-              </div>
-              <input
-                type="number"
-                value={stickhandlingHourGoal}
-                onChange={(e) => setStickhandlingHourGoal(e.target.value)}
-                placeholder="5"
-                className="input-field"
-                max="100"
-                style={{ marginTop: 6 }}
-              />
-            </div>
-
             {error && <div className="error">{error}</div>}
 
             <button
               className="google-btn"
               onClick={saveAndGoogleAuth}
-              disabled={!firstName || !displayName || !position || loading}
+              disabled={!firstName || !position || loading}
               style={{ marginTop: 8 }}
             >
               <GoogleIcon />
               {loading ? 'One sec…' : signingUpFor === 'player' ? 'Save with Google →' : 'Continue with Google →'}
             </button>
             <div className="path-hint" style={{ textAlign: 'center', marginBottom: 4 }}>
-              {signingUpFor === 'player' ? 'Your Google account. Their player profile.' : 'No password. Google keeps your account safe.'}
+              {signingUpFor === 'player'
+                ? 'Your Google account. Their player profile.'
+                : 'No password. Kids can use a parent’s Google account.'}
             </div>
 
             <button className="btn-text" onClick={() => setStep(1)}>
