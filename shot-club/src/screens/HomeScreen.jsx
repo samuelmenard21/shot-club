@@ -177,6 +177,13 @@ export default function HomeScreen() {
         }
       }
 
+      // The most important moment: a brand-new player's very first log. Reward it
+      // so they feel the payoff and come back. Fires last so it wins the toast.
+      if (!player.lifetime_shots) {
+        if (navigator.vibrate) navigator.vibrate([15, 40, 15])
+        showToast("🎉 You're on the board! Keep it going.")
+      }
+
       // Check for new personal best (shot types only, not stickhandling)
       const shotTypes = ['Wrist', 'Snap', 'Slap', 'Backhand', 'Saves']
       if (shotTypes.includes(type)) {

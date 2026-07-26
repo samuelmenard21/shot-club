@@ -4,7 +4,8 @@ export default function NumberPad({ type, onClose, onSave }) {
   const [count, setCount] = useState(0)
 
   const handleAdd = (n) => {
-    setCount(count + n)
+    setCount((c) => Math.max(0, c + n))
+    if (navigator.vibrate) navigator.vibrate(8) // tactile tick as the number climbs
   }
 
   const handleSave = () => {
@@ -13,6 +14,8 @@ export default function NumberPad({ type, onClose, onSave }) {
       setCount(0)
     }
   }
+
+  const unit = type === 'Stickhandling' ? 'min' : 'shots'
 
   return (
     <div className="numberpad-overlay" onClick={onClose}>
@@ -30,7 +33,7 @@ export default function NumberPad({ type, onClose, onSave }) {
         <div className="numberpad-display">{count}</div>
 
         <div className="numberpad-grid">
-          {[5, 10].map((n) => (
+          {[1, 5, 10, 25].map((n) => (
             <button
               key={n}
               className="numberpad-btn"
@@ -41,10 +44,18 @@ export default function NumberPad({ type, onClose, onSave }) {
           ))}
         </div>
 
+        <button
+          className="numberpad-fix"
+          onClick={() => handleAdd(-5)}
+          disabled={count <= 0}
+        >
+          − Fix a mistake (−5)
+        </button>
+
         <div className="numberpad-actions">
           <button className="numberpad-cancel" onClick={onClose}>Cancel</button>
           <button className="numberpad-save" onClick={handleSave} disabled={count <= 0}>
-            Save
+            {count > 0 ? `Log ${count} ${unit}` : 'Log'}
           </button>
         </div>
 
@@ -107,15 +118,15 @@ const styles = `
 .numberpad-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 .numberpad-btn {
   background: linear-gradient(135deg, var(--accent) 0%, #2563eb 100%);
   color: white;
   border: none;
   border-radius: 16px;
-  padding: 28px 16px;
+  padding: 24px 16px;
   font-family: var(--font-display);
   font-size: 24px;
   font-weight: 800;
@@ -127,6 +138,21 @@ const styles = `
   transform: scale(0.96);
   box-shadow: 0 2px 6px rgba(41, 121, 255, 0.5);
 }
+.numberpad-fix {
+  width: 100%;
+  background: transparent;
+  color: var(--text-mute);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: all 0.1s;
+}
+.numberpad-fix:active { background: var(--bg); color: var(--ice); }
+.numberpad-fix:disabled { opacity: 0.35; cursor: not-allowed; }
 .numberpad-actions {
   display: flex;
   gap: 12px;
