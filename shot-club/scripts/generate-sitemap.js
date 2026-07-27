@@ -1,10 +1,10 @@
 // scripts/generate-club-sitemap.js
 //
 // Build-time sitemap generator.
-// Pulls all clubs from Supabase and writes three sitemap files:
-//   - public/sitemap-clubs.xml     (all per-club landing pages)
-//   - public/sitemap-static.xml    (homepage + key pages)
-//   - public/sitemap.xml           (sitemap index pointing to the others)
+//
+// Writes a SINGLE public/sitemap.xml. A sitemap index only earns its keep past
+// 50,000 URLs or 50MB; with ~20 pages it just added a layer of indirection that
+// Search Console reports on separately and that has to be kept in sync.
 //
 // Required env vars:
 //   SUPABASE_URL       — same value as VITE_SUPABASE_URL
@@ -15,7 +15,7 @@
 // a directory that has already been copied, and nothing ships.
 
 import { createClient } from '@supabase/supabase-js'
-import { writeFileSync, mkdirSync } from 'node:fs'
+import { writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -142,64 +142,45 @@ async function main() {
     }
   }
 
-  // === Build sitemap-clubs.xml ===
-  // Club pages are noindex until they have real activity (see functions/clubs/[slug].js).
-  // We deliberately emit an EMPTY club sitemap so Google isn't pointed at thousands
-  // of empty template pages. When clubs gain traction, filter here to only the
-  // active ones and drop the noindex for those slugs.
-  const clubUrls = ''
-
-  const clubsSitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${clubUrls}
-</urlset>
-`
-
-  // === Build static sitemap (homepage + key pages) ===
   const today = new Date().toISOString().slice(0, 10)
+
   // Cloudflare Pages 308-redirects a directory route to its trailing-slash form
   // (/challenges -> /challenges/). Sitemaps must list the final URL. The
   // trackers are real .html files served extensionless, so they take no slash.
   const withSlash = (loc) =>
     loc === '/' || loc.endsWith('-tracker') ? loc : `${loc}/`
 
-  const staticUrls = STATIC_PAGES
-    .map((p) => buildUrlEntry({
-      loc: `${SITE_URL}${withSlash(p.loc)}`,
-      lastmod: today,
-      changefreq: p.changefreq,
-      priority: p.priority,
-    }))
-    .join('\n')
+  const urls = STATIC_PAGES.map((p) => buildUrlEntry({
+    loc: `${SITE_URL}${withSlash(p.loc)}`,
+    lastmod: today,
+    changefreq: p.changefreq,
+    priority: p.priority,
+  }))
 
-  const staticSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+  // Club pages are noindex until they have real activity (see
+  // functions/clubs/[slug].js), so they are deliberately NOT listed — pointing
+  // Google at thousands of empty template pages burns crawl budget and invites
+  // duplicate-content penalties. When clubs gain traction, push the active ones
+  // into `urls` here. A single sitemap holds 50,000 URLs, comfortably more than
+  // the ~3,000 clubs, so this stays one file.
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${staticUrls}
+${urls.join('\n')}
 </urlset>
 `
 
-  // === Build sitemap index (points to both above) ===
-  // Only advertise the static (real, useful) pages. The clubs sitemap is
-  // intentionally omitted while club pages are noindex.
-  const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <sitemap>
-    <loc>${SITE_URL}/sitemap-static.xml</loc>
-    <lastmod>${today}</lastmod>
-  </sitemap>
-</sitemapindex>
-`
-
-  // === Write the files ===
   mkdirSync(PUBLIC_DIR, { recursive: true })
+  writeFileSync(join(PUBLIC_DIR, 'sitemap.xml'), sitemap)
 
-  writeFileSync(join(PUBLIC_DIR, 'sitemap-clubs.xml'),  clubsSitemap)
-  writeFileSync(join(PUBLIC_DIR, 'sitemap-static.xml'), staticSitemap)
-  writeFileSync(join(PUBLIC_DIR, 'sitemap.xml'),        sitemapIndex)
+  // Remove the old split files so they stop being served (they'd go stale and
+  // Search Console would keep reporting on URLs we no longer publish).
+  for (const stale of ['sitemap-static.xml', 'sitemap-clubs.xml']) {
+    const f = join(PUBLIC_DIR, stale)
+    if (existsSync(f)) { rmSync(f); console.log(`🧹 Removed stale ${stale}`) }
+  }
 
-  console.log(`✅ Wrote sitemap-clubs.xml  (empty — club pages noindex until traction; ${clubs.length} clubs skipped)`)
-  console.log(`✅ Wrote sitemap-static.xml (${STATIC_PAGES.length} static URLs)`)
-  console.log(`✅ Wrote sitemap.xml        (index → static only)`)
+  console.log(`✅ Wrote sitemap.xml (${urls.length} URLs; ${clubs.length} clubs held back as noindex)`)
   console.log('📋 Sitemap generation complete')
 }
 
