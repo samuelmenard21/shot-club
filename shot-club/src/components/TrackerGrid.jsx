@@ -1,8 +1,11 @@
-import { useState, useMemo } from 'react'
-import { logShots } from '../lib/shots'
+import { useState, useMemo, useEffect } from 'react'
+import { logShots, getDailyProgress, checkMilestoneHit } from '../lib/shots'
+import { useNotifications } from '../hooks/useNotifications'
+import { getStats } from '../lib/shots'
 
 // Interactive grid tracker: daily cells + milestone strip
 export default function TrackerGrid({ player, playerChallenge, playerChallengeProgress, onShotLogged }) {
+  const { toast } = useNotifications()
   const [selectedDay, setSelectedDay] = useState(null)
   const [entryAmount, setEntryAmount] = useState('')
   const [shotTypeBreakdown, setShotTypeBreakdown] = useState({
@@ -11,6 +14,27 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
     Slap: 0,
     Backhand: 0,
   })
+  const [dailyData, setDailyData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [milestoneUnlocked, setMilestoneUnlocked] = useState(null)
+
+  useEffect(() => {
+    if (!player || !playerChallenge) return
+    setLoading(true)
+    Promise.all([
+      getDailyProgress(player.id, playerChallenge.goal_shots),
+      getStats(player.id),
+    ])
+      .then(([daily, stats]) => {
+        setDailyData(daily)
+        setShotTypeBreakdown(stats.todayByType)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Failed to load daily progress:', err)
+        setLoading(false)
+      })
+  }, [player, playerChallenge])
 
   if (!player || !playerChallenge || !playerChallengeProgress) {
     return <div style={{ color: 'var(--text-soft)', padding: 20 }}>Loading challenge...</div>
@@ -48,12 +72,34 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
   const handleLogShots = async () => {
     if (!entryAmount || !selectedDay || !player) return
     try {
-      await logShots(player.id, parseInt(entryAmount), 'daily')
+      const count = parseInt(entryAmount)
+      const previousTotal = playerChallengeProgress?.shots_completed || 0
+      const newTotal = previousTotal + count
+
+      // Check for milestone
+      const milestone = checkMilestoneHit(previousTotal, newTotal, playerChallenge.goal_shots)
+
+      // Log the shots
+      await logShots({ playerId: player.id, shotType: 'Wrist', count })
+
+      // Trigger celebration if milestone hit
+      if (milestone) {
+        setMilestoneUnlocked(milestone)
+        toast(milestone.message, 'success')
+        // Haptic feedback: celebrate with multiple vibrations
+        if (navigator.vibrate) {
+          navigator.vibrate([100, 50, 100, 50, 100])
+        }
+      } else {
+        toast(`📊 Logged ${count} shots!`, 'success')
+      }
+
       onShotLogged?.()
       setSelectedDay(null)
       setEntryAmount('')
     } catch (err) {
       console.error('Failed to log shots:', err)
+      toast('Failed to log shots', 'error')
     }
   }
 
@@ -61,6 +107,59 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '20px' }}>
+      {/* MILESTONE CELEBRATION */}
+      {milestoneUnlocked && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100,
+        }}>
+          <div style={{
+            background: 'var(--bg)',
+            borderRadius: 20,
+            padding: 40,
+            textAlign: 'center',
+            maxWidth: 400,
+            animation: 'popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }}>
+            <div style={{ fontSize: 80, marginBottom: 20 }}>
+              {milestoneUnlocked.emoji}
+            </div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: 'white', marginBottom: 12 }}>
+              {milestoneUnlocked.label}
+            </div>
+            <div style={{ fontSize: 14, color: 'var(--text-soft)', marginBottom: 20 }}>
+              You've reached {milestoneUnlocked.shots.toLocaleString()} shots!
+            </div>
+            <button
+              onClick={() => setMilestoneUnlocked(null)}
+              style={{
+                background: 'var(--ice)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 10,
+                padding: '12px 24px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Keep going →
+            </button>
+          </div>
+          <style>{`
+            @keyframes popIn {
+              0% { transform: scale(0.5); opacity: 0; }
+              50% { transform: scale(1.1); }
+              100% { transform: scale(1); opacity: 1; }
+            }
+          `}</style>
+        </div>
+      )}
+
       {/* PROGRESS BAR */}
       <div style={{ marginBottom: 30 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>

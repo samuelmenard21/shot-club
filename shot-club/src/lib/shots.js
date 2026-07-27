@@ -7,6 +7,19 @@ export async function logShots({ playerId, shotType, count = 1 }) {
     count,
   })
   if (error) throw error
+
+  // Update lifetime_shots on the player record
+  const { data: player, error: playerError } = await supabase
+    .from('players')
+    .select('lifetime_shots')
+    .eq('id', playerId)
+    .single()
+  if (!playerError && player) {
+    await supabase
+      .from('players')
+      .update({ lifetime_shots: (player.lifetime_shots || 0) + count })
+      .eq('id', playerId)
+  }
 }
 
 export function getWeekStart() {
@@ -48,6 +61,70 @@ export async function getLifetimeBreakdown(playerId) {
   const totals = { Wrist: 0, Snap: 0, Slap: 0, Backhand: 0, Saves: 0 }
   ;(data || []).forEach(r => { totals[r.shot_type] = (totals[r.shot_type] || 0) + r.count })
   return totals
+}
+
+// Get daily progress for tracker grid: shots per day over challenge period
+export async function getDailyProgress(playerId, challengeGoal) {
+  const today = new Date().toISOString().slice(0, 10)
+  const ninetyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 90))
+    .toISOString()
+    .slice(0, 10)
+
+  const { data, error } = await supabase
+    .from('shot_logs')
+    .select('log_date, count')
+    .eq('player_id', playerId)
+    .gte('log_date', ninetyDaysAgo)
+    .lte('log_date', today)
+    .order('log_date', { ascending: true })
+  if (error) throw error
+
+  const dailyTotals = {}
+  ;(data || []).forEach(row => {
+    const date = row.log_date
+    dailyTotals[date] = (dailyTotals[date] || 0) + row.count
+  })
+
+  const dailyGoal = Math.ceil(challengeGoal / 90)
+  const days = []
+  let cumulativeShots = 0
+  for (let i = 0; i < 90; i++) {
+    const date = new Date(ninetyDaysAgo)
+    date.setDate(date.getDate() + i)
+    const dateStr = date.toISOString().slice(0, 10)
+    const shots = dailyTotals[dateStr] || 0
+    cumulativeShots += shots
+    days.push({
+      date: dateStr,
+      shots,
+      cumulative: cumulativeShots,
+      isComplete: cumulativeShots >= dailyGoal * (i + 1),
+    })
+  }
+
+  return days
+}
+
+// Check if a milestone was hit (returns milestone info if yes)
+export function checkMilestoneHit(previousTotal, newTotal, challengeGoal) {
+  const milestones = [
+    { at: challengeGoal * 0.25, emoji: '🥉', label: 'Bronze' },
+    { at: challengeGoal * 0.5, emoji: '🥈', label: 'Silver' },
+    { at: challengeGoal * 0.75, emoji: '🥇', label: 'Gold' },
+    { at: challengeGoal, emoji: '🏆', label: 'Challenge Complete!' },
+  ]
+
+  for (const milestone of milestones) {
+    if (previousTotal < milestone.at && newTotal >= milestone.at) {
+      return {
+        emoji: milestone.emoji,
+        label: milestone.label,
+        shots: Math.round(milestone.at),
+        message: `🎉 ${milestone.label}! You've reached ${Math.round(milestone.at).toLocaleString()} shots!`,
+      }
+    }
+  }
+  return null
 }
 
 // Deterministic index from a string seed — same output every time for the same input
