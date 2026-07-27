@@ -29,7 +29,7 @@ export default function TenKChallengeScreen() {
   const downloadPDF = () => {
     // Opens the print-friendly tracker sheet, which auto-opens the print dialog
     // (print it, or Save as PDF). The old link pointed at a PDF that didn't exist.
-    window.open('/10k-tracker.html', '_blank', 'noopener')
+    window.open('/10k-tracker.html?print=1', '_blank', 'noopener')
   }
 
   return (
@@ -140,8 +140,9 @@ export default function TenKChallengeScreen() {
         <h3 style={{ textAlign: 'center', marginTop: 28 }}>How Many Shots a Day?</h3>
         <p style={{ color: 'var(--text-soft)', fontSize: 16, lineHeight: 1.6, maxWidth: 720, margin: '0 auto 14px', textAlign: 'center' }}>
           About 180 a day across 6 days — or 1,250 a week, however you split it. Younger players
-          often start with the 5,000 version (~90/day). See our full breakdown of{' '}
-          <a href="/how-many-shots-per-day" style={{ color: 'var(--ice)', fontWeight: 700 }}>daily shot targets by age</a>.
+          often start with the{' '}
+          <a href="/5000-shot-challenge" style={{ color: 'var(--ice)', fontWeight: 700 }}>5,000 Shot Challenge</a>{' '}
+          (~90/day) and step up from there.
         </p>
 
         <h3 style={{ textAlign: 'center', marginTop: 28 }}>5 Tips to Actually Finish</h3>

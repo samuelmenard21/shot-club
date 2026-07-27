@@ -34,7 +34,7 @@ function boxes(count, step, milestones, gridCols = 10) {
   return rows
 }
 
-function page({ total, step, milestones, qrUrl, accent, gridCols = 10 }) {
+function page({ id, total, step, milestones, qrUrl, accent, gridCols = 10 }) {
   const totalStr = total.toLocaleString()
   const qr = qrSvg(qrUrl)
   const medalStrip = milestones
@@ -98,7 +98,16 @@ function page({ total, step, milestones, qrUrl, accent, gridCols = 10 }) {
 
   .foot { text-align: center; font-size: 11px; color: #9aa8bf; padding: 0 26px 16px; }
 
+  .actions { max-width: 780px; margin: 14px auto 30px; display: flex; gap: 10px;
+    justify-content: center; flex-wrap: wrap; }
+  .btn { font-family: inherit; font-size: 14px; font-weight: 800; border-radius: 10px;
+    padding: 12px 20px; cursor: pointer; text-decoration: none; display: inline-block; }
+  .btn--print { background: ${accent}; color: #fff; border: none; }
+  .btn--live { background: #fff; color: #16233a; border: 2px solid #c3cede; }
+
   @media print {
+    /* On-screen controls must never appear on the printed sheet. */
+    .actions { display: none; }
     body { background: #fff; padding: 0; }
     .sheet { box-shadow: none; border-radius: 0; max-width: 100%; }
     .digitize { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -152,8 +161,17 @@ function page({ total, step, milestones, qrUrl, accent, gridCols = 10 }) {
 
     <div class="foot">🏒 Hockey Shot Challenge — free printable ${totalStr} shot tracker. Print it, stick it on the fridge, or track it live online.</div>
   </div>
+
+  <div class="actions">
+    <button class="btn btn--print" onclick="window.print()">🖨️ Print this sheet</button>
+    <a class="btn btn--live" href="https://hockeyshotchallenge.com/start?challenge=${id}&amp;src=sheet${id}">Track it live instead →</a>
+  </div>
   <script>
-    if (!location.href.includes('print')) window.print();
+    // Auto-print only when explicitly asked (?print=1), which is what the app's
+    // own "get the printable" links pass. These pages are in the sitemap, so a
+    // visitor arriving from search must get a readable page — not an immediate
+    // print dialog.
+    if (new URLSearchParams(location.search).get('print') === '1') window.print();
   </script>
 </body>
 </html>
@@ -167,6 +185,7 @@ function page({ total, step, milestones, qrUrl, accent, gridCols = 10 }) {
 // the kid on a generic signup.
 function fromSpec(spec) {
   return {
+    id: spec.id,
     total: spec.total,
     step: spec.step,
     accent: spec.accent,

@@ -29,7 +29,7 @@ export default function FiveKChallengeScreen() {
   const downloadPDF = () => {
     // Opens the print-friendly tracker sheet, which auto-opens the print dialog
     // (print it, or Save as PDF). The old link pointed at a PDF that didn't exist.
-    window.open('/5k-tracker.html', '_blank', 'noopener')
+    window.open('/5k-tracker.html?print=1', '_blank', 'noopener')
   }
 
   return (
@@ -139,10 +139,10 @@ export default function FiveKChallengeScreen() {
 
         <h3 style={{ textAlign: 'center', marginTop: 28 }}>How Many Shots a Day?</h3>
         <p style={{ color: 'var(--text-soft)', fontSize: 16, lineHeight: 1.6, maxWidth: 720, margin: '0 auto 14px', textAlign: 'center' }}>
-          About 90 a day across 6–7 days — or 625 a week, however you split it. Ready for more?
-          Step up to the <a href="/10000-shot-challenge" style={{ color: 'var(--ice)', fontWeight: 700 }}>10,000 Shot Challenge</a>.
-          See our full breakdown of{' '}
-          <a href="/how-many-shots-per-day" style={{ color: 'var(--ice)', fontWeight: 700 }}>daily shot targets by age</a>.
+          About 90 a day across 6–7 days — or 625 a week, however you split it. Just starting out?
+          Try the <a href="/challenges" style={{ color: 'var(--ice)', fontWeight: 700 }}>1,000 Shot Challenge</a> first.
+          Ready for more? Step up to the{' '}
+          <a href="/10000-shot-challenge" style={{ color: 'var(--ice)', fontWeight: 700 }}>10,000 Shot Challenge</a>.
         </p>
 
         <h3 style={{ textAlign: 'center', marginTop: 28 }}>5 Tips to Finish Your First Challenge</h3>

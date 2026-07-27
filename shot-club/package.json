@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vite build --ssr src/entry-server.jsx --outDir dist-server && node scripts/prerender.js && node scripts/generate-club-sitemap.js",
+    "build": "node scripts/gen-trackers.mjs && node scripts/generate-club-sitemap.js && vite build && vite build --ssr src/entry-server.jsx --outDir dist-server && node scripts/prerender.js",
     "preview": "vite preview",
     "tiktok:produce": "node agents/tiktok-producer.mjs",
     "tiktok:analyze": "node agents/tiktok-analyst.mjs",

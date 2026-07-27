@@ -191,7 +191,7 @@ export default function LandingScreen() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <button
-                  onClick={() => window.open(printableHref(selectedChallenge.id), '_blank', 'noopener')}
+                  onClick={() => window.open(printableHref(selectedChallenge.id, { autoPrint: true }), '_blank', 'noopener')}
                   style={{
                     border: '2px solid rgba(255,255,255,0.2)',
                     borderRadius: 12,
@@ -342,8 +342,8 @@ export default function LandingScreen() {
             Print it, stick it on the fridge, color a box every practice. Each sheet has a QR code to go digital whenever you're ready.
           </div>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="/5k-tracker.html" target="_blank" rel="noopener" style={{ background: 'rgba(255,122,41,0.15)', border: '1px solid rgba(255,122,41,0.4)', color: '#ffb27a', textDecoration: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, fontSize: 14 }}>🎯 5,000 Shot Sheet</a>
-            <a href="/10k-tracker.html" target="_blank" rel="noopener" style={{ background: 'rgba(41,121,255,0.15)', border: '1px solid rgba(41,121,255,0.4)', color: 'var(--ice)', textDecoration: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, fontSize: 14 }}>🏒 10,000 Shot Sheet</a>
+            <a href="/5k-tracker.html?print=1" target="_blank" rel="noopener" style={{ background: 'rgba(255,122,41,0.15)', border: '1px solid rgba(255,122,41,0.4)', color: '#ffb27a', textDecoration: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, fontSize: 14 }}>🎯 5,000 Shot Sheet</a>
+            <a href="/10k-tracker.html?print=1" target="_blank" rel="noopener" style={{ background: 'rgba(41,121,255,0.15)', border: '1px solid rgba(41,121,255,0.4)', color: 'var(--ice)', textDecoration: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, fontSize: 14 }}>🏒 10,000 Shot Sheet</a>
           </div>
         </div>
       </section>

@@ -89,8 +89,13 @@ export function getSpec(id) {
 }
 
 // Maps a challenge id to its printable. Kept here so links can't go stale.
-export function printableHref(id) {
-  return `/${id}-tracker.html`
+//
+// autoPrint adds ?print=1, which makes the sheet open the print dialog straight
+// away. Use it for in-app "get the printable" buttons. Plain links (and search
+// traffic, since these pages are in the sitemap) get a readable page with a
+// visible Print button instead.
+export function printableHref(id, { autoPrint = false } = {}) {
+  return `/${id}-tracker.html${autoPrint ? '?print=1' : ''}`
 }
 
 // Weekly pace we advertise, derived rather than hand-typed.
