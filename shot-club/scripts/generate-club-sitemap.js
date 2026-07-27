@@ -157,9 +157,15 @@ ${clubUrls}
 
   // === Build static sitemap (homepage + key pages) ===
   const today = new Date().toISOString().slice(0, 10)
+  // Cloudflare Pages 308-redirects a directory route to its trailing-slash form
+  // (/challenges -> /challenges/). Sitemaps must list the final URL. The
+  // trackers are real .html files served extensionless, so they take no slash.
+  const withSlash = (loc) =>
+    loc === '/' || loc.endsWith('-tracker') ? loc : `${loc}/`
+
   const staticUrls = STATIC_PAGES
     .map((p) => buildUrlEntry({
-      loc: `${SITE_URL}${p.loc}`,
+      loc: `${SITE_URL}${withSlash(p.loc)}`,
       lastmod: today,
       changefreq: p.changefreq,
       priority: p.priority,

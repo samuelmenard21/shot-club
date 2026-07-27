@@ -88,9 +88,9 @@ function escapeAttr(s) {
 
 // Breadcrumb trail: Home › [Section] › This page.
 function breadcrumbSchema(page) {
-  const items = [{ name: 'Home', url: SITE }]
-  if (page.section === 'Blog') items.push({ name: 'Blog', url: `${SITE}/blog` })
-  if (page.route !== '/') items.push({ name: page.crumb, url: `${SITE}${page.route}` })
+  const items = [{ name: 'Home', url: canonicalFor('/') }]
+  if (page.section === 'Blog') items.push({ name: 'Blog', url: canonicalFor('/blog') })
+  if (page.route !== '/') items.push({ name: page.crumb, url: canonicalFor(page.route) })
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -100,8 +100,19 @@ function breadcrumbSchema(page) {
   }
 }
 
+// Cloudflare Pages serves a prerendered directory route with a TRAILING SLASH:
+// a request for /challenges 308-redirects to /challenges/. So every canonical,
+// schema @id and sitemap entry must use the trailing-slash form. Emitting the
+// bare form told Google "the canonical URL is this one" about a URL that
+// immediately redirects, which is a well-known cause of
+// "Discovered - currently not indexed" / "Page with redirect" in Search Console.
+function canonicalFor(route) {
+  if (route === '/') return `${SITE}/`
+  return `${SITE}${route}/`
+}
+
 function buildSchema(page) {
-  const url = `${SITE}${page.route}`
+  const url = canonicalFor(page.route)
   const schemas = []
   // Home already ships WebApplication + FAQPage schema in index.html; don't dupe.
   if (page.route !== '/') schemas.push(breadcrumbSchema(page))
@@ -151,7 +162,7 @@ function stripHomeSchema(html) {
 
 function applyHead(html, page) {
   const { route, title, description } = page
-  const url = `${SITE}${route}`
+  const url = canonicalFor(route)
   const t = escapeAttr(title)
   const d = escapeAttr(description)
   let out = route === '/' ? html : stripHomeSchema(html)
