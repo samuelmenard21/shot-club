@@ -204,6 +204,20 @@ export default function LandingScreen() {
         </div>
       </section>
 
+      {/* ── PREFER PAPER? (printable trackers) ── */}
+      <section style={{ maxWidth: 720, margin: '8px auto 0', padding: '20px', textAlign: 'center' }}>
+        <div style={{ border: '1px solid var(--border-dim)', borderRadius: 16, padding: '22px 20px', background: 'rgba(255,255,255,0.02)' }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>📄 Prefer paper? Grab a free printable tracker</div>
+          <div style={{ fontSize: 13, color: 'var(--text-mute)', marginBottom: 16 }}>
+            Print it, stick it on the fridge, color a box every practice. Each sheet has a QR code to go digital whenever you're ready.
+          </div>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a href="/5k-tracker.html" target="_blank" rel="noopener" style={{ background: 'rgba(255,122,41,0.15)', border: '1px solid rgba(255,122,41,0.4)', color: '#ffb27a', textDecoration: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, fontSize: 14 }}>🎯 5,000 Shot Sheet</a>
+            <a href="/10k-tracker.html" target="_blank" rel="noopener" style={{ background: 'rgba(41,121,255,0.15)', border: '1px solid rgba(41,121,255,0.4)', color: 'var(--ice)', textDecoration: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, fontSize: 14 }}>🏒 10,000 Shot Sheet</a>
+          </div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS ── */}
       <section id="how-it-works" className="hiw">
         <div className="hiw-label">HOW IT WORKS</div>
@@ -324,7 +338,7 @@ export default function LandingScreen() {
           </details>
           <details className="faq-item">
             <summary>Do kids need an email or password?</summary>
-            <p>No. Parents sign in with their Google account. Kids pick a screen name and tap to log. That's it.</p>
+            <p>No. Sign in with a Google account — the player's own or a parent's. No passwords, no screen names — just tap to log. That's it.</p>
           </details>
           <details className="faq-item">
             <summary>What can players track?</summary>

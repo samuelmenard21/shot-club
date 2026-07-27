@@ -151,7 +151,7 @@ export default function PlayerLandingScreen() {
             <div className="pl-step-num">1</div>
             <div className="pl-step-body">
               <div className="pl-step-title">Sign up in 30 seconds</div>
-              <div className="pl-step-text">Sign in with Google. Pick your team. Create your screen name. Done.</div>
+              <div className="pl-step-text">Sign in with a Google account — yours or a parent's. Pick your position. Start logging. Done.</div>
             </div>
           </div>
           <div className="pl-step">

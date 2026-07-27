@@ -48,10 +48,21 @@ export default function FiveKChallengeScreen() {
 
         <div className="tenk-hero-cta">
           <button className="tenk-btn tenk-btn--primary" onClick={downloadPDF}>
-            📥 Download Free PDF Tracker
+            🖨️ Get the Free Printable Tracker
           </button>
           <button className="tenk-btn tenk-btn--secondary" onClick={() => nav('/start')}>
             Try Online Tracker (Free) →
+          </button>
+        </div>
+
+        {/* Love the sheet? Go live in 2 minutes */}
+        <div style={{ maxWidth: 640, margin: '20px auto 0', padding: '18px 20px', border: '1px solid rgba(255,122,41,0.3)', borderRadius: 14, background: 'rgba(255,122,41,0.08)', textAlign: 'left' }}>
+          <div style={{ fontWeight: 800, color: '#fff', marginBottom: 6, fontSize: 16 }}>Love the sheet? Go live in 2 minutes.</div>
+          <div style={{ fontSize: 14, color: 'var(--text-soft)', marginBottom: 12, lineHeight: 1.5 }}>
+            The printable is a great start. When your kid wants to see their name climb past a teammate's, scan the QR on the sheet (or tap below) to move the same challenge online — live leaderboards, streaks, and ranks. Free, nothing to install.
+          </div>
+          <button className="tenk-btn tenk-btn--secondary" onClick={() => nav('/start?src=5ksheet')}>
+            Make it a live leaderboard →
           </button>
         </div>
 
