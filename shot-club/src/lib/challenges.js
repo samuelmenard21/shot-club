@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { getWeekStart } from './shots'
+import { getSpec } from './challengeSpecs'
 
 export function stableIndex(seed, length) {
   let hash = 0
@@ -225,6 +226,44 @@ export async function setPlayerChallenge(playerId, challengeType, goalShots, tar
     .maybeSingle()
   if (error) throw error
   return data
+}
+
+// ---- Carrying a challenge through sign-in ----------------------------------
+// The printable's QR and the homepage picker both send ?challenge=<id> to
+// /start. Google's OAuth round-trip returns to /start?oauth=1 and drops the
+// query string, so the choice has to survive in localStorage. Without this the
+// kid picks a tier, signs in, and lands on an empty dashboard being asked to
+// pick a tier again — which is exactly what breaks the "scan the sheet and it
+// comes alive" promise.
+
+const PENDING_CHALLENGE_KEY = 'pendingChallenge'
+
+export function stashPendingChallenge(id) {
+  if (!id || !getSpec(id)) return
+  try { localStorage.setItem(PENDING_CHALLENGE_KEY, id) } catch {}
+}
+
+// Applies a stashed challenge, then clears it. Never clobbers a challenge the
+// player already has — someone halfway through a 10K who scans a teammate's 1K
+// sheet keeps their own goal and progress.
+export async function applyPendingChallenge(playerId) {
+  if (!playerId) return null
+  let id
+  try { id = localStorage.getItem(PENDING_CHALLENGE_KEY) } catch { return null }
+  if (!id) return null
+
+  const spec = getSpec(id)
+  try { localStorage.removeItem(PENDING_CHALLENGE_KEY) } catch {}
+  if (!spec) return null
+
+  try {
+    const existing = await getPlayerChallenge(playerId)
+    if (existing) return null
+    return await setPlayerChallenge(playerId, spec.id, spec.total)
+  } catch (e) {
+    console.error('Could not apply the scanned challenge:', e)
+    return null
+  }
 }
 
 export async function getPlayerChallengeProgress(playerId) {

@@ -5,6 +5,7 @@ import ContactSection from '../components/ContactSection'
 import { searchClubs } from '../lib/clubs'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { CHALLENGE_LIST, weeklyPace, printableHref } from '../lib/challengeSpecs'
 
 export default function LandingScreen() {
   const nav = useNavigate()
@@ -17,12 +18,15 @@ export default function LandingScreen() {
   const searchTimer = useRef(null)
   const searchInputRef = useRef(null)
 
-  const challenges = [
-    { id: '1k', shots: 1000, pace: 500, label: '1K Rookie', color: '#27ae60' },
-    { id: '2_5k', shots: 2500, pace: 625, label: '2.5K Intermediate', color: '#8b5cf6' },
-    { id: '5k', shots: 5000, pace: 625, label: '5K Advanced', color: '#ff7a29' },
-    { id: '10k', shots: 10000, pace: 1250, label: '10K Hall of Famer', color: '#2979ff' },
-  ]
+  // Derived from the shared spec so the picker, the printables and the in-app
+  // grid can never disagree about targets or pace.
+  const challenges = CHALLENGE_LIST.map((s) => ({
+    id: s.id,
+    shots: s.total,
+    pace: weeklyPace(s),
+    label: s.shortLabel,
+    color: s.accent,
+  }))
 
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current)
@@ -187,7 +191,7 @@ export default function LandingScreen() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <button
-                  onClick={() => window.open(`/${selectedChallenge.id}-tracker.html`, '_blank')}
+                  onClick={() => window.open(printableHref(selectedChallenge.id), '_blank', 'noopener')}
                   style={{
                     border: '2px solid rgba(255,255,255,0.2)',
                     borderRadius: 12,
@@ -213,7 +217,7 @@ export default function LandingScreen() {
                   <div style={{ fontSize: 12, color: 'var(--text-soft)', marginTop: 8 }}>Print & stick on your fridge</div>
                 </button>
                 <button
-                  onClick={() => nav('/start')}
+                  onClick={() => nav(`/start?challenge=${selectedChallenge.id}&src=home`)}
                   style={{
                     border: `2px solid ${selectedChallenge.color}`,
                     borderRadius: 12,

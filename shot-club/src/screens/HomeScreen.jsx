@@ -8,7 +8,7 @@ import { getRank } from '../lib/ranks'
 import { claimAchievements, isStreakInRecovery } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
 import { getSkillVideos } from '../lib/videos'
-import { getTeamChallenge, getTeamWeeklyShots, getMyBattle, getPlayerChallenge, getPlayerChallengeProgress } from '../lib/challenges'
+import { getTeamChallenge, getTeamWeeklyShots, getMyBattle, getPlayerChallenge, getPlayerChallengeProgress, applyPendingChallenge } from '../lib/challenges'
 import { checkMilestone, getMilestoneMessage, getGoalCompletionMessage } from '../lib/milestones'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
@@ -64,8 +64,12 @@ export default function HomeScreen() {
     getSkillVideos().then(setVideos).catch(() => {})
     getPersonalBest(player.id).then(setPersonalBest).catch(() => {})
 
-    // Load player's challenge
-    getPlayerChallenge(player.id)
+    // Load the challenge. applyPendingChallenge first so a player arriving from
+    // a scanned sheet (or the homepage picker) lands on that challenge already
+    // set up, rather than an empty "pick a challenge" card. It no-ops when
+    // there's nothing stashed or they already have one.
+    applyPendingChallenge(player.id)
+      .then(() => getPlayerChallenge(player.id))
       .then((ch) => {
         setPlayerChallenge(ch)
         if (ch) return getPlayerChallengeProgress(player.id)

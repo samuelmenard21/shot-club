@@ -10,6 +10,8 @@ import {
   TIERS,
 } from '../lib/clubs'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
+import { getSpec } from '../lib/challengeSpecs'
+import { applyPendingChallenge, stashPendingChallenge } from '../lib/challenges'
 
 const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
 
@@ -56,11 +58,21 @@ export default function AuthScreen() {
 
   // OAuth return: redirect if already has a profile, else show setup
   const isOAuthReturn = searchParams.get('oauth') === '1'
+
+  // A ?challenge=<id> arrives from the printable's QR code and from the
+  // homepage picker. Google sends us back to /start?oauth=1, which drops the
+  // original query string — so stash it the moment we see it and consume it
+  // once the profile exists. This is what makes scanning a sheet set up THAT
+  // challenge instead of dumping the kid on a generic signup.
+  useEffect(() => {
+    stashPendingChallenge(searchParams.get('challenge'))
+  }, [searchParams])
+
   useEffect(() => {
     if (isOAuthReturn && !authLoading) {
       if (player) {
         // Player already exists, go to home
-        nav('/home', { replace: true })
+        applyPendingChallenge(player.id).finally(() => nav('/home', { replace: true }))
       } else {
         // Player doesn't exist yet, show profile form on any path
         setMode('create')
@@ -264,7 +276,7 @@ export default function AuthScreen() {
           })
           teamIdToUse = teamResult.teamId
         }
-        await createPlayerWithGoogleAuth({
+        const { playerId } = await createPlayerWithGoogleAuth({
           firstName: pending.firstName,
           displayName: pending.displayName,
           position: pending.position,
@@ -275,6 +287,8 @@ export default function AuthScreen() {
           lifetimeShotGoal: pending.lifetimeShotGoal,
           stickhandlingHourGoal: pending.stickhandlingHourGoal,
         })
+        // Sheet → scan → sign in → the challenge from the sheet is already set.
+        await applyPendingChallenge(playerId)
         localStorage.removeItem('pendingProfile')
         await refresh()
         nav('/home', { replace: true })

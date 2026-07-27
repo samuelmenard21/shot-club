@@ -1,389 +1,304 @@
-import { useState, useMemo, useEffect } from 'react'
-import { logShots, getDailyProgress, checkMilestoneHit } from '../lib/shots'
+import { useState, useEffect } from 'react'
+import { logShots, getStats } from '../lib/shots'
 import { useNotifications } from '../hooks/useNotifications'
-import { getStats } from '../lib/shots'
+import { getSpec, milestonesFor, boxCount } from '../lib/challengeSpecs'
 
-// Interactive grid tracker: daily cells + milestone strip
+// The digital version of the printed sheet.
+//
+// The whole point is that this looks and behaves like the paper tracker the
+// kid stuck on the fridge: the same number of boxes, each worth the same
+// number of shots, with the medals on the same squares. One box = one chunk of
+// shots (NOT one day) — so a big Saturday fills ten boxes here just like it
+// would with a marker, which is the feeling the paper version gets right.
+//
+// Box geometry comes from lib/challengeSpecs so the two can't drift.
+
+const SHOT_TYPES = [
+  { name: 'Wrist', emoji: '🎯' },
+  { name: 'Snap', emoji: '⚡' },
+  { name: 'Slap', emoji: '💥' },
+  { name: 'Backhand', emoji: '🔄' },
+]
+
 export default function TrackerGrid({ player, playerChallenge, playerChallengeProgress, onShotLogged }) {
   const { toast } = useNotifications()
-  const [selectedDay, setSelectedDay] = useState(null)
-  const [entryAmount, setEntryAmount] = useState('')
-  const [shotTypeBreakdown, setShotTypeBreakdown] = useState({
-    Wrist: 0,
-    Snap: 0,
-    Slap: 0,
-    Backhand: 0,
-  })
-  const [dailyData, setDailyData] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [milestoneUnlocked, setMilestoneUnlocked] = useState(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [shotType, setShotType] = useState('Wrist')
+  const [saving, setSaving] = useState(false)
+  const [todayByType, setTodayByType] = useState({})
+  const [celebrating, setCelebrating] = useState(null)
+
+  const spec = getSpec(playerChallenge?.challenge_type)
 
   useEffect(() => {
-    if (!player || !playerChallenge) return
-    setLoading(true)
-    Promise.all([
-      getDailyProgress(player.id, playerChallenge.goal_shots),
-      getStats(player.id),
-    ])
-      .then(([daily, stats]) => {
-        setDailyData(daily)
-        setShotTypeBreakdown(stats.todayByType)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('Failed to load daily progress:', err)
-        setLoading(false)
-      })
-  }, [player, playerChallenge])
+    if (!player) return
+    getStats(player.id)
+      .then((s) => setTodayByType(s.todayByType || {}))
+      .catch(() => {})
+  }, [player, playerChallengeProgress])
 
-  if (!player || !playerChallenge || !playerChallengeProgress) {
-    return <div style={{ color: 'var(--text-soft)', padding: 20 }}>Loading challenge...</div>
-  }
+  if (!player || !playerChallenge || !playerChallengeProgress) return null
 
-  const { goal_shots: totalGoal } = playerChallenge
-  const { shots_completed: currentShots } = playerChallengeProgress
-  const shotsToday = 0 // TODO: fetch from daily log
-  const daysInChallenge = Math.ceil(totalGoal / 100) // Rough estimate
-  const currentDay = Math.ceil(currentShots / 50) || 1
+  // Custom challenges have no printed sheet, so there's no grid to mirror.
+  if (!spec) return null
 
-  // Calculate milestones
-  const milestoneInterval = totalGoal / 4
-  const milestones = [
-    { at: milestoneInterval, emoji: '🥉', label: Math.round(milestoneInterval).toLocaleString() },
-    { at: milestoneInterval * 2, emoji: '🥈', label: Math.round(milestoneInterval * 2).toLocaleString() },
-    { at: milestoneInterval * 3, emoji: '🥇', label: Math.round(milestoneInterval * 3).toLocaleString() },
-    { at: totalGoal, emoji: '🏆', label: totalGoal.toLocaleString() },
-  ]
+  // getPlayerChallengeProgress returns current_shots (from players.lifetime_shots).
+  const currentShots = playerChallengeProgress.current_shots || 0
+  const total = spec.total
+  const step = spec.step
+  const boxes = boxCount(spec)
+  const milestones = milestonesFor(spec)
+  const filledBoxes = Math.min(boxes, Math.floor(currentShots / step))
+  const progressPct = Math.min(100, (currentShots / total) * 100)
+  const shotsIntoNextBox = currentShots % step
 
-  // Generate daily cells (max 60 visible at once, scrollable)
-  const dailyGoal = Math.ceil(totalGoal / daysInChallenge)
-  const days = Array.from({ length: daysInChallenge }, (_, i) => {
-    const dayNum = i + 1
-    const targetShots = dayNum * dailyGoal
-    const isComplete = currentShots >= targetShots
-    return { dayNum, targetShots, isComplete }
-  })
+  const medalAtBox = (boxNum) => milestones.find((m) => m.box === boxNum)
 
-  const handleDayClick = (day) => {
-    setSelectedDay(day)
-    setEntryAmount('')
-  }
-
-  const handleLogShots = async () => {
-    if (!entryAmount || !selectedDay || !player) return
+  const handleLog = async (count) => {
+    if (saving) return
+    setSaving(true)
     try {
-      const count = parseInt(entryAmount)
-      const previousTotal = playerChallengeProgress?.shots_completed || 0
-      const newTotal = previousTotal + count
+      const before = currentShots
+      const after = before + count
+      const crossed = milestones.find((m) => before < m.at && after >= m.at)
 
-      // Check for milestone
-      const milestone = checkMilestoneHit(previousTotal, newTotal, playerChallenge.goal_shots)
+      await logShots({ playerId: player.id, shotType, count })
 
-      // Log the shots
-      await logShots({ playerId: player.id, shotType: 'Wrist', count })
-
-      // Trigger celebration if milestone hit
-      if (milestone) {
-        setMilestoneUnlocked(milestone)
-        toast(milestone.message, 'success')
-        // Haptic feedback: celebrate with multiple vibrations
-        if (navigator.vibrate) {
-          navigator.vibrate([100, 50, 100, 50, 100])
-        }
+      if (crossed) {
+        setCelebrating(crossed)
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200])
       } else {
-        toast(`📊 Logged ${count} shots!`, 'success')
+        const boxesFilled = Math.floor(after / step) - Math.floor(before / step)
+        toast(
+          boxesFilled > 0
+            ? `${count} ${shotType.toLowerCase()} shots — ${boxesFilled} box${boxesFilled > 1 ? 'es' : ''} filled!`
+            : `${count} ${shotType.toLowerCase()} shots logged`
+        )
+        if (navigator.vibrate) navigator.vibrate(12)
       }
 
+      setPickerOpen(false)
       onShotLogged?.()
-      setSelectedDay(null)
-      setEntryAmount('')
-    } catch (err) {
-      console.error('Failed to log shots:', err)
-      toast('Failed to log shots', 'error')
+    } catch (e) {
+      console.error('Failed to log shots:', e)
+      toast('Could not save those shots — try again')
+    } finally {
+      setSaving(false)
     }
   }
 
-  const progress = (currentShots / totalGoal) * 100
-
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '20px' }}>
-      {/* MILESTONE CELEBRATION */}
-      {milestoneUnlocked && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 100,
-        }}>
-          <div style={{
-            background: 'var(--bg)',
-            borderRadius: 20,
-            padding: 40,
-            textAlign: 'center',
-            maxWidth: 400,
-            animation: 'popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
-          }}>
-            <div style={{ fontSize: 80, marginBottom: 20 }}>
-              {milestoneUnlocked.emoji}
-            </div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: 'white', marginBottom: 12 }}>
-              {milestoneUnlocked.label}
-            </div>
-            <div style={{ fontSize: 14, color: 'var(--text-soft)', marginBottom: 20 }}>
-              You've reached {milestoneUnlocked.shots.toLocaleString()} shots!
-            </div>
-            <button
-              onClick={() => setMilestoneUnlocked(null)}
-              style={{
-                background: 'var(--ice)',
-                color: 'white',
-                border: 'none',
-                borderRadius: 10,
-                padding: '12px 24px',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              Keep going →
-            </button>
-          </div>
-          <style>{`
-            @keyframes popIn {
-              0% { transform: scale(0.5); opacity: 0; }
-              50% { transform: scale(1.1); }
-              100% { transform: scale(1); opacity: 1; }
-            }
-          `}</style>
-        </div>
-      )}
-
-      {/* PROGRESS BAR */}
-      <div style={{ marginBottom: 30 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
-            {currentShots.toLocaleString()} / {totalGoal.toLocaleString()} shots
-          </div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ice)' }}>
-            {Math.round(progress)}%
+    <div className="tg">
+      {/* HEADER — mirrors the sheet's banner */}
+      <div className="tg-head" style={{ borderColor: spec.accent }}>
+        <div>
+          <div className="tg-kicker">My {spec.label} Challenge</div>
+          <div className="tg-count">
+            <strong style={{ color: spec.accent }}>{currentShots.toLocaleString()}</strong>
+            <span> / {total.toLocaleString()}</span>
           </div>
         </div>
-        <div style={{ background: 'rgba(255,255,255,0.05)', height: 10, borderRadius: 8, overflow: 'hidden' }}>
-          <div
-            style={{
-              background: 'linear-gradient(90deg, var(--ice), var(--accent))',
-              height: '100%',
-              width: `${progress}%`,
-              transition: 'width 0.3s ease',
-            }}
-          />
-        </div>
+        <div className="tg-pct" style={{ color: spec.accent }}>{Math.round(progressPct)}%</div>
       </div>
 
-      {/* DAILY GRID (scrollable) */}
-      <div style={{ marginBottom: 40 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-mute)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>
-          Daily Progress
-        </h3>
-        <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(14, days.length)}, 1fr)`, gap: 8, minWidth: 'fit-content' }}>
-            {days.map((day) => (
-              <button
-                key={day.dayNum}
-                onClick={() => handleDayClick(day)}
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 8,
-                  border: '2px solid',
-                  borderColor: day.isComplete ? 'var(--ice)' : 'rgba(255,255,255,0.1)',
-                  background: day.isComplete
-                    ? 'rgba(41, 121, 255, 0.2)'
-                    : day.dayNum === currentDay
-                      ? 'rgba(255,255,255,0.05)'
-                      : 'transparent',
-                  color: day.isComplete ? 'var(--ice)' : 'var(--text-soft)',
-                  fontWeight: 700,
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexDirection: 'column',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--ice)'
-                  e.currentTarget.style.transform = 'scale(1.05)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = day.isComplete ? 'var(--ice)' : 'rgba(255,255,255,0.1)'
-                  e.currentTarget.style.transform = 'scale(1)'
-                }}
-              >
-                <div style={{ fontSize: 10 }}>Day</div>
-                <div>{day.dayNum}</div>
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className="tg-how">
+        Each box = <strong style={{ color: spec.accent }}>{step} shots</strong>.
+        {filledBoxes < boxes
+          ? ` ${boxes - filledBoxes} to go.`
+          : ' Sheet complete! 🏆'}
       </div>
 
-      {/* MILESTONE STRIP */}
-      <div style={{ marginBottom: 40 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-mute)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>
-          Milestones
-        </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-          {milestones.map((m, i) => {
-            const isMet = currentShots >= m.at
-            return (
-              <div
-                key={i}
-                style={{
-                  border: '2px solid',
-                  borderColor: isMet ? 'var(--ice)' : 'rgba(255,255,255,0.1)',
-                  borderRadius: 12,
-                  padding: 16,
-                  textAlign: 'center',
-                  background: isMet ? 'rgba(41, 121, 255, 0.1)' : 'rgba(255,255,255,0.02)',
-                  transition: 'all 0.3s',
-                }}
-              >
-                <div style={{ fontSize: 28, marginBottom: 8 }}>{m.emoji}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: isMet ? 'var(--ice)' : 'var(--text-soft)' }}>
-                  {m.label}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* SHOT-TYPE BREAKDOWN */}
-      <div style={{ marginBottom: 40 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-mute)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>
-          Shot Types (Today)
-        </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-          {Object.entries(shotTypeBreakdown).map(([type, count]) => {
-            const emojis = { Wrist: '🎯', Snap: '⚡', Slap: '💥', Backhand: '🔄' }
-            return (
-              <div
-                key={type}
-                style={{
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 10,
-                  padding: 12,
-                  textAlign: 'center',
-                  background: 'rgba(255,255,255,0.02)',
-                }}
-              >
-                <div style={{ fontSize: 20, marginBottom: 6 }}>{emojis[type]}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-soft)', marginBottom: 4 }}>{type}</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ice)' }}>{count}</div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* QUICK-LOG MODAL */}
-      {selectedDay && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'flex-end', zIndex: 50 }}>
-          <div
-            style={{
-              background: 'var(--bg)',
-              width: '100%',
-              maxWidth: 480,
-              borderRadius: '16px 16px 0 0',
-              padding: 24,
-              borderTop: '3px solid var(--ice)',
-            }}
-          >
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
-              Log shots for Day {selectedDay.dayNum}
-            </div>
+      {/* THE GRID — same box count and medal positions as the printable */}
+      <div
+        className="tg-grid"
+        style={{
+          gridTemplateColumns: `repeat(${spec.cols}, minmax(0, 1fr))`,
+          // Cap the box size so a 5-column sheet doesn't blow up into giant
+          // squares on desktop — it should read like the paper grid at any width.
+          maxWidth: spec.cols * 52 + (spec.cols - 1) * 5,
+        }}
+      >
+        {Array.from({ length: boxes }, (_, i) => {
+          const boxNum = i + 1
+          const isFilled = boxNum <= filledBoxes
+          const medal = medalAtBox(boxNum)
+          const isNext = boxNum === filledBoxes + 1
+          return (
             <div
+              key={boxNum}
+              className={`tg-box${isFilled ? ' tg-box--filled' : ''}${isNext ? ' tg-box--next' : ''}`}
+              // Always pass concrete values — React leaves a previously-set
+              // inline style in place when the new value is `undefined`, which
+              // left stale fills behind when the challenge changed.
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: 10,
-                marginBottom: 20,
+                borderColor: isFilled || medal ? spec.accent : 'var(--border-dim)',
+                background: isFilled ? spec.accent : 'transparent',
               }}
+              title={`${(boxNum * step).toLocaleString()} shots`}
             >
+              {medal && <span className="tg-medal">{medal.emoji}</span>}
+              {isNext && shotsIntoNextBox > 0 && (
+                <span
+                  className="tg-partial"
+                  style={{ height: `${(shotsIntoNextBox / step) * 100}%`, background: spec.accent }}
+                />
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* LOG BUTTON */}
+      <button
+        className="tg-log"
+        style={{ background: spec.accent }}
+        onClick={() => setPickerOpen(true)}
+      >
+        + Log shots
+      </button>
+
+      {/* SHOT TYPE TALLY — the sheet's tally section, kept honest */}
+      <div className="tg-tally">
+        <div className="tg-tally-title">Today by shot type</div>
+        <div className="tg-tally-grid">
+          {SHOT_TYPES.map((t) => (
+            <div key={t.name} className="tg-tally-box">
+              <span>{t.emoji} {t.name}</span>
+              <strong>{todayByType[t.name] || 0}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* LOG SHEET — pick a type, then an amount */}
+      {pickerOpen && (
+        <div className="tg-sheet-wrap" onClick={() => !saving && setPickerOpen(false)}>
+          <div className="tg-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="tg-sheet-title">What did you shoot?</div>
+            <div className="tg-types">
+              {SHOT_TYPES.map((t) => (
+                <button
+                  key={t.name}
+                  className={`tg-type${shotType === t.name ? ' tg-type--on' : ''}`}
+                  style={{
+                    borderColor: shotType === t.name ? spec.accent : 'var(--border-dim)',
+                    color: shotType === t.name ? spec.accent : 'var(--text-soft)',
+                  }}
+                  onClick={() => setShotType(t.name)}
+                >
+                  <span className="tg-type-emoji">{t.emoji}</span>
+                  {t.name}
+                </button>
+              ))}
+            </div>
+
+            <div className="tg-sheet-title">How many?</div>
+            <div className="tg-amounts">
               {[10, 25, 50, 100].map((n) => (
                 <button
                   key={n}
-                  onClick={() => setEntryAmount(String(parseInt(entryAmount || '0') + n))}
-                  style={{
-                    background: 'rgba(41, 121, 255, 0.1)',
-                    border: '1px solid rgba(41, 121, 255, 0.3)',
-                    color: 'var(--ice)',
-                    borderRadius: 8,
-                    padding: 12,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    fontSize: 14,
-                  }}
+                  className="tg-amount"
+                  disabled={saving}
+                  onClick={() => handleLog(n)}
                 >
                   +{n}
                 </button>
               ))}
             </div>
-            <input
-              type="number"
-              value={entryAmount}
-              onChange={(e) => setEntryAmount(e.target.value)}
-              placeholder="Enter shots"
-              style={{
-                width: '100%',
-                padding: 12,
-                borderRadius: 8,
-                border: '1px solid rgba(255,255,255,0.1)',
-                background: 'rgba(255,255,255,0.02)',
-                color: 'white',
-                marginBottom: 16,
-                fontSize: 16,
-              }}
-            />
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={() => setSelectedDay(null)}
-                style={{
-                  flex: 1,
-                  padding: 12,
-                  borderRadius: 8,
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  background: 'transparent',
-                  color: 'var(--text-soft)',
-                  cursor: 'pointer',
-                  fontWeight: 700,
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleLogShots}
-                disabled={!entryAmount}
-                style={{
-                  flex: 1,
-                  padding: 12,
-                  borderRadius: 8,
-                  background: entryAmount ? 'var(--ice)' : 'rgba(255,255,255,0.1)',
-                  color: entryAmount ? 'white' : 'var(--text-mute)',
-                  cursor: entryAmount ? 'pointer' : 'not-allowed',
-                  fontWeight: 700,
-                }}
-              >
-                Log {entryAmount} Shots
-              </button>
-            </div>
+
+            <button className="tg-cancel" disabled={saving} onClick={() => setPickerOpen(false)}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
+
+      {/* MILESTONE CELEBRATION */}
+      {celebrating && (
+        <div className="tg-cel" onClick={() => setCelebrating(null)}>
+          <div className="tg-cel-card" onClick={(e) => e.stopPropagation()}>
+            <div className="tg-cel-emoji">{celebrating.emoji}</div>
+            <div className="tg-cel-name">{celebrating.name}</div>
+            <div className="tg-cel-sub">
+              {celebrating.at.toLocaleString()} shots — colour it in on your sheet too.
+            </div>
+            <button
+              className="tg-cel-btn"
+              style={{ background: spec.accent }}
+              onClick={() => setCelebrating(null)}
+            >
+              Keep going →
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{gridStyles}</style>
     </div>
   )
 }
+
+const gridStyles = `
+.tg { margin: 16px 14px; padding: 16px; background: var(--surface); border-radius: 14px; }
+.tg-head { display: flex; justify-content: space-between; align-items: flex-start;
+  padding-bottom: 12px; margin-bottom: 12px; border-bottom: 2px solid; }
+.tg-kicker { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--text-mute); font-weight: 800; margin-bottom: 4px; }
+.tg-count { font-size: 22px; font-weight: 800; color: var(--text); }
+.tg-count span { font-size: 14px; color: var(--text-mute); font-weight: 600; }
+.tg-pct { font-size: 26px; font-weight: 900; }
+.tg-how { font-size: 13px; color: var(--text-soft); margin-bottom: 14px; }
+
+.tg-grid { display: grid; gap: 5px; margin: 0 0 16px; width: 100%; }
+.tg-box { position: relative; aspect-ratio: 1; border: 2px solid var(--border-dim);
+  border-radius: 5px; overflow: hidden; display: flex; align-items: center;
+  justify-content: center; transition: background .25s ease, border-color .25s ease; }
+.tg-box--next { box-shadow: 0 0 0 2px rgba(255,255,255,0.12); }
+.tg-medal { font-size: 15px; line-height: 1; position: relative; z-index: 2;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.55)); }
+.tg-partial { position: absolute; left: 0; right: 0; bottom: 0; opacity: .45; }
+
+.tg-log { width: 100%; border: none; border-radius: 12px; padding: 15px;
+  font-size: 16px; font-weight: 800; color: #fff; cursor: pointer; margin-bottom: 16px; }
+
+.tg-tally-title { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--text-mute); font-weight: 800; margin-bottom: 8px; }
+.tg-tally-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.tg-tally-box { display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid var(--border-dim); border-radius: 9px; padding: 9px 11px;
+  font-size: 13px; color: var(--text-soft); }
+.tg-tally-box strong { color: var(--text); font-size: 15px; }
+
+.tg-sheet-wrap { position: fixed; inset: 0; background: rgba(0,0,0,.72);
+  display: flex; align-items: flex-end; justify-content: center; z-index: 60; }
+.tg-sheet { width: 100%; max-width: 460px; background: var(--bg);
+  border-radius: 18px 18px 0 0; padding: 22px 18px calc(22px + env(safe-area-inset-bottom));
+  animation: tgUp .22s ease; }
+@keyframes tgUp { from { transform: translateY(14px); opacity: 0 } to { transform: none; opacity: 1 } }
+.tg-sheet-title { font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--text-mute); font-weight: 800; margin-bottom: 10px; }
+.tg-types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px; }
+.tg-type { display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: transparent; border: 2px solid var(--border-dim); border-radius: 11px;
+  padding: 11px 4px; font-size: 11px; font-weight: 700; color: var(--text-soft); cursor: pointer; }
+.tg-type-emoji { font-size: 19px; }
+.tg-type--on { background: rgba(255,255,255,.05); }
+.tg-amounts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.tg-amount { background: rgba(255,255,255,.06); border: 1px solid var(--border-dim);
+  border-radius: 11px; padding: 15px 4px; font-size: 16px; font-weight: 800;
+  color: var(--text); cursor: pointer; }
+.tg-amount:disabled { opacity: .5; cursor: default; }
+.tg-cancel { width: 100%; background: transparent; border: none; color: var(--text-mute);
+  font-size: 14px; font-weight: 700; padding: 10px; cursor: pointer; }
+
+.tg-cel { position: fixed; inset: 0; background: rgba(0,0,0,.8); display: flex;
+  align-items: center; justify-content: center; z-index: 70; padding: 20px; }
+.tg-cel-card { background: var(--bg); border-radius: 20px; padding: 34px 28px;
+  text-align: center; max-width: 340px; animation: tgPop .55s cubic-bezier(.34,1.56,.64,1); }
+@keyframes tgPop { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.06) } 100% { transform: scale(1); opacity: 1 } }
+.tg-cel-emoji { font-size: 64px; margin-bottom: 14px; }
+.tg-cel-name { font-size: 21px; font-weight: 900; color: #fff; margin-bottom: 6px; }
+.tg-cel-sub { font-size: 13px; color: var(--text-soft); margin-bottom: 20px; line-height: 1.45; }
+.tg-cel-btn { border: none; border-radius: 11px; padding: 13px 26px; color: #fff;
+  font-weight: 800; font-size: 15px; cursor: pointer; }
+`

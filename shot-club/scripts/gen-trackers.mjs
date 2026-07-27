@@ -4,6 +4,7 @@
 // Outputs: public/5k-tracker.html and public/10k-tracker.html
 import fs from 'node:fs'
 import qrcode from 'qrcode-generator'
+import { CHALLENGE_SPECS, milestonesFor } from '../src/lib/challengeSpecs.js'
 
 function qrSvg(url) {
   const qr = qrcode(0, 'M')
@@ -159,38 +160,26 @@ function page({ total, step, milestones, qrUrl, accent, gridCols = 10 }) {
 `
 }
 
-const ONE = {
-  total: 1000, step: 50, accent: '#27ae60', gridCols: 5,
-  qrUrl: 'https://hockeyshotchallenge.com/start?src=print1k',
-  milestones: [
-    { at: 250, emoji: '🥉' }, { at: 500, emoji: '🥈' },
-    { at: 750, emoji: '🥇' }, { at: 1000, emoji: '🏆' },
-  ],
+// Config comes from the shared spec so the printed sheet and the in-app grid
+// always have the same box count, shots-per-box, and medal positions.
+// The QR carries ?challenge=<id> so scanning the sheet sets that exact
+// challenge up after sign-in — the sheet "comes alive" rather than dumping
+// the kid on a generic signup.
+function fromSpec(spec) {
+  return {
+    total: spec.total,
+    step: spec.step,
+    accent: spec.accent,
+    gridCols: spec.cols,
+    qrUrl: `https://hockeyshotchallenge.com/start?challenge=${spec.id}&src=print${spec.id}`,
+    milestones: milestonesFor(spec).map((m) => ({ at: m.at, emoji: m.emoji })),
+  }
 }
-const TWO_FIVE = {
-  total: 2500, step: 50, accent: '#8b5cf6', gridCols: 10,
-  qrUrl: 'https://hockeyshotchallenge.com/start?src=print2_5k',
-  milestones: [
-    { at: 625, emoji: '🥉' }, { at: 1250, emoji: '🥈' },
-    { at: 1875, emoji: '🥇' }, { at: 2500, emoji: '🏆' },
-  ],
-}
-const FIVE = {
-  total: 5000, step: 50, accent: '#ff7a29',
-  qrUrl: 'https://hockeyshotchallenge.com/start?src=print5k',
-  milestones: [
-    { at: 1250, emoji: '🥉' }, { at: 2500, emoji: '🥈' },
-    { at: 3750, emoji: '🥇' }, { at: 5000, emoji: '🏆' },
-  ],
-}
-const TEN = {
-  total: 10000, step: 100, accent: '#2979ff',
-  qrUrl: 'https://hockeyshotchallenge.com/start?src=print10k',
-  milestones: [
-    { at: 2500, emoji: '🥉' }, { at: 5000, emoji: '🥈' },
-    { at: 7500, emoji: '🥇' }, { at: 10000, emoji: '🏆' },
-  ],
-}
+
+const ONE = fromSpec(CHALLENGE_SPECS['1k'])
+const TWO_FIVE = fromSpec(CHALLENGE_SPECS['2_5k'])
+const FIVE = fromSpec(CHALLENGE_SPECS['5k'])
+const TEN = fromSpec(CHALLENGE_SPECS['10k'])
 
 fs.writeFileSync('public/1k-tracker.html', page(ONE))
 fs.writeFileSync('public/2_5k-tracker.html', page(TWO_FIVE))
