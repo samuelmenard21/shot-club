@@ -1,1 +1,8 @@
+# Retired sitemaps — we collapsed to a single /sitemap.xml. Without these they
+# fall through to the SPA fallback below and return the homepage HTML with a
+# 200, which is worse than a 404 for a URL Search Console still has on file.
+/sitemap-static.xml   /   404
+/sitemap-clubs.xml    /   404
+
+# SPA fallback — all client routes serve index.html
 /* /index.html 200

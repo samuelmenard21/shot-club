@@ -17,3 +17,8 @@
 # Cache API responses briefly
 /api/*
   Cache-Control: public, max-age=60
+
+# Sitemap: short TTL. Cloudflare's default (s-maxage=604800) pinned this at the
+# edge for a week, so a regenerated sitemap wouldn't reach Google for 7 days.
+/sitemap.xml
+  Cache-Control: public, max-age=300, s-maxage=300
