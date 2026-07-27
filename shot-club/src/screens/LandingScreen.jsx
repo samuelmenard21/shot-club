@@ -13,8 +13,16 @@ export default function LandingScreen() {
   const [clubResults, setClubResults] = useState([])
   const [searchingClubs, setSearchingClubs] = useState(false)
   const [totalShots, setTotalShots] = useState(null)
+  const [selectedChallenge, setSelectedChallenge] = useState(null)
   const searchTimer = useRef(null)
   const searchInputRef = useRef(null)
+
+  const challenges = [
+    { id: '1k', shots: 1000, pace: 500, label: '1K Rookie', color: '#27ae60' },
+    { id: '2_5k', shots: 2500, pace: 625, label: '2.5K Intermediate', color: '#8b5cf6' },
+    { id: '5k', shots: 5000, pace: 625, label: '5K Beginner', color: '#ff7a29' },
+    { id: '10k', shots: 10000, pace: 1250, label: '10K Advanced', color: '#2979ff' },
+  ]
 
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current)
@@ -114,6 +122,124 @@ export default function LandingScreen() {
             🏒 <strong>{totalShots.toLocaleString()}</strong> shots logged by real players
           </div>
         )}
+
+        {/* CHALLENGE ENTRY HUB */}
+        <div style={{ maxWidth: 900, margin: '60px auto 0', padding: '40px 20px', borderTop: '2px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ textAlign: 'center', marginBottom: 30 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, color: 'var(--accent)', marginBottom: 12, textTransform: 'uppercase' }}>
+              START HERE
+            </div>
+            <h2 style={{ fontSize: 28, fontWeight: 800, color: 'white', marginBottom: 8 }}>Pick a Challenge</h2>
+            <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
+              {selectedChallenge
+                ? 'Choose paper or digital tracking'
+                : 'Choose your goal, then pick paper or digital'}
+            </p>
+          </div>
+
+          {!selectedChallenge ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, maxWidth: 800, margin: '0 auto' }}>
+              {challenges.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedChallenge(c)}
+                  style={{
+                    border: '2px solid',
+                    borderColor: c.color,
+                    borderRadius: 12,
+                    background: `linear-gradient(135deg, rgba(${parseInt(c.color.slice(1,3), 16)}, ${parseInt(c.color.slice(3,5), 16)}, ${parseInt(c.color.slice(5,7), 16)}, 0.05) 0%, rgba(${parseInt(c.color.slice(1,3), 16)}, ${parseInt(c.color.slice(3,5), 16)}, ${parseInt(c.color.slice(5,7), 16)}, 0) 100%)`,
+                    padding: 20,
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.3s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)'
+                    e.currentTarget.style.boxShadow = `0 12px 24px rgba(${parseInt(c.color.slice(1,3), 16)}, ${parseInt(c.color.slice(3,5), 16)}, ${parseInt(c.color.slice(5,7), 16)}, 0.2)`
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
+                >
+                  <div style={{ fontSize: 20, fontWeight: 800, color: c.color, marginBottom: 8 }}>{c.label}</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: 'white', marginBottom: 4 }}>{c.shots.toLocaleString()}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>{c.pace.toLocaleString()} shots/week</div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div style={{ maxWidth: 600, margin: '0 auto' }}>
+              <div style={{ marginBottom: 20, textAlign: 'center' }}>
+                <button
+                  onClick={() => setSelectedChallenge(null)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-soft)',
+                    cursor: 'pointer',
+                    fontSize: 14,
+                    textDecoration: 'underline',
+                  }}
+                >
+                  ← Pick a different challenge
+                </button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <button
+                  onClick={() => window.open(`/${selectedChallenge.id}-tracker.html`, '_blank')}
+                  style={{
+                    border: '2px solid rgba(255,255,255,0.2)',
+                    borderRadius: 12,
+                    background: 'rgba(255,255,255,0.02)',
+                    padding: 24,
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    color: 'white',
+                    fontWeight: 700,
+                    transition: 'all 0.3s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.02)'
+                  }}
+                >
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>📄</div>
+                  <div>Get the Paper Tracker</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-soft)', marginTop: 8 }}>Print & stick on your fridge</div>
+                </button>
+                <button
+                  onClick={() => nav('/start')}
+                  style={{
+                    border: `2px solid ${selectedChallenge.color}`,
+                    borderRadius: 12,
+                    background: `linear-gradient(135deg, rgba(${parseInt(selectedChallenge.color.slice(1,3), 16)}, ${parseInt(selectedChallenge.color.slice(3,5), 16)}, ${parseInt(selectedChallenge.color.slice(5,7), 16)}, 0.15) 0%, rgba(${parseInt(selectedChallenge.color.slice(1,3), 16)}, ${parseInt(selectedChallenge.color.slice(3,5), 16)}, ${parseInt(selectedChallenge.color.slice(5,7), 16)}, 0.05) 100%)`,
+                    padding: 24,
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    color: 'white',
+                    fontWeight: 700,
+                    transition: 'all 0.3s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                  }}
+                >
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>📱</div>
+                  <div>Track Digitally</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-soft)', marginTop: 8 }}>Live leaderboards & ranks</div>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Three-path split */}
         <div className="hero-paths hero-paths--three">
