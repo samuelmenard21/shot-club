@@ -69,7 +69,7 @@ export default function ChallengeSelector() {
     {
       id: '5k',
       title: '5,000 Shot Challenge',
-      subtitle: 'Intermediate to Advanced',
+      subtitle: 'Advanced',
       shots: 5000,
       weeks: 8,
       description: 'Perfect for young players or a full summer challenge',
@@ -80,7 +80,7 @@ export default function ChallengeSelector() {
     {
       id: '10k',
       title: '10,000 Shot Challenge',
-      subtitle: 'Intermediate to Advanced',
+      subtitle: 'Hall of Famer',
       shots: 10000,
       weeks: 8,
       description: 'The classic summer challenge for dedicated players',

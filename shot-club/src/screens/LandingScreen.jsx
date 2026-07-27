@@ -20,8 +20,8 @@ export default function LandingScreen() {
   const challenges = [
     { id: '1k', shots: 1000, pace: 500, label: '1K Rookie', color: '#27ae60' },
     { id: '2_5k', shots: 2500, pace: 625, label: '2.5K Intermediate', color: '#8b5cf6' },
-    { id: '5k', shots: 5000, pace: 625, label: '5K Beginner', color: '#ff7a29' },
-    { id: '10k', shots: 10000, pace: 1250, label: '10K Advanced', color: '#2979ff' },
+    { id: '5k', shots: 5000, pace: 625, label: '5K Advanced', color: '#ff7a29' },
+    { id: '10k', shots: 10000, pace: 1250, label: '10K Hall of Famer', color: '#2979ff' },
   ]
 
   useEffect(() => {
