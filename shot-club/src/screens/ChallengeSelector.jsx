@@ -12,8 +12,8 @@ export default function ChallengeSelector() {
 
   useEffect(() => {
     setSEO({
-      title: 'Choose Your Hockey Challenge — 1K, 5K, 10K, or Custom',
-      description: 'Pick your hockey challenge: 1000 shot challenge for beginners, 5000 shot challenge, 10000 shot challenge, or create a custom goal. Free tracking with live leaderboards.',
+      title: 'Choose Your Hockey Challenge — 1K, 2.5K, 5K, 10K, or Custom',
+      description: 'Pick your hockey challenge: 1000 shot challenge for rookies, 2500 shot challenge, 5000 shot challenge, 10000 shot challenge, or create a custom goal. Free tracking with live leaderboards.',
       url: 'https://hockeyshotchallenge.com/challenges',
     })
   }, [])
@@ -56,12 +56,23 @@ export default function ChallengeSelector() {
       onClick: () => handleChallengeSelect('1k', 1000),
     },
     {
+      id: '2_5k',
+      title: '2,500 Shot Challenge',
+      subtitle: 'Intermediate',
+      shots: 2500,
+      weeks: 4,
+      description: 'Step up after the 1K, or a quick 4-week sprint',
+      pace: '625 shots/week',
+      color: 'from-purple-500 to-violet-600',
+      onClick: () => handleChallengeSelect('2_5k', 2500),
+    },
+    {
       id: '5k',
       title: '5,000 Shot Challenge',
-      subtitle: 'Beginner to Intermediate',
+      subtitle: 'Intermediate to Advanced',
       shots: 5000,
       weeks: 8,
-      description: 'Perfect for young players or a 2-month challenge',
+      description: 'Perfect for young players or a full summer challenge',
       pace: '625 shots/week',
       color: 'from-orange-500 to-red-600',
       onClick: () => handleChallengeSelect('5k', 5000),
@@ -138,8 +149,8 @@ export default function ChallengeSelector() {
             onClick={c.onClick}
             disabled={loading || authLoading}
             style={{
-              background: `linear-gradient(135deg, rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.1) 0%, rgba(${c.id === '1k' ? '46, 204, 113' : c.id === '5k' ? '220, 38, 38' : c.id === '10k' ? '6, 182, 212' : '236, 72, 153'}, 0.05) 100%)`,
-              border: `1.5px solid rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.3)`,
+              background: `linear-gradient(135deg, rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '2_5k' ? '139, 92, 246' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.1) 0%, rgba(${c.id === '1k' ? '46, 204, 113' : c.id === '2_5k' ? '168, 85, 247' : c.id === '5k' ? '220, 38, 38' : c.id === '10k' ? '6, 182, 212' : '236, 72, 153'}, 0.05) 100%)`,
+              border: `1.5px solid rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '2_5k' ? '139, 92, 246' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.3)`,
               borderRadius: 16,
               padding: 32,
               cursor: loading || authLoading ? 'not-allowed' : 'pointer',
@@ -151,12 +162,12 @@ export default function ChallengeSelector() {
             onMouseEnter={(e) => {
               if (!loading && !authLoading) {
                 e.currentTarget.style.transform = 'translateY(-4px)'
-                e.currentTarget.style.borderColor = `rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.6)`
+                e.currentTarget.style.borderColor = `rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '2_5k' ? '139, 92, 246' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.6)`
               }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.borderColor = `rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.3)`
+              e.currentTarget.style.borderColor = `rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '2_5k' ? '139, 92, 246' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.3)`
             }}
           >
             <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: 'var(--accent)', marginBottom: 8 }}>
@@ -182,7 +193,7 @@ export default function ChallengeSelector() {
               style={{
                 marginTop: 24,
                 width: '100%',
-                background: `rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.9)`,
+                background: `rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '2_5k' ? '139, 92, 246' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.9)`,
                 color: 'white',
                 borderRadius: 10,
                 padding: '14px 20px',

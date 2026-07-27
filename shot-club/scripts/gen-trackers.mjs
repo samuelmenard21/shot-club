@@ -167,6 +167,14 @@ const ONE = {
     { at: 750, emoji: '🥇' }, { at: 1000, emoji: '🏆' },
   ],
 }
+const TWO_FIVE = {
+  total: 2500, step: 50, accent: '#8b5cf6', gridCols: 10,
+  qrUrl: 'https://hockeyshotchallenge.com/start?src=print2_5k',
+  milestones: [
+    { at: 625, emoji: '🥉' }, { at: 1250, emoji: '🥈' },
+    { at: 1875, emoji: '🥇' }, { at: 2500, emoji: '🏆' },
+  ],
+}
 const FIVE = {
   total: 5000, step: 50, accent: '#ff7a29',
   qrUrl: 'https://hockeyshotchallenge.com/start?src=print5k',
@@ -185,6 +193,7 @@ const TEN = {
 }
 
 fs.writeFileSync('public/1k-tracker.html', page(ONE))
+fs.writeFileSync('public/2_5k-tracker.html', page(TWO_FIVE))
 fs.writeFileSync('public/5k-tracker.html', page(FIVE))
 fs.writeFileSync('public/10k-tracker.html', page(TEN))
-console.log('✅ Wrote public/1k-tracker.html, public/5k-tracker.html, and public/10k-tracker.html')
+console.log('✅ Wrote public/1k-tracker.html, public/2_5k-tracker.html, public/5k-tracker.html, and public/10k-tracker.html')
