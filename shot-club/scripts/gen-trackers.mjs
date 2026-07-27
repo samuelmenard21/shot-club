@@ -81,6 +81,7 @@ function page({ total, step, milestones, qrUrl, accent }) {
   .medal-num { font-size: 12px; font-weight: 800; color: #46587a; margin-top: 2px; }
 
   .tally { flex: 1; min-width: 200px; }
+  .tally-hint { font-size: 11px; color: #7a8aa3; margin: -4px 0 8px; }
   .tally-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .tally-box { border: 2px solid #2b3a55; border-radius: 10px; padding: 8px 10px; }
   .tally-box .t-name { font-size: 12px; font-weight: 800; color: #16233a; }
@@ -107,7 +108,7 @@ function page({ total, step, milestones, qrUrl, accent }) {
   <div class="sheet">
     <div class="banner">
       <div class="puck">🏒</div>
-      <div class="banner-kicker">My Off-Ice Challenge</div>
+      <div class="banner-kicker">Hockey Shot Challenge</div>
       <h1><span class="num">${totalStr}</span> Shot Challenge</h1>
       <div class="banner-sub">Color a box every <b>${step}</b> shots. Fill the whole sheet to win. 🥅</div>
     </div>
@@ -128,7 +129,8 @@ function page({ total, step, milestones, qrUrl, accent }) {
         <div class="medal-row">${medalStrip}</div>
       </div>
       <div class="tally">
-        <div class="panel-title">Shot types (tally marks)</div>
+        <div class="panel-title">Keep a tally by shot type</div>
+        <div class="tally-hint">Add a mark (llll) for each shot as you practice — mix up all four!</div>
         <div class="tally-grid">
           <div class="tally-box"><div class="t-name">🎯 Wrist</div><div class="t-line"></div></div>
           <div class="tally-box"><div class="t-name">⚡ Snap</div><div class="t-line"></div></div>
