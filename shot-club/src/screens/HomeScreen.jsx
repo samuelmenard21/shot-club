@@ -15,6 +15,7 @@ import StreakRiskBanner from '../components/StreakRiskBanner'
 import StreakRecoveryBanner from '../components/StreakRecoveryBanner'
 import BattleCard from '../components/BattleCard'
 import NumberPad from '../components/NumberPad'
+import TrackerGrid from '../components/TrackerGrid'
 import AchievementUnlockModal from './AchievementUnlockModal'
 
 const SHOT_TYPES_SHOOTER = ['Wrist', 'Snap', 'Slap', 'Backhand']
@@ -475,6 +476,21 @@ export default function HomeScreen() {
           </div>
         )
       })()}
+
+      {/* INTERACTIVE TRACKER GRID */}
+      {playerChallenge && playerChallengeProgress && (
+        <div style={{ marginTop: 20 }}>
+          <TrackerGrid
+            player={player}
+            playerChallenge={playerChallenge}
+            playerChallengeProgress={playerChallengeProgress}
+            onShotLogged={() => {
+              refreshStats()
+              setGoalRefreshKey(k => k + 1)
+            }}
+          />
+        </div>
+      )}
 
       {/* TEAM CHALLENGE TRACKER */}
       {teamChallenge && (() => {
