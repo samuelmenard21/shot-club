@@ -234,8 +234,7 @@ const navStyles = `
 }
 .nav-btn:active { transform: scale(0.95); }
 
-.full-width {
-  width: 100%;
-  min-height: 100dvh;
-}
+/* .full-width lives in index.css — this <style> is only mounted on authed
+   routes (BottomNav returns null elsewhere), so layout rules must not live
+   here or they silently don't apply to public pages. */
 `

@@ -3,6 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { setSEO } from '../lib/seo'
 import { useAuth } from '../hooks/useAuth'
 import { setPlayerChallenge } from '../lib/challenges'
+import { CHALLENGE_LIST, weeklyPace } from '../lib/challengeSpecs'
+
+// #rrggbb -> rgba(), so one accent per challenge drives every tint on the card.
+function rgba(hex, alpha) {
+  const h = hex.replace('#', '')
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
 
 export default function ChallengeSelector() {
   const nav = useNavigate()
@@ -43,51 +53,20 @@ export default function ChallengeSelector() {
     }
   }
 
+  // Cards are derived from the shared spec so this screen, the homepage picker,
+  // the printables and the in-app grid can never disagree about targets or pace.
   const challenges = [
-    {
-      id: '1k',
-      title: '1,000 Shot Challenge',
-      subtitle: 'Your First Goal',
-      shots: 1000,
-      weeks: 2,
-      description: 'Finish in a couple weeks and get hooked on the app',
-      pace: '500 shots/week',
-      color: 'from-green-500 to-emerald-600',
-      onClick: () => handleChallengeSelect('1k', 1000),
-    },
-    {
-      id: '2_5k',
-      title: '2,500 Shot Challenge',
-      subtitle: 'Intermediate',
-      shots: 2500,
-      weeks: 4,
-      description: 'Step up after the 1K, or a quick 4-week sprint',
-      pace: '625 shots/week',
-      color: 'from-purple-500 to-violet-600',
-      onClick: () => handleChallengeSelect('2_5k', 2500),
-    },
-    {
-      id: '5k',
-      title: '5,000 Shot Challenge',
-      subtitle: 'Advanced',
-      shots: 5000,
-      weeks: 8,
-      description: 'Perfect for young players or a full summer challenge',
-      pace: '625 shots/week',
-      color: 'from-orange-500 to-red-600',
-      onClick: () => handleChallengeSelect('5k', 5000),
-    },
-    {
-      id: '10k',
-      title: '10,000 Shot Challenge',
-      subtitle: 'Hall of Famer',
-      shots: 10000,
-      weeks: 8,
-      description: 'The classic summer challenge for dedicated players',
-      pace: '1,250 shots/week',
-      color: 'from-blue-500 to-cyan-600',
-      onClick: () => handleChallengeSelect('10k', 10000),
-    },
+    ...CHALLENGE_LIST.map((s) => ({
+      id: s.id,
+      title: `${s.total.toLocaleString()} Shot Challenge`,
+      subtitle: s.label,
+      shots: s.total,
+      weeks: s.weeks,
+      description: s.blurb,
+      pace: `${weeklyPace(s).toLocaleString()}/wk`,
+      accent: s.accent,
+      onClick: () => handleChallengeSelect(s.id, s.total),
+    })),
     {
       id: 'custom',
       title: 'Custom Challenge',
@@ -95,8 +74,8 @@ export default function ChallengeSelector() {
       shots: '?',
       weeks: '?',
       description: 'Set your own goal and track progress in real-time',
-      pace: 'Your pace',
-      color: 'from-purple-500 to-pink-600',
+      pace: 'Yours',
+      accent: '#9333ea',
       onClick: () => {
         if (player) nav('/challenges/custom')
         else nav('/start')
@@ -107,31 +86,32 @@ export default function ChallengeSelector() {
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'var(--font-body)' }}>
       {/* NAV */}
-      <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '14px 16px', maxWidth: '1200px', margin: '0 auto' }}>
         <button
-          style={{ fontSize: 18, fontWeight: 700, background: 'transparent', cursor: 'pointer', color: 'white', border: 'none' }}
+          style={{ fontSize: 'clamp(15px, 4vw, 18px)', fontWeight: 700, background: 'transparent', cursor: 'pointer', color: 'white', border: 'none', padding: 0, textAlign: 'left', lineHeight: 1.15 }}
           onClick={() => nav('/')}
         >
           🏒 Hockey Shot Challenge
         </button>
         <button
-          style={{ background: 'var(--accent)', color: 'white', padding: '10px 20px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', border: 'none' }}
+          style={{ background: 'var(--accent)', color: 'white', padding: '10px 16px', borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: 'pointer', border: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}
           onClick={() => nav('/start')}
         >
-          Start tracking →
+          Start →
         </button>
       </nav>
 
       {/* HERO */}
-      <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '60px 20px 40px', textAlign: 'center' }}>
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, color: 'var(--accent)', marginBottom: 16 }}>
+      <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '28px 16px 24px', textAlign: 'center' }}>
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, color: 'var(--accent)', marginBottom: 12 }}>
           PICK YOUR CHALLENGE
         </div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px, 8vw, 56px)', fontWeight: 800, color: 'white', lineHeight: 1.1, marginBottom: 16 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(26px, 7vw, 52px)', fontWeight: 800, color: 'white', lineHeight: 1.12, marginBottom: 12 }}>
           Choose Your Shot Challenge
         </h1>
-        <p style={{ fontSize: 18, color: 'var(--text-soft)', marginBottom: 32, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
-          Whether it's a quick 5K or an ambitious 10K, we've got you covered. Track your progress in real-time with live leaderboards and celebrate every milestone.
+        <p style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--text-soft)', marginBottom: 0, maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' }}>
+          Start with the 1K and work your way up to Hall of Famer. Every shot counts
+          toward live leaderboards, streaks and milestone medals.
         </p>
       </section>
 
@@ -142,17 +122,19 @@ export default function ChallengeSelector() {
       )}
 
       {/* CHALLENGE CARDS */}
-      <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px 60px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+      {/* min() lets the track collapse to a single full-width column on a phone
+          instead of holding a 300px floor and overflowing the viewport. */}
+      <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 16px 48px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 16 }}>
         {challenges.map((c) => (
           <button
             key={c.id}
             onClick={c.onClick}
             disabled={loading || authLoading}
             style={{
-              background: `linear-gradient(135deg, rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '2_5k' ? '139, 92, 246' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.1) 0%, rgba(${c.id === '1k' ? '46, 204, 113' : c.id === '2_5k' ? '168, 85, 247' : c.id === '5k' ? '220, 38, 38' : c.id === '10k' ? '6, 182, 212' : '236, 72, 153'}, 0.05) 100%)`,
-              border: `1.5px solid rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '2_5k' ? '139, 92, 246' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.3)`,
+              background: `linear-gradient(135deg, ${rgba(c.accent, 0.1)} 0%, ${rgba(c.accent, 0.05)} 100%)`,
+              border: `1.5px solid ${rgba(c.accent, 0.3)}`,
               borderRadius: 16,
-              padding: 32,
+              padding: 'clamp(18px, 5vw, 28px)',
               cursor: loading || authLoading ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
               textAlign: 'left',
@@ -162,38 +144,38 @@ export default function ChallengeSelector() {
             onMouseEnter={(e) => {
               if (!loading && !authLoading) {
                 e.currentTarget.style.transform = 'translateY(-4px)'
-                e.currentTarget.style.borderColor = `rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '2_5k' ? '139, 92, 246' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.6)`
+                e.currentTarget.style.borderColor = `${rgba(c.accent, 0.6)}`
               }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.borderColor = `rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '2_5k' ? '139, 92, 246' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.3)`
+              e.currentTarget.style.borderColor = `${rgba(c.accent, 0.3)}`
             }}
           >
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: 'var(--accent)', marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: c.accent, marginBottom: 8, textTransform: 'uppercase' }}>
               {c.subtitle}
             </div>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800, marginBottom: 12 }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(20px, 5.5vw, 24px)', fontWeight: 800, marginBottom: 8 }}>
               {c.title}
             </h3>
-            <p style={{ fontSize: 14, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <p style={{ fontSize: 14, lineHeight: 1.45, color: 'var(--text-soft)', marginBottom: 16 }}>
               {c.description}
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
               <div>
-                <div style={{ fontSize: 12, color: 'var(--text-mute)' }}>TARGET SHOTS</div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ice)' }}>{c.shots.toLocaleString()}</div>
+                <div style={{ fontSize: 11, letterSpacing: 0.6, color: 'var(--text-mute)' }}>TARGET</div>
+                <div style={{ fontSize: 19, fontWeight: 800, color: 'var(--ice)' }}>{c.shots.toLocaleString()}</div>
               </div>
               <div>
-                <div style={{ fontSize: 12, color: 'var(--text-mute)' }}>DAILY PACE</div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ice)' }}>{c.pace}</div>
+                <div style={{ fontSize: 11, letterSpacing: 0.6, color: 'var(--text-mute)' }}>PACE</div>
+                <div style={{ fontSize: 19, fontWeight: 800, color: 'var(--ice)' }}>{c.pace}</div>
               </div>
             </div>
             <div
               style={{
                 marginTop: 24,
                 width: '100%',
-                background: `rgba(${c.id === '1k' ? '39, 174, 96' : c.id === '2_5k' ? '139, 92, 246' : c.id === '5k' ? '249, 115, 22' : c.id === '10k' ? '59, 130, 246' : '147, 51, 234'}, 0.9)`,
+                background: `${rgba(c.accent, 0.9)}`,
                 color: 'white',
                 borderRadius: 10,
                 padding: '14px 20px',

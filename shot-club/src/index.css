@@ -98,9 +98,21 @@ h1, h2, h3, h4, h5 {
 }
 
 /* App shell — mobile-first, capped on tablet/desktop */
+/* #root is a flex container, so these are flex items. Without min-width:0 they
+   inherit min-width:auto and refuse to shrink below their content — a single
+   wide child (e.g. a min-300px grid track) then stretches the page past the
+   viewport, which breaks scrolling on phones. */
+.full-width {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100dvh;
+}
+
 .app-shell {
   width: 100%;
   max-width: 430px;
+  min-width: 0;
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--bg);
