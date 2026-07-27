@@ -92,6 +92,69 @@ export default function FiveKChallengeScreen() {
         </div>
       </section>
 
+      {/* GUIDE / ARTICLE */}
+      <section className="tenk-section">
+        <h2>What Is the 5,000 Shot Challenge?</h2>
+        <p style={{ color: 'var(--text-soft)', fontSize: 16, lineHeight: 1.6, maxWidth: 720, margin: '0 auto 14px' }}>
+          The 5,000 Shot Challenge is the perfect first off-season goal: take 5,000 shots away
+          from the rink — driveway, garage, or basement — over a summer. It's the friendlier
+          sibling of the classic 10,000 Shot Challenge, ideal for younger players (U9–U11) or a
+          first serious summer of off-ice work. Every shot type counts: wrist, snap, slap, and
+          backhand. Spread across 8 weeks, that's about <strong style={{ color: 'var(--ice)' }}>625 shots a week</strong>,
+          or roughly <strong style={{ color: 'var(--ice)' }}>90 a day</strong> if you shoot most days.
+        </p>
+
+        <h3 style={{ textAlign: 'center', marginTop: 28 }}>The 8-Week 5,000 Shot Schedule</h3>
+        <div style={{ overflowX: 'auto', maxWidth: 720, margin: '10px auto 0', borderRadius: 12, border: '1px solid var(--border-dim)' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480, fontSize: 14 }}>
+            <thead>
+              <tr style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--ice)' }}>
+                <th style={{ textAlign: 'left', padding: '10px 14px' }}>Week</th>
+                <th style={{ textAlign: 'left', padding: '10px 14px' }}>Shots this week</th>
+                <th style={{ textAlign: 'left', padding: '10px 14px' }}>Running total</th>
+                <th style={{ textAlign: 'left', padding: '10px 14px' }}>Focus</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ['1', 'Clean mechanics — weight transfer & follow-through'],
+                ['2', 'Wrist-shot accuracy'],
+                ['3', 'Quick release'],
+                ['4', 'Halfway 🥈 — change the angle'],
+                ['5', 'Snap shot'],
+                ['6', 'Backhands'],
+                ['7', 'Shooting on the move'],
+                ['8', 'Finish 🏆 — put it all together'],
+              ].map(([w, focus], i) => (
+                <tr key={w} style={{ borderTop: '1px solid var(--border-dim)' }}>
+                  <td style={{ padding: '10px 14px', fontWeight: 700, color: '#fff' }}>Week {w}</td>
+                  <td style={{ padding: '10px 14px', color: 'var(--text-soft)' }}>625</td>
+                  <td style={{ padding: '10px 14px', fontWeight: 800, color: 'var(--ice)' }}>{((i + 1) * 625).toLocaleString()}</td>
+                  <td style={{ padding: '10px 14px', color: 'var(--text-soft)' }}>{focus}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style={{ textAlign: 'center', marginTop: 28 }}>How Many Shots a Day?</h3>
+        <p style={{ color: 'var(--text-soft)', fontSize: 16, lineHeight: 1.6, maxWidth: 720, margin: '0 auto 14px', textAlign: 'center' }}>
+          About 90 a day across 6–7 days — or 625 a week, however you split it. Ready for more?
+          Step up to the <a href="/10000-shot-challenge" style={{ color: 'var(--ice)', fontWeight: 700 }}>10,000 Shot Challenge</a>.
+          See our full breakdown of{' '}
+          <a href="/how-many-shots-per-day" style={{ color: 'var(--ice)', fontWeight: 700 }}>daily shot targets by age</a>.
+        </p>
+
+        <h3 style={{ textAlign: 'center', marginTop: 28 }}>5 Tips to Finish Your First Challenge</h3>
+        <ul style={{ maxWidth: 720, margin: '10px auto 0', color: 'var(--text-soft)', fontSize: 15, lineHeight: 1.7, paddingLeft: 22 }}>
+          <li><strong style={{ color: '#fff' }}>Shoot every day, even 25.</strong> Small daily reps beat rare big sessions.</li>
+          <li><strong style={{ color: '#fff' }}>Leave your pad by the door.</strong> The easier it is to start, the more you'll shoot.</li>
+          <li><strong style={{ color: '#fff' }}>Track every shot — don't guess.</strong> A real count keeps kids motivated.</li>
+          <li><strong style={{ color: '#fff' }}>Mix all four shot types.</strong> Build a complete shot, not just one.</li>
+          <li><strong style={{ color: '#fff' }}>Celebrate the milestones.</strong> 1,250 · 2,500 · 3,750 · 5,000 — mark every one.</li>
+        </ul>
+      </section>
+
       {/* WHY */}
       <section className="tenk-section">
         <h2>Why Kids Love the 5K Challenge</h2>

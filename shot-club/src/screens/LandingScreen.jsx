@@ -405,6 +405,8 @@ export default function LandingScreen() {
           <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/for-clubs')}>For clubs</button>
           <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/coach')}>Coaches</button>
           <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/blog')}>Guides</button>
+          <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/10000-shot-challenge')}>10K Challenge</button>
+          <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/5000-shot-challenge')}>5K Challenge</button>
           <a href="https://www.usahockey.com" target="_blank" rel="noopener noreferrer" className="foot-link foot-link--hide-mobile" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>USA Hockey</a>
           <a href="https://www.hockeycanada.ca" target="_blank" rel="noopener noreferrer" className="foot-link foot-link--hide-mobile" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>Hockey Canada</a>
         </div>

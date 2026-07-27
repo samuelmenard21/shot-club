@@ -30,10 +30,16 @@ const PAGES = [
     description: 'Set up your team in 2 minutes. See who logged shots this week, shot counts by type, and 1v1 battle results. Free for coaches.' },
   { route: '/challenges', crumb: 'Challenges', title: 'Choose Your Hockey Shot Challenge — 5K, 10K, Custom',
     description: 'Pick your hockey challenge: 5000 shot challenge, 10000 shot challenge, or create a custom goal. Free tracking with live leaderboards.' },
-  { route: '/5000-shot-challenge', crumb: '5,000 Shot Challenge', title: '5,000 Shot Challenge Tracker — Free Online Log Sheet',
+  { route: '/5000-shot-challenge', crumb: '5,000 Shot Challenge', article: true, title: '5,000 Shot Challenge Tracker — Free Online Log Sheet',
     description: 'Free 5000 shot challenge tracker. Log your shots, track progress, compete with teammates. Perfect for a summer of hockey training.' },
-  { route: '/10000-shot-challenge', crumb: '10,000 Shot Challenge', title: '10,000 Shot Challenge Tracker — Free Online & Printable',
-    description: 'Free printable 10000 shot challenge tracker + online app. Log your shots, track progress, compete with teammates. Perfect for summer hockey training.' },
+  { route: '/10000-shot-challenge', crumb: '10,000 Shot Challenge', article: true, title: '10,000 Shot Challenge Tracker — Free Online & Printable',
+    description: 'Free printable 10000 shot challenge tracker + online app. Log your shots, track progress, compete with teammates. Perfect for summer hockey training.',
+    faq: [
+      { q: 'How long does the 10,000 shot challenge take?', a: 'Most players finish over an 8-week summer at about 1,250 shots a week (~180 a day). Shoot more days and you finish sooner.' },
+      { q: 'Is 10,000 shots realistic for a kid?', a: 'For dedicated U13 and up, yes — 1,250 a week is very doable off-ice. Younger players usually start with the 5,000 Shot Challenge.' },
+      { q: 'What age is the 10,000 shot challenge for?', a: "It's popular with U13-U18 players. For U9-U11, the 5,000 version is a better first target. Clean mechanics matter more than volume." },
+      { q: 'Can we run this for free?', a: 'Yes. Hockey Shot Challenge is free for players, teams, and associations — printable tracker and online app both free.' },
+    ] },
   { route: '/association-partnership', crumb: 'Associations', title: 'Free Shot Challenge Tracking for Hockey Associations',
     description: "Run your association's 10,000 shot challenge on Hockey Shot Challenge. Free branded leaderboards, zero setup hassle. We handle the tech." },
   { route: '/province-wide-challenge', crumb: 'Province-Wide', title: 'Province-Wide Hockey Challenge Platform for Leagues',
@@ -110,6 +116,18 @@ function buildSchema(page) {
       dateModified: TODAY,
       mainEntityOfPage: url,
       inLanguage: 'en',
+    })
+  }
+  // Only emit FAQPage where the FAQ is actually visible on the page.
+  if (page.faq && page.faq.length) {
+    schemas.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: page.faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
     })
   }
   return schemas

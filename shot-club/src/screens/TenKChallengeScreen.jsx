@@ -92,6 +92,68 @@ export default function TenKChallengeScreen() {
         </div>
       </section>
 
+      {/* GUIDE / ARTICLE */}
+      <section className="tenk-section">
+        <h2>What Is the 10,000 Shot Challenge?</h2>
+        <p style={{ color: 'var(--text-soft)', fontSize: 16, lineHeight: 1.6, maxWidth: 720, margin: '0 auto 14px' }}>
+          The 10,000 Shot Challenge is a simple off-season goal: take 10,000 shots away from
+          the rink — in your driveway, garage, or basement — over a summer. It became a staple
+          of youth hockey development because it turns "practice more" into one concrete,
+          countable target. Every shot type counts: wrist, snap, slap, and backhand. Most
+          players spread it across an 8-week summer, which works out to about <strong style={{ color: 'var(--ice)' }}>1,250
+          shots a week</strong>, or roughly <strong style={{ color: 'var(--ice)' }}>180 a day</strong> if you shoot most days.
+        </p>
+
+        <h3 style={{ textAlign: 'center', marginTop: 28 }}>The 8-Week 10,000 Shot Schedule</h3>
+        <div style={{ overflowX: 'auto', maxWidth: 720, margin: '10px auto 0', borderRadius: 12, border: '1px solid var(--border-dim)' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480, fontSize: 14 }}>
+            <thead>
+              <tr style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--ice)' }}>
+                <th style={{ textAlign: 'left', padding: '10px 14px' }}>Week</th>
+                <th style={{ textAlign: 'left', padding: '10px 14px' }}>Shots this week</th>
+                <th style={{ textAlign: 'left', padding: '10px 14px' }}>Running total</th>
+                <th style={{ textAlign: 'left', padding: '10px 14px' }}>Focus</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ['1', 'Clean mechanics — weight transfer & follow-through'],
+                ['2', 'Quick release'],
+                ['3', 'Change the shooting angle'],
+                ['4', 'Halfway 🥈 — snap shot power'],
+                ['5', 'Catch-and-release'],
+                ['6', 'Backhands'],
+                ['7', 'Off-balance & in-stride shots'],
+                ['8', 'Finish 🏆 — game-speed reps'],
+              ].map(([w, focus], i) => (
+                <tr key={w} style={{ borderTop: '1px solid var(--border-dim)' }}>
+                  <td style={{ padding: '10px 14px', fontWeight: 700, color: '#fff' }}>Week {w}</td>
+                  <td style={{ padding: '10px 14px', color: 'var(--text-soft)' }}>1,250</td>
+                  <td style={{ padding: '10px 14px', fontWeight: 800, color: 'var(--ice)' }}>{((i + 1) * 1250).toLocaleString()}</td>
+                  <td style={{ padding: '10px 14px', color: 'var(--text-soft)' }}>{focus}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style={{ textAlign: 'center', marginTop: 28 }}>How Many Shots a Day?</h3>
+        <p style={{ color: 'var(--text-soft)', fontSize: 16, lineHeight: 1.6, maxWidth: 720, margin: '0 auto 14px', textAlign: 'center' }}>
+          About 180 a day across 6 days — or 1,250 a week, however you split it. Younger players
+          often start with the 5,000 version (~90/day). See our full breakdown of{' '}
+          <a href="/how-many-shots-per-day" style={{ color: 'var(--ice)', fontWeight: 700 }}>daily shot targets by age</a>.
+        </p>
+
+        <h3 style={{ textAlign: 'center', marginTop: 28 }}>5 Tips to Actually Finish</h3>
+        <ul style={{ maxWidth: 720, margin: '10px auto 0', color: 'var(--text-soft)', fontSize: 15, lineHeight: 1.7, paddingLeft: 22 }}>
+          <li><strong style={{ color: '#fff' }}>Shoot every day, even 50.</strong> Consistency beats one giant weekend session.</li>
+          <li><strong style={{ color: '#fff' }}>Leave your pad by the door.</strong> The easier it is to start, the more you'll shoot.</li>
+          <li><strong style={{ color: '#fff' }}>Track every shot — don't guess.</strong> Guessing kills motivation; a real count fuels it.</li>
+          <li><strong style={{ color: '#fff' }}>Mix all four shot types.</strong> A complete player isn't just a slapshot.</li>
+          <li><strong style={{ color: '#fff' }}>Rest when your wrist is sore.</strong> High-volume challenges are where overuse strains happen.</li>
+        </ul>
+      </section>
+
       {/* WHY */}
       <section className="tenk-section">
         <h2>Why Kids Use Hockey Shot Challenge Instead of PDF Sheets</h2>
@@ -196,6 +258,18 @@ export default function TenKChallengeScreen() {
           <details className="tenk-faq-item">
             <summary>Can parents see the leaderboard?</summary>
             <p>Yes. Share the link with anyone. Coaches, parents, players — everyone sees the real-time standings.</p>
+          </details>
+          <details className="tenk-faq-item">
+            <summary>How long does the 10,000 shot challenge take?</summary>
+            <p>Most players finish over an 8-week summer at about 1,250 shots a week (~180 a day). Shoot more days and you'll finish sooner; the only rule is to keep going.</p>
+          </details>
+          <details className="tenk-faq-item">
+            <summary>Is 10,000 shots realistic for a kid?</summary>
+            <p>For dedicated U13 and up, yes — 1,250 a week is very doable off-ice. Younger players usually start with the 5,000 Shot Challenge (about 90 shots a day) and build up.</p>
+          </details>
+          <details className="tenk-faq-item">
+            <summary>What age is the 10,000 shot challenge for?</summary>
+            <p>It's popular with U13–U18 players. For U9–U11, the 5,000 version is a better first target. What matters most is clean mechanics, not just volume.</p>
           </details>
         </div>
       </section>
