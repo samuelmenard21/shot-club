@@ -13,26 +13,27 @@ function qrSvg(url) {
   return qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true })
 }
 
-function boxes(count, step, milestones) {
-  // 10 rows x 10 boxes. Mark milestone boxes (where cumulative hits a medal).
+function boxes(count, step, milestones, gridCols = 10) {
+  // Flexible grid. Mark milestone boxes (where cumulative hits a medal).
+  const gridRows = count / gridCols
   let rows = ''
-  for (let r = 0; r < 10; r++) {
+  for (let r = 0; r < gridRows; r++) {
     let cells = ''
-    for (let c = 0; c < 10; c++) {
-      const n = r * 10 + c + 1
+    for (let c = 0; c < gridCols; c++) {
+      const n = r * gridCols + c + 1
       const cum = n * step
       const medal = milestones.find((m) => m.at === cum)
       cells += medal
         ? `<div class="box box--milestone">${medal.emoji}</div>`
         : `<div class="box"></div>`
     }
-    const rowTotal = (r + 1) * 10 * step
+    const rowTotal = (r + 1) * gridCols * step
     rows += `<div class="grid-row"><div class="row-label">${rowTotal.toLocaleString()}</div><div class="row-boxes">${cells}</div></div>`
   }
   return rows
 }
 
-function page({ total, step, milestones, qrUrl, accent }) {
+function page({ total, step, milestones, qrUrl, accent, gridCols = 10 }) {
   const totalStr = total.toLocaleString()
   const qr = qrSvg(qrUrl)
   const medalStrip = milestones
@@ -121,7 +122,7 @@ function page({ total, step, milestones, qrUrl, accent }) {
 
     <div class="how">Every practice, count your shots. Each box = <b>${step} shots</b>. Watch the ${totalStr} fill up!</div>
 
-    <div class="grid">${boxes(100, step, milestones)}</div>
+    <div class="grid">${boxes(total / step, step, milestones, gridCols)}</div>
 
     <div class="section-row">
       <div class="medals">
@@ -158,6 +159,14 @@ function page({ total, step, milestones, qrUrl, accent }) {
 `
 }
 
+const ONE = {
+  total: 1000, step: 50, accent: '#27ae60', gridCols: 5,
+  qrUrl: 'https://hockeyshotchallenge.com/start?src=print1k',
+  milestones: [
+    { at: 250, emoji: '🥉' }, { at: 500, emoji: '🥈' },
+    { at: 750, emoji: '🥇' }, { at: 1000, emoji: '🏆' },
+  ],
+}
 const FIVE = {
   total: 5000, step: 50, accent: '#ff7a29',
   qrUrl: 'https://hockeyshotchallenge.com/start?src=print5k',
@@ -175,6 +184,7 @@ const TEN = {
   ],
 }
 
+fs.writeFileSync('public/1k-tracker.html', page(ONE))
 fs.writeFileSync('public/5k-tracker.html', page(FIVE))
 fs.writeFileSync('public/10k-tracker.html', page(TEN))
-console.log('✅ Wrote public/5k-tracker.html and public/10k-tracker.html')
+console.log('✅ Wrote public/1k-tracker.html, public/5k-tracker.html, and public/10k-tracker.html')
