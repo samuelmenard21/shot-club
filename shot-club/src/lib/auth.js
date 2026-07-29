@@ -171,7 +171,7 @@ export async function getCurrentPlayer() {
   try {
     const { data: accountPlayers, error } = await supabase
       .from('players')
-      .select('*, team:teams(id, name, code)')
+      .select('*, team:teams(id, name, code, age_division, tier, club:clubs(name))')
       .eq('account_id', user.id)
       .order('created_at')
     if (!error && accountPlayers?.length > 0) {
@@ -188,7 +188,7 @@ export async function getCurrentPlayer() {
   // Legacy: id = auth user id (username / fake-email players)
   const { data } = await supabase
     .from('players')
-    .select('*, team:teams(id, name, code)')
+    .select('*, team:teams(id, name, code, age_division, tier, club:clubs(name))')
     .eq('id', user.id)
     .maybeSingle()
   return data
@@ -240,7 +240,7 @@ export async function getPlayersForAccount() {
   if (!user) return []
   const { data } = await supabase
     .from('players')
-    .select('*, team:teams(id, name, code)')
+    .select('*, team:teams(id, name, code, age_division, tier, club:clubs(name))')
     .eq('account_id', user.id)
     .order('created_at')
   return data || []

@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react'
-import { logShots, getStats } from '../lib/shots'
+import { logShots, getStats, setLifetimeShots, logStickhandlingSession, getStickhandlingCount } from '../lib/shots'
+import { setPlayerChallenge } from '../lib/challenges'
 import { useNotifications } from '../hooks/useNotifications'
-import { getSpec, milestonesFor, boxCount } from '../lib/challengeSpecs'
+import { CHALLENGE_LIST, getSpec, milestonesFor, boxCount } from '../lib/challengeSpecs'
 
 // The digital version of the printed sheet.
 //
-// The whole point is that this looks and behaves like the paper tracker the
-// kid stuck on the fridge: the same number of boxes, each worth the same
-// number of shots, with the medals on the same squares. One box = one chunk of
-// shots (NOT one day) — so a big Saturday fills ten boxes here just like it
-// would with a marker, which is the feeling the paper version gets right.
+// One box = one chunk of shots (NOT one day) — a big Saturday fills several
+// boxes here just like it would with a marker on paper. Box geometry always
+// comes from lib/challengeSpecs, so this can never drift from the printable.
 //
-// Box geometry comes from lib/challengeSpecs so the two can't drift.
+// Logging is session-based, matching the paper mental model: +1/+5 per shot
+// type accumulate locally, "Log session" commits them all at once — nothing
+// touches the real total until that tap, same as nothing's true on paper
+// until you actually color the box in.
 
 const SHOT_TYPES = [
   { name: 'Wrist', emoji: '🎯' },
@@ -19,14 +21,20 @@ const SHOT_TYPES = [
   { name: 'Slap', emoji: '💥' },
   { name: 'Backhand', emoji: '🔄' },
 ]
+const EMPTY_SESSION = { Wrist: 0, Snap: 0, Slap: 0, Backhand: 0 }
+const GRID_ROWS = 5 // fixed row count — matches the printable, whatever the tier
 
 export default function TrackerGrid({ player, playerChallenge, playerChallengeProgress, onShotLogged }) {
   const { toast } = useNotifications()
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const [shotType, setShotType] = useState('Wrist')
+  const [session, setSession] = useState(EMPTY_SESSION)
   const [saving, setSaving] = useState(false)
+  const [switching, setSwitching] = useState(false)
   const [todayByType, setTodayByType] = useState({})
   const [celebrating, setCelebrating] = useState(null)
+  const [paperInput, setPaperInput] = useState('')
+  const [settingPaper, setSettingPaper] = useState(false)
+  const [stickCount, setStickCount] = useState(0)
+  const [stickChecked, setStickChecked] = useState(false)
 
   const spec = getSpec(playerChallenge?.challenge_type)
 
@@ -35,34 +43,92 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
     getStats(player.id)
       .then((s) => setTodayByType(s.todayByType || {}))
       .catch(() => {})
+    getStickhandlingCount(player.id)
+      .then(setStickCount)
+      .catch(() => {})
   }, [player, playerChallengeProgress])
 
-  if (!player || !playerChallenge || !playerChallengeProgress) return null
+  // Real club/team, not a free-text field — reuses the existing club → team
+  // (age division + tier) join instead of re-inventing that data entry.
+  const team = player?.team
+  const teamLine = team
+    ? [team.club?.name, team.name, [team.age_division, team.tier].filter(Boolean).join('')]
+        .filter(Boolean)
+        .join(' · ')
+    : null
 
+  if (!player || !playerChallenge || !playerChallengeProgress) return null
   // Custom challenges have no printed sheet, so there's no grid to mirror.
   if (!spec) return null
 
-  // getPlayerChallengeProgress returns current_shots (from players.lifetime_shots).
   const currentShots = playerChallengeProgress.current_shots || 0
   const total = spec.total
   const step = spec.step
   const boxes = boxCount(spec)
+  const cols = boxes / GRID_ROWS
   const milestones = milestonesFor(spec)
   const filledBoxes = Math.min(boxes, Math.floor(currentShots / step))
   const progressPct = Math.min(100, (currentShots / total) * 100)
   const shotsIntoNextBox = currentShots % step
+  const sessionTotal = SHOT_TYPES.reduce((s, t) => s + session[t.name], 0)
+  const stickDots = stickCount > 0 && stickCount % 10 === 0 ? 10 : stickCount % 10
 
   const medalAtBox = (boxNum) => milestones.find((m) => m.box === boxNum)
 
-  const handleLog = async (count) => {
-    if (saving) return
+  const bump = (name, amt) =>
+    setSession((s) => ({ ...s, [name]: Math.max(0, s[name] + amt) }))
+
+  const handleSwitchTier = async (newId) => {
+    if (newId === spec.id || switching) return
+    setSwitching(true)
+    try {
+      // Switching tiers changes the goal, not the player's progress — a kid
+      // previewing a bigger challenge doesn't lose what they've already shot.
+      await setPlayerChallenge(player.id, newId, getSpec(newId).total)
+      onShotLogged?.()
+    } catch (e) {
+      console.error('Failed to switch challenge:', e)
+      toast('Could not switch challenges — try again')
+    } finally {
+      setSwitching(false)
+    }
+  }
+
+  const handleSetPaperTotal = async () => {
+    const n = parseInt(paperInput, 10)
+    if (Number.isNaN(n) || n < 0 || settingPaper) return
+    setSettingPaper(true)
+    try {
+      await setLifetimeShots(player.id, n)
+      setPaperInput('')
+      onShotLogged?.()
+      toast(`Set your total to ${n.toLocaleString()} shots`)
+    } catch (e) {
+      console.error('Failed to set starting total:', e)
+      toast('Could not save that total — try again')
+    } finally {
+      setSettingPaper(false)
+    }
+  }
+
+  const handleLogSession = async () => {
+    if (sessionTotal <= 0 || saving) return
     setSaving(true)
     try {
       const before = currentShots
-      const after = before + count
+      const after = before + sessionTotal
       const crossed = milestones.find((m) => before < m.at && after >= m.at)
 
-      await logShots({ playerId: player.id, shotType, count })
+      for (const t of SHOT_TYPES) {
+        if (session[t.name] > 0) {
+          await logShots({ playerId: player.id, shotType: t.name, count: session[t.name] })
+        }
+      }
+      if (stickChecked) {
+        await logStickhandlingSession(player.id)
+        setStickCount((n) => n + 1)
+        setStickChecked(false)
+      }
 
       if (crossed) {
         setCelebrating(crossed)
@@ -71,147 +137,154 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
         const boxesFilled = Math.floor(after / step) - Math.floor(before / step)
         toast(
           boxesFilled > 0
-            ? `${count} ${shotType.toLowerCase()} shots — ${boxesFilled} box${boxesFilled > 1 ? 'es' : ''} filled!`
-            : `${count} ${shotType.toLowerCase()} shots logged`
+            ? `${sessionTotal} shots logged — ${boxesFilled} box${boxesFilled > 1 ? 'es' : ''} filled!`
+            : `${sessionTotal} shots logged`
         )
         if (navigator.vibrate) navigator.vibrate(12)
       }
 
-      setPickerOpen(false)
+      setSession(EMPTY_SESSION)
       onShotLogged?.()
     } catch (e) {
-      console.error('Failed to log shots:', e)
-      toast('Could not save those shots — try again')
+      console.error('Failed to log session:', e)
+      toast('Could not save that session — try again')
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <div className="tg">
-      {/* HEADER — mirrors the sheet's banner */}
-      <div className="tg-head" style={{ borderColor: spec.accent }}>
-        <div>
-          <div className="tg-kicker">My {spec.label} Challenge</div>
-          <div className="tg-count">
-            <strong style={{ color: spec.accent }}>{currentShots.toLocaleString()}</strong>
-            <span> / {total.toLocaleString()}</span>
+    <div className="tg" style={{ '--tg-tint': spec.tint, '--tg-badge': spec.badge, '--tg-badgeFg': spec.badgeFg, '--tg-accentText': spec.accentText }}>
+      {/* HERO — tinted to the tier, same badge language as the printable */}
+      <div className="tg-hero">
+        <div className="tg-hero-main">
+          <div className="tg-kicker">Your challenge</div>
+          <div className="tg-title">{spec.label} Shot Challenge</div>
+          {teamLine && <div className="tg-team">{teamLine}</div>}
+          <div className="tg-progress-note">
+            {Math.max(0, total - currentShots).toLocaleString()} shots left to finish the {spec.label} Challenge.
+          </div>
+          <div className="tg-seg">
+            {CHALLENGE_LIST.map((s) => (
+              <button
+                key={s.id}
+                className={`tg-seg-opt${s.id === spec.id ? ' tg-seg-opt--on' : ''}`}
+                disabled={switching}
+                onClick={() => handleSwitchTier(s.id)}
+              >
+                <span className="tg-seg-name">{s.label}</span>
+                <span className="tg-seg-shots">{s.total.toLocaleString()} shots</span>
+              </button>
+            ))}
           </div>
         </div>
-        <div className="tg-pct" style={{ color: spec.accent }}>{Math.round(progressPct)}%</div>
+        <div className="tg-badge">
+          <div className="tg-badge-name">{spec.label}</div>
+          <div className="tg-badge-level">Level {CHALLENGE_LIST.findIndex((s) => s.id === spec.id) + 1} of 4</div>
+        </div>
       </div>
 
-      <div className="tg-how">
-        Each box = <strong style={{ color: spec.accent }}>{step} shots</strong>.
-        {filledBoxes < boxes
-          ? ` ${boxes - filledBoxes} to go.`
-          : ' Sheet complete! 🏆'}
+      {/* PAPER -> DIGITAL BRIDGE */}
+      <div className="tg-paper">
+        <span>Already tracking on paper? Enter your shots so far:</span>
+        <input
+          type="number"
+          min="0"
+          className="tg-paper-input"
+          placeholder="e.g. 300"
+          value={paperInput}
+          onChange={(e) => setPaperInput(e.target.value)}
+        />
+        <button className="tg-paper-btn" disabled={!paperInput || settingPaper} onClick={handleSetPaperTotal}>
+          Set as my total
+        </button>
       </div>
 
-      {/* THE GRID — same box count and medal positions as the printable */}
-      <div
-        className="tg-grid"
-        style={{
-          gridTemplateColumns: `repeat(${spec.cols}, minmax(0, 1fr))`,
-          // Cap the box size so a 5-column sheet doesn't blow up into giant
-          // squares on desktop — it should read like the paper grid at any width.
-          maxWidth: spec.cols * 52 + (spec.cols - 1) * 5,
-        }}
-      >
-        {Array.from({ length: boxes }, (_, i) => {
-          const boxNum = i + 1
-          const isFilled = boxNum <= filledBoxes
-          const medal = medalAtBox(boxNum)
-          const isNext = boxNum === filledBoxes + 1
+      {/* TRACK */}
+      <div className="tg-track-head">
+        <div className="tg-track-title">Track today's practice</div>
+        <div className="tg-track-stat">
+          {currentShots.toLocaleString()} of {total.toLocaleString()} shots · {Math.round(progressPct)}%
+          {currentShots >= total ? ' · challenge complete' : ''}
+        </div>
+      </div>
+
+      <div className="tg-bar"><div className="tg-bar-fill" style={{ width: `${progressPct}%` }} /></div>
+
+      <div className="tg-rows">
+        {SHOT_TYPES.map((t) => (
+          <div key={t.name} className="tg-row">
+            <span className="tg-row-label">{t.emoji} {t.name}</span>
+            <span className="tg-row-count">{session[t.name]}</span>
+            <button className="tg-row-btn" onClick={() => bump(t.name, 1)}>+1</button>
+            <button className="tg-row-btn" onClick={() => bump(t.name, 5)}>+5</button>
+            <span className="tg-row-lifetime">lifetime {(todayByType[t.name] || 0).toLocaleString()} today</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Simple bonus: no minutes to enter, just a checkbox per session.
+          Cycles every 10 — filling the dot strip is its own small win, then
+          starts again, rather than counting up forever. */}
+      <div className="tg-stick">
+        <span className="tg-stick-label">Stickhandling bonus — do 10</span>
+        <div className="tg-stick-dots">
+          {Array.from({ length: 10 }, (_, i) => (
+            <span key={i} className={`tg-dot${i < stickDots ? ' tg-dot--on' : ''}`} />
+          ))}
+        </div>
+        <span className="tg-stick-count">{stickDots} of 10 done</span>
+        <label className="tg-stick-check">
+          <input type="checkbox" checked={stickChecked} onChange={(e) => setStickChecked(e.target.checked)} />
+          Did 15 min today
+        </label>
+      </div>
+
+      <div className="tg-session-bar">
+        <span>Session total: <strong>{sessionTotal}</strong> shots</span>
+        <button className="tg-log" disabled={sessionTotal === 0 || saving} onClick={handleLogSession}>
+          Log session
+        </button>
+      </div>
+
+      {/* THE GRID — same box count and checkpoint column as the printable */}
+      <div className="tg-fill-note">Every {step} shots logged fills in a box below.</div>
+      <div className="tg-grid-wrap">
+        {Array.from({ length: GRID_ROWS }, (_, r) => {
+          const rowTarget = Math.round((total * (r + 1)) / GRID_ROWS)
           return (
-            <div
-              key={boxNum}
-              className={`tg-box${isFilled ? ' tg-box--filled' : ''}${isNext ? ' tg-box--next' : ''}`}
-              // Always pass concrete values — React leaves a previously-set
-              // inline style in place when the new value is `undefined`, which
-              // left stale fills behind when the challenge changed.
-              style={{
-                borderColor: isFilled || medal ? spec.accent : 'var(--border-dim)',
-                background: isFilled ? spec.accent : 'transparent',
-              }}
-              title={`${(boxNum * step).toLocaleString()} shots`}
-            >
-              {medal && <span className="tg-medal">{medal.emoji}</span>}
-              {isNext && shotsIntoNextBox > 0 && (
-                <span
-                  className="tg-partial"
-                  style={{ height: `${(shotsIntoNextBox / step) * 100}%`, background: spec.accent }}
-                />
-              )}
+            <div key={r} className="tg-grid-row">
+              <div className="tg-row-target">{rowTarget.toLocaleString()}</div>
+              <div className="tg-grid-boxes" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+                {Array.from({ length: cols }, (_, c) => {
+                  const boxNum = r * cols + c + 1
+                  const isCheckpoint = c === cols - 1
+                  const isFilled = boxNum <= filledBoxes
+                  const medal = medalAtBox(boxNum)
+                  const isNext = boxNum === filledBoxes + 1
+                  return (
+                    <div
+                      key={boxNum}
+                      className="tg-box"
+                      style={{
+                        borderColor: isFilled ? spec.badge : isCheckpoint ? 'var(--tg-accent2-400)' : 'var(--tg-divider)',
+                        background: isFilled ? spec.badge : isCheckpoint ? 'var(--tg-accent2-100)' : '#fff',
+                      }}
+                      title={`${(boxNum * step).toLocaleString()} shots`}
+                    >
+                      {isFilled && <span className="tg-check">✓</span>}
+                      {medal && !isFilled && <span className="tg-medal">{medal.emoji}</span>}
+                      {isNext && shotsIntoNextBox > 0 && (
+                        <span className="tg-partial" style={{ height: `${(shotsIntoNextBox / step) * 100}%`, background: spec.badge }} />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )
         })}
       </div>
-
-      {/* LOG BUTTON */}
-      <button
-        className="tg-log"
-        style={{ background: spec.accent }}
-        onClick={() => setPickerOpen(true)}
-      >
-        + Log shots
-      </button>
-
-      {/* SHOT TYPE TALLY — the sheet's tally section, kept honest */}
-      <div className="tg-tally">
-        <div className="tg-tally-title">Today by shot type</div>
-        <div className="tg-tally-grid">
-          {SHOT_TYPES.map((t) => (
-            <div key={t.name} className="tg-tally-box">
-              <span>{t.emoji} {t.name}</span>
-              <strong>{todayByType[t.name] || 0}</strong>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* LOG SHEET — pick a type, then an amount */}
-      {pickerOpen && (
-        <div className="tg-sheet-wrap" onClick={() => !saving && setPickerOpen(false)}>
-          <div className="tg-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="tg-sheet-title">What did you shoot?</div>
-            <div className="tg-types">
-              {SHOT_TYPES.map((t) => (
-                <button
-                  key={t.name}
-                  className={`tg-type${shotType === t.name ? ' tg-type--on' : ''}`}
-                  style={{
-                    borderColor: shotType === t.name ? spec.accent : 'var(--border-dim)',
-                    color: shotType === t.name ? spec.accent : 'var(--text-soft)',
-                  }}
-                  onClick={() => setShotType(t.name)}
-                >
-                  <span className="tg-type-emoji">{t.emoji}</span>
-                  {t.name}
-                </button>
-              ))}
-            </div>
-
-            <div className="tg-sheet-title">How many?</div>
-            <div className="tg-amounts">
-              {[10, 25, 50, 100].map((n) => (
-                <button
-                  key={n}
-                  className="tg-amount"
-                  disabled={saving}
-                  onClick={() => handleLog(n)}
-                >
-                  +{n}
-                </button>
-              ))}
-            </div>
-
-            <button className="tg-cancel" disabled={saving} onClick={() => setPickerOpen(false)}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* MILESTONE CELEBRATION */}
       {celebrating && (
@@ -219,16 +292,8 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
           <div className="tg-cel-card" onClick={(e) => e.stopPropagation()}>
             <div className="tg-cel-emoji">{celebrating.emoji}</div>
             <div className="tg-cel-name">{celebrating.name}</div>
-            <div className="tg-cel-sub">
-              {celebrating.at.toLocaleString()} shots — colour it in on your sheet too.
-            </div>
-            <button
-              className="tg-cel-btn"
-              style={{ background: spec.accent }}
-              onClick={() => setCelebrating(null)}
-            >
-              Keep going →
-            </button>
+            <div className="tg-cel-sub">{celebrating.at.toLocaleString()} shots — color it in on your sheet too.</div>
+            <button className="tg-cel-btn" onClick={() => setCelebrating(null)}>Keep going →</button>
           </div>
         </div>
       )}
@@ -239,66 +304,86 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
 }
 
 const gridStyles = `
-.tg { margin: 16px 14px; padding: 16px; background: var(--surface); border-radius: 14px; }
-.tg-head { display: flex; justify-content: space-between; align-items: flex-start;
-  padding-bottom: 12px; margin-bottom: 12px; border-bottom: 2px solid; }
-.tg-kicker { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
-  color: var(--text-mute); font-weight: 800; margin-bottom: 4px; }
-.tg-count { font-size: 22px; font-weight: 800; color: var(--text); }
-.tg-count span { font-size: 14px; color: var(--text-mute); font-weight: 600; }
-.tg-pct { font-size: 26px; font-weight: 900; }
-.tg-how { font-size: 13px; color: var(--text-soft); margin-bottom: 14px; }
+.tg { margin: 16px 14px; padding: 18px; border-radius: 20px; background: #f5ead8; color: #201e1d;
+  font-family: 'Figtree', system-ui, sans-serif;
+  --tg-divider: rgba(32,30,29,0.16); --tg-accent2-100: #f0fae1; --tg-accent2-400: #aebf92; }
 
-.tg-grid { display: grid; gap: 5px; margin: 0 0 16px; width: 100%; }
-.tg-box { position: relative; aspect-ratio: 1; border: 2px solid var(--border-dim);
-  border-radius: 5px; overflow: hidden; display: flex; align-items: center;
-  justify-content: center; transition: background .25s ease, border-color .25s ease; }
-.tg-box--next { box-shadow: 0 0 0 2px rgba(255,255,255,0.12); }
-.tg-medal { font-size: 15px; line-height: 1; position: relative; z-index: 2;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,.55)); }
-.tg-partial { position: absolute; left: 0; right: 0; bottom: 0; opacity: .45; }
+.tg-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+  background: var(--tg-tint); border-radius: 16px; padding: 16px 18px; margin-bottom: 14px; flex-wrap: wrap; }
+.tg-kicker { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; color: var(--tg-accentText); margin-bottom: 4px; }
+.tg-title { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; font-size: 21px; margin-bottom: 6px; }
+.tg-team { font-size: 12.5px; font-weight: 600; opacity: .78; margin-bottom: 4px; }
+.tg-progress-note { font-size: 13px; opacity: .82; margin-bottom: 12px; }
+.tg-seg { display: inline-flex; flex-wrap: wrap; overflow: hidden; border: 1px solid var(--tg-divider); border-radius: 12px; }
+.tg-seg-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; background: transparent;
+  border: none; border-right: 1px solid var(--tg-divider); padding: 7px 12px; font-size: 12px; cursor: pointer; color: inherit;
+  font-family: inherit; }
+.tg-seg-opt:last-child { border-right: none; }
+.tg-seg-opt--on { background: var(--tg-badge); color: var(--tg-badgeFg); }
+.tg-seg-opt:disabled { cursor: default; opacity: .7; }
+.tg-seg-name { font-weight: 700; }
+.tg-seg-shots { font-size: 10px; opacity: .8; }
+.tg-badge { text-align: center; flex: none; background: var(--tg-badge); color: var(--tg-badgeFg);
+  border-radius: 12px; padding: 9px 15px; white-space: nowrap; }
+.tg-badge-name { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; font-size: 14px; }
+.tg-badge-level { font-size: 10px; opacity: .85; }
 
-.tg-log { width: 100%; border: none; border-radius: 12px; padding: 15px;
-  font-size: 16px; font-weight: 800; color: #fff; cursor: pointer; margin-bottom: 16px; }
+.tg-paper { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12.5px; opacity: .88; margin-bottom: 18px; }
+.tg-paper-input { width: 110px; min-height: 32px; padding: 5px 10px; font-size: 13px; color: #201e1d;
+  background: #ebddc5; border: 1px solid var(--tg-divider); border-radius: 999px; }
+.tg-paper-btn { font-family: inherit; font-size: 12.5px; font-weight: 700; border-radius: 999px; padding: 7px 14px;
+  cursor: pointer; background: transparent; border: 1px solid var(--tg-divider); color: #201e1d; }
+.tg-paper-btn:disabled { opacity: .5; cursor: default; }
 
-.tg-tally-title { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
-  color: var(--text-mute); font-weight: 800; margin-bottom: 8px; }
-.tg-tally-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.tg-tally-box { display: flex; justify-content: space-between; align-items: center;
-  border: 1px solid var(--border-dim); border-radius: 9px; padding: 9px 11px;
-  font-size: 13px; color: var(--text-soft); }
-.tg-tally-box strong { color: var(--text); font-size: 15px; }
+.tg-track-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.tg-track-title { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; font-size: 17px; }
+.tg-track-stat { font-size: 13px; opacity: .75; }
+.tg-bar { width: 100%; height: 8px; border-radius: 999px; background: #dcd3c4; overflow: hidden; margin-bottom: 14px; }
+.tg-bar-fill { height: 100%; border-radius: 999px; background: #c67139; transition: width .3s ease; }
 
-.tg-sheet-wrap { position: fixed; inset: 0; background: rgba(0,0,0,.72);
-  display: flex; align-items: flex-end; justify-content: center; z-index: 60; }
-.tg-sheet { width: 100%; max-width: 460px; background: var(--bg);
-  border-radius: 18px 18px 0 0; padding: 22px 18px calc(22px + env(safe-area-inset-bottom));
-  animation: tgUp .22s ease; }
-@keyframes tgUp { from { transform: translateY(14px); opacity: 0 } to { transform: none; opacity: 1 } }
-.tg-sheet-title { font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase;
-  color: var(--text-mute); font-weight: 800; margin-bottom: 10px; }
-.tg-types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px; }
-.tg-type { display: flex; flex-direction: column; align-items: center; gap: 4px;
-  background: transparent; border: 2px solid var(--border-dim); border-radius: 11px;
-  padding: 11px 4px; font-size: 11px; font-weight: 700; color: var(--text-soft); cursor: pointer; }
-.tg-type-emoji { font-size: 19px; }
-.tg-type--on { background: rgba(255,255,255,.05); }
-.tg-amounts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
-.tg-amount { background: rgba(255,255,255,.06); border: 1px solid var(--border-dim);
-  border-radius: 11px; padding: 15px 4px; font-size: 16px; font-weight: 800;
-  color: var(--text); cursor: pointer; }
-.tg-amount:disabled { opacity: .5; cursor: default; }
-.tg-cancel { width: 100%; background: transparent; border: none; color: var(--text-mute);
-  font-size: 14px; font-weight: 700; padding: 10px; cursor: pointer; }
+.tg-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
 
-.tg-cel { position: fixed; inset: 0; background: rgba(0,0,0,.8); display: flex;
+.tg-stick { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--tg-accent2-100);
+  border-radius: 12px; padding: 9px 13px; margin-bottom: 14px; font-size: 13px; }
+.tg-stick-label { font-weight: 700; color: #3d472b; }
+.tg-stick-dots { display: flex; gap: 4px; }
+.tg-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--tg-accent2-400); }
+.tg-dot--on { background: #56633f; }
+.tg-stick-count { font-size: 12px; opacity: .75; }
+.tg-stick-check { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-left: auto; cursor: pointer; }
+.tg-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.tg-row-label { width: 100px; flex: none; font-weight: 700; font-size: 13.5px; }
+.tg-row-count { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; font-size: 20px; width: 30px; }
+.tg-row-btn { font-family: inherit; font-weight: 700; font-size: 13px; border-radius: 999px; padding: 6px 13px;
+  cursor: pointer; background: transparent; border: 1px solid var(--tg-divider); color: #201e1d; }
+.tg-row-btn:hover { background: rgba(32,30,29,0.06); }
+.tg-row-lifetime { font-size: 11.5px; opacity: .6; margin-left: auto; }
+
+.tg-session-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 12px 0; border-top: 1px solid var(--tg-divider); border-bottom: 1px solid var(--tg-divider); margin-bottom: 16px; font-size: 13.5px; }
+.tg-log { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; font-size: 14px; border: none; border-radius: 999px;
+  padding: 10px 20px; cursor: pointer; background: #c67139; color: #f5ead8; }
+.tg-log:disabled { opacity: .45; cursor: default; }
+
+.tg-fill-note { font-size: 13px; opacity: .8; margin-bottom: 10px; }
+.tg-grid-wrap { display: flex; flex-direction: column; gap: 9px; margin-bottom: 14px; }
+.tg-grid-row { display: flex; align-items: center; gap: 10px; }
+.tg-row-target { width: 52px; font-size: 11px; opacity: .65; text-align: right; flex: none; }
+.tg-grid-boxes { display: grid; gap: 6px; flex: 1; }
+.tg-box { position: relative; aspect-ratio: 1; border-radius: 8px; border: 2px solid; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; transition: background .2s ease, border-color .2s ease; }
+.tg-check { color: #f5ead8; font-weight: 800; font-size: 15px; z-index: 2; position: relative; }
+.tg-medal { font-size: 13px; line-height: 1; z-index: 2; position: relative; }
+.tg-partial { position: absolute; left: 0; right: 0; bottom: 0; opacity: .4; }
+
+.tg-cel { position: fixed; inset: 0; background: rgba(32,30,29,.72); display: flex;
   align-items: center; justify-content: center; z-index: 70; padding: 20px; }
-.tg-cel-card { background: var(--bg); border-radius: 20px; padding: 34px 28px;
+.tg-cel-card { background: #f5ead8; color: #201e1d; border-radius: 20px; padding: 34px 28px;
   text-align: center; max-width: 340px; animation: tgPop .55s cubic-bezier(.34,1.56,.64,1); }
 @keyframes tgPop { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.06) } 100% { transform: scale(1); opacity: 1 } }
-.tg-cel-emoji { font-size: 64px; margin-bottom: 14px; }
-.tg-cel-name { font-size: 21px; font-weight: 900; color: #fff; margin-bottom: 6px; }
-.tg-cel-sub { font-size: 13px; color: var(--text-soft); margin-bottom: 20px; line-height: 1.45; }
-.tg-cel-btn { border: none; border-radius: 11px; padding: 13px 26px; color: #fff;
-  font-weight: 800; font-size: 15px; cursor: pointer; }
+.tg-cel-emoji { font-size: 60px; margin-bottom: 14px; }
+.tg-cel-name { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; font-size: 21px; margin-bottom: 6px; }
+.tg-cel-sub { font-size: 13px; opacity: .75; margin-bottom: 20px; line-height: 1.45; }
+.tg-cel-btn { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; border: none; border-radius: 999px;
+  padding: 12px 24px; color: #f5ead8; background: #c67139; font-size: 15px; cursor: pointer; }
 `

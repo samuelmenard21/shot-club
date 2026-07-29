@@ -64,7 +64,7 @@ export default function ChallengeSelector() {
       weeks: s.weeks,
       description: s.blurb,
       pace: `${weeklyPace(s).toLocaleString()}/wk`,
-      accent: s.accent,
+      accent: s.badge,
       onClick: () => handleChallengeSelect(s.id, s.total),
     })),
     {

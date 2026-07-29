@@ -8,15 +8,21 @@
 //
 // Keep this file free of browser/node-specific APIs — the build script imports it.
 
+// Colors below are the literal hex values of the new "Organic" design-system
+// tokens (cream/terracotta/sage), pinned here because this file is imported
+// by both the Node build script (gen-trackers.mjs, no CSS custom properties)
+// and the browser component — one literal source both can read identically.
+// tint = light card/header background; badge = solid tier-level pill;
+// badgeFg = text on the badge; accentText = kicker/label text on the tint.
 export const CHALLENGE_SPECS = {
   '1k': {
     id: '1k',
     total: 1000,
     step: 50,        // shots per box
     cols: 5,         // grid columns -> 20 boxes (4 rows)
-    accent: '#27ae60',
+    tint: '#f0fae1', badge: '#728157', badgeFg: '#f5ead8', accentText: '#56633f',
     label: 'Rookie',
-    shortLabel: '1K Rookie',
+    shortLabel: 'Rookie · 1,000 shots',
     weeks: 2,
     blurb: 'Finish in a couple weeks and get hooked',
   },
@@ -25,31 +31,31 @@ export const CHALLENGE_SPECS = {
     total: 2500,
     step: 50,
     cols: 10,        // 50 boxes (5 rows)
-    accent: '#8b5cf6',
-    label: 'Intermediate',
-    shortLabel: '2.5K Intermediate',
+    tint: '#fff2eb', badge: '#b2622d', badgeFg: '#f5ead8', accentText: '#8c491a',
+    label: 'Pro',
+    shortLabel: 'Pro · 2,500 shots',
     weeks: 4,
-    blurb: 'Step up after the 1K, or a quick 4-week sprint',
+    blurb: 'Step up after Rookie, or a quick 4-week sprint',
   },
   '5k': {
     id: '5k',
     total: 5000,
-    step: 50,
-    cols: 10,        // 100 boxes (10 rows)
-    accent: '#ff7a29',
-    label: 'Advanced',
-    shortLabel: '5K Advanced',
+    step: 100,
+    cols: 10,        // 50 boxes (5 rows)
+    tint: '#ffe1d0', badge: '#643312', badgeFg: '#f5ead8', accentText: '#643312',
+    label: 'Elite',
+    shortLabel: 'Elite · 5,000 shots',
     weeks: 8,
     blurb: 'A full summer of work',
   },
   '10k': {
     id: '10k',
     total: 10000,
-    step: 100,
-    cols: 10,        // 100 boxes (10 rows)
-    accent: '#2979ff',
+    step: 200,
+    cols: 10,        // 50 boxes (5 rows)
+    tint: '#eee7db', badge: '#2e2b25', badgeFg: '#ffc6a5', accentText: '#474238',
     label: 'Hall of Famer',
-    shortLabel: '10K Hall of Famer',
+    shortLabel: 'Hall of Famer · 10,000 shots',
     weeks: 8,
     blurb: 'The classic summer challenge',
   },

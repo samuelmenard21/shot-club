@@ -25,7 +25,7 @@ export default function LandingScreen() {
     shots: s.total,
     pace: weeklyPace(s),
     label: s.shortLabel,
-    color: s.accent,
+    color: s.badge,
   }))
 
   useEffect(() => {

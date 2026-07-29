@@ -1,170 +1,190 @@
-// Generates the fun, kid-facing printable shot-challenge trackers as fully
-// self-contained static HTML (QR embedded inline — no external requests, prints
-// cleanly, and Save-as-PDF works offline). Run: node scripts/gen-trackers.mjs
-// Outputs: public/5k-tracker.html and public/10k-tracker.html
+// Generates the four printable shot-challenge sheets as self-contained static
+// HTML (QR embedded inline — no external requests, prints cleanly, and
+// Save-as-PDF works offline). Run: node scripts/gen-trackers.mjs
+// Visual language matches the "Organic" design handoff (cream/terracotta/sage,
+// Caprasimo + Figtree) so the printed sheet and the in-app dashboard read as
+// the same product. Geometry (box count, shots/box, medal placement) comes
+// from lib/challengeSpecs.js — the single source of truth shared with the
+// in-app TrackerGrid — so the two can never drift apart.
 import fs from 'node:fs'
 import qrcode from 'qrcode-generator'
-import { CHALLENGE_SPECS, milestonesFor } from '../src/lib/challengeSpecs.js'
+import { CHALLENGE_SPECS, CHALLENGE_ORDER, milestonesFor, boxCount } from '../src/lib/challengeSpecs.js'
+
+const TOK = {
+  bg: '#f5ead8', surface: '#ebddc5', text: '#201e1d', divider: 'rgba(32,30,29,0.16)',
+  accent: '#c67139', accent2: '#7a8a5e',
+  accent2100: '#f0fae1', accent2400: '#aebf92',
+  neutral500: '#a19786',
+  headingFont: "'Caprasimo', Georgia, serif", bodyFont: "'Figtree', system-ui, sans-serif",
+}
 
 function qrSvg(url) {
   const qr = qrcode(0, 'M')
   qr.addData(url)
   qr.make()
-  // cellSize/margin don't matter — we render scalable and size via CSS.
   return qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true })
 }
 
-function boxes(count, step, milestones, gridCols = 10) {
-  // Flexible grid. Mark milestone boxes (where cumulative hits a medal).
-  const gridRows = count / gridCols
-  let rows = ''
-  for (let r = 0; r < gridRows; r++) {
+// Every tracker sheet is exactly 5 rows regardless of tier, so the printed
+// page height never changes — Rookie's 20 boxes just run 5 rows x 4 cols
+// instead of 5 x 10. Boxes worth more than 50 shots/box get a dashed
+// half-line ("color in half"); the last column of every row is the sage
+// "checkpoint" tint, matching the dashboard's checkpoint column.
+function gridRowsHtml(spec) {
+  const total = boxCount(spec)
+  const rowCount = 5
+  const cols = total / rowCount
+  const split = spec.step > 50
+  let out = ''
+  for (let r = 0; r < rowCount; r++) {
+    const target = Math.round((spec.total * (r + 1)) / rowCount)
     let cells = ''
-    for (let c = 0; c < gridCols; c++) {
-      const n = r * gridCols + c + 1
-      const cum = n * step
-      const medal = milestones.find((m) => m.at === cum)
-      cells += medal
-        ? `<div class="box box--milestone">${medal.emoji}</div>`
-        : `<div class="box"></div>`
+    for (let c = 0; c < cols; c++) {
+      const idx = r * cols + c
+      const value = (idx + 1) * spec.step
+      const isCheckpoint = c === cols - 1
+      const border = isCheckpoint ? TOK.accent2400 : TOK.divider
+      const bg = isCheckpoint ? TOK.accent2100 : '#fff'
+      cells += `<div class="box" style="border-color:${border};background:${bg};">
+        ${split ? `<div class="box-half" style="border-right-color:${border};"></div><div class="box-half"></div>` : ''}
+        <span class="box-val">${value.toLocaleString()}</span>
+      </div>`
     }
-    const rowTotal = (r + 1) * gridCols * step
-    rows += `<div class="grid-row"><div class="row-label">${rowTotal.toLocaleString()}</div><div class="row-boxes">${cells}</div></div>`
+    out += `<div class="grid-row"><div class="row-target">${target.toLocaleString()}</div><div class="row-boxes" style="grid-template-columns:repeat(${cols},1fr);">${cells}</div></div>`
   }
-  return rows
+  return out
 }
 
-function page({ id, total, step, milestones, qrUrl, accent, gridCols = 10 }) {
+function page(spec) {
+  const total = spec.total
   const totalStr = total.toLocaleString()
-  const qr = qrSvg(qrUrl)
-  const medalStrip = milestones
-    .map((m) => `<div class="medal"><div class="medal-emoji">${m.emoji}</div><div class="medal-num">${m.at.toLocaleString()}</div></div>`)
-    .join('')
+  const step = spec.step
+  const level = CHALLENGE_ORDER.indexOf(spec.id) + 1
+  const trackerUrl = `hockeyshotchallenge.com/start?challenge=${spec.id}&src=print${spec.id}`
+  const qr = qrSvg(`https://${trackerUrl}`)
+  const unitLabel = step >= 1000 ? `${Math.round(step / 100) / 10}k` : `${step}`
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My ${totalStr} Shot Challenge — Printable Tracker</title>
+<title>${spec.label} — ${totalStr} Shot Challenge — Printable Tracker</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Caprasimo:wght@400&family=Figtree:wght@400;600;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif; background: #e9eef5; color: #16233a; padding: 16px; }
-  .sheet { max-width: 780px; margin: 0 auto; background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+  body { font-family: ${TOK.bodyFont}; background: #ded2ba; color: ${TOK.text}; padding: 16px; }
+  h1 { font-family: ${TOK.headingFont}; font-weight: 400; }
+  .sheet { max-width: 780px; margin: 0 auto; background: ${TOK.bg}; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 8px 30px rgba(32,30,29,0.18); padding: 0.42in; }
 
-  .banner { background: linear-gradient(135deg, #1a3a52 0%, ${accent} 100%); color: #fff; padding: 22px 26px; position: relative; }
-  .banner-kicker { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; opacity: .85; font-weight: 700; }
-  .banner h1 { font-size: 40px; line-height: .98; font-weight: 900; letter-spacing: -1px; margin: 4px 0 6px; }
-  .banner h1 .num { color: #ffd24a; }
-  .banner-sub { font-size: 14px; opacity: .95; }
-  .puck { position: absolute; top: 18px; right: 22px; font-size: 44px; }
+  .banner { background: ${spec.tint}; color: ${TOK.text}; border-radius: 20px; padding: 20px 22px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+  .banner-kicker { font-family: ${TOK.headingFont}; font-weight: 400; font-size: 14px; letter-spacing: 0.03em; color: ${spec.accentText}; }
+  .banner h1 { font-size: 34px; line-height: 1; margin: 6px 0; }
+  .banner h1 .sub { font-size: 17px; font-weight: 400; font-family: ${TOK.bodyFont}; }
+  .banner-sub { font-size: 12.5px; opacity: .85; max-width: 4.4in; }
+  .badge { text-align: center; flex: none; background: ${spec.badge}; color: ${spec.badgeFg};
+    border-radius: 14px; padding: 10px 16px; white-space: nowrap; }
+  .badge-name { font-family: ${TOK.headingFont}; font-weight: 400; font-size: 14px; }
+  .badge-level { font-size: 10px; opacity: .85; }
 
-  .who { display: flex; gap: 10px; padding: 16px 26px 6px; flex-wrap: wrap; }
-  .who .fld { flex: 1; min-width: 120px; }
-  .who label { display: block; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #7a8aa3; font-weight: 700; margin-bottom: 4px; }
-  .who .line { border-bottom: 2px solid #c3cede; height: 26px; }
-  .who .line--sm { max-width: 70px; }
+  .who { display: flex; gap: 0.4in; margin-bottom: 14px; }
+  .who .fld { flex: 1; }
+  .who label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; opacity: .55; margin-bottom: 6px; }
+  .who .line { border-bottom: 1.5px solid ${TOK.divider}; height: 4px; }
 
-  .how { padding: 6px 26px 4px; font-size: 13px; color: #46587a; font-weight: 600; }
-  .how b { color: ${accent}; }
+  .how { font-size: 12px; opacity: .75; margin-bottom: 14px; }
 
-  .grid { padding: 10px 26px 6px; }
-  .grid-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .row-label { width: 52px; text-align: right; font-size: 11px; font-weight: 800; color: #9aa8bf; }
-  .row-boxes { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; flex: 1; }
-  .box { aspect-ratio: 1; border: 2px solid #2b3a55; border-radius: 6px; background: #fff; }
-  .box--milestone { border-color: ${accent}; background: #fff7e0; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .grid { display: flex; flex-direction: column; gap: 0.14in; margin-bottom: 16px; }
+  .grid-row { display: flex; align-items: center; gap: 0.14in; }
+  .row-target { width: 0.55in; font-size: 11px; text-align: right; opacity: .7; flex: none; }
+  .row-boxes { display: grid; gap: 0.12in; flex: 1; }
+  .box { position: relative; height: 0.56in; border-radius: 8px; border: 2px solid; display: flex; overflow: hidden; }
+  .box-half { flex: 1; border-right: 1.5px dashed; }
+  .box-half + .box-val { }
+  .box-val { position: absolute; bottom: 3px; right: 5px; font-size: 8px; color: ${TOK.neutral500}; }
 
-  .section-row { display: flex; gap: 14px; padding: 12px 26px; flex-wrap: wrap; }
-  .medals { flex: 1.4; min-width: 260px; }
-  .panel-title { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #7a8aa3; font-weight: 800; margin-bottom: 8px; }
-  .medal-row { display: flex; gap: 8px; }
-  .medal { flex: 1; border: 2px dashed #c3cede; border-radius: 10px; padding: 8px 4px; text-align: center; }
-  .medal-emoji { font-size: 26px; filter: grayscale(1); opacity: .55; }
-  .medal-num { font-size: 12px; font-weight: 800; color: #46587a; margin-top: 2px; }
+  .types { display: flex; align-items: center; gap: 0.12in; flex-wrap: wrap; font-size: 11.5px; margin-bottom: 14px; }
+  .types .lbl { opacity: .65; }
+  .pill { border: 1.5px solid ${TOK.divider}; border-radius: 999px; padding: 4px 12px; }
 
-  .tally { flex: 1; min-width: 200px; }
-  .tally-hint { font-size: 11px; color: #7a8aa3; margin: -4px 0 8px; }
-  .tally-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .tally-box { border: 2px solid #2b3a55; border-radius: 10px; padding: 8px 10px; }
-  .tally-box .t-name { font-size: 12px; font-weight: 800; color: #16233a; }
-  .tally-box .t-line { border-bottom: 1.5px solid #c3cede; height: 18px; margin-top: 6px; }
+  .qrband { display: flex; align-items: center; gap: 20px; background: #2e2b25; color: ${TOK.bg};
+    border-radius: 20px; padding: 18px 22px; margin-bottom: 12px; }
+  .qrbox { width: 0.95in; height: 0.95in; flex: none; background: ${TOK.bg}; border-radius: 10px; padding: 6px; }
+  .qrbox svg { width: 100%; height: 100%; display: block; }
+  .qrtxt h3 { font-family: ${TOK.bodyFont}; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+  .benefits { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 0.2in; font-size: 10.5px; opacity: .92; margin-bottom: 6px; }
+  .qrtxt .brand { font-family: ${TOK.headingFont}; font-weight: 400; font-size: 17px; color: #ffc6a5; }
+  .qrtxt .path { font-size: 9.5px; opacity: .6; }
 
-  .digitize { display: flex; align-items: center; gap: 16px; margin: 6px 26px 22px; padding: 16px; border-radius: 14px; background: #16233a; color: #fff; }
-  .digitize-qr { width: 92px; height: 92px; background: #fff; border-radius: 10px; padding: 7px; flex-shrink: 0; }
-  .digitize-qr svg { width: 100%; height: 100%; display: block; }
-  .digitize-txt h3 { font-size: 17px; font-weight: 900; margin-bottom: 3px; }
-  .digitize-txt p { font-size: 13px; opacity: .9; line-height: 1.4; }
-  .digitize-txt .url { color: #ffd24a; font-weight: 800; }
-
-  .foot { text-align: center; font-size: 11px; color: #9aa8bf; padding: 0 26px 16px; }
+  .footbar { text-align: center; background: #fff2eb; color: #8c491a; border-radius: 12px;
+    padding: 9px 0; font-size: 12px; font-weight: 700; }
 
   .actions { max-width: 780px; margin: 14px auto 30px; display: flex; gap: 10px;
     justify-content: center; flex-wrap: wrap; }
-  .btn { font-family: inherit; font-size: 14px; font-weight: 800; border-radius: 10px;
-    padding: 12px 20px; cursor: pointer; text-decoration: none; display: inline-block; }
-  .btn--print { background: ${accent}; color: #fff; border: none; }
-  .btn--live { background: #fff; color: #16233a; border: 2px solid #c3cede; }
+  .btn { font-family: ${TOK.headingFont}; font-weight: 400; font-size: 14px; border-radius: 12px;
+    padding: 12px 22px; cursor: pointer; text-decoration: none; display: inline-block; border: none; }
+  .btn--print { background: ${TOK.accent}; color: ${TOK.bg}; }
+  .btn--live { background: ${TOK.bg}; color: ${TOK.text}; border: 2px solid ${TOK.divider}; }
 
   @media print {
-    /* On-screen controls must never appear on the printed sheet. */
     .actions { display: none; }
     body { background: #fff; padding: 0; }
     .sheet { box-shadow: none; border-radius: 0; max-width: 100%; }
-    .digitize { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .banner { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>
 </head>
 <body>
   <div class="sheet">
     <div class="banner">
-      <div class="puck">🏒</div>
-      <div class="banner-kicker">Hockey Shot Challenge</div>
-      <h1><span class="num">${totalStr}</span> Shot Challenge</h1>
-      <div class="banner-sub">Color a box every <b>${step}</b> shots. Fill the whole sheet to win. 🥅</div>
+      <div>
+        <div class="banner-kicker">HockeyShotChallenge<span style="opacity:.75">.com</span></div>
+        <h1>${totalStr} <span class="sub">Shot Challenge</span></h1>
+        <div class="banner-sub">Color a box every ${unitLabel} shots. Fill the whole sheet to become a ${spec.label}.</div>
+      </div>
+      <div class="badge">
+        <div class="badge-name">${spec.label}</div>
+        <div class="badge-level">Level ${level} of 4</div>
+      </div>
     </div>
 
     <div class="who">
       <div class="fld"><label>Name</label><div class="line"></div></div>
-      <div class="fld" style="flex:0 0 70px"><label>Number</label><div class="line line--sm"></div></div>
+      <div class="fld"><label>Number</label><div class="line"></div></div>
       <div class="fld"><label>Team</label><div class="line"></div></div>
     </div>
 
-    <div class="how">Every practice, count your shots. Each box = <b>${step} shots</b>. Watch the ${totalStr} fill up!</div>
+    <div class="how">Every practice, count your shots. Each box = ${unitLabel} shots — watch the ${totalStr} fill up.</div>
 
-    <div class="grid">${boxes(total / step, step, milestones, gridCols)}</div>
+    <div class="grid">${gridRowsHtml(spec)}</div>
 
-    <div class="section-row">
-      <div class="medals">
-        <div class="panel-title">Color the medal when you get there</div>
-        <div class="medal-row">${medalStrip}</div>
-      </div>
-      <div class="tally">
-        <div class="panel-title">Keep a tally by shot type</div>
-        <div class="tally-hint">Add a mark (llll) for each shot as you practice — mix up all four!</div>
-        <div class="tally-grid">
-          <div class="tally-box"><div class="t-name">🎯 Wrist</div><div class="t-line"></div></div>
-          <div class="tally-box"><div class="t-name">⚡ Snap</div><div class="t-line"></div></div>
-          <div class="tally-box"><div class="t-name">💥 Slap</div><div class="t-line"></div></div>
-          <div class="tally-box"><div class="t-name">🔄 Backhand</div><div class="t-line"></div></div>
+    <div class="types">
+      <span class="lbl">Mix in all four shot types:</span>
+      <span class="pill">Wrist</span><span class="pill">Snap</span><span class="pill">Slap</span><span class="pill">Backhand</span>
+    </div>
+
+    <div class="qrband">
+      <div class="qrbox">${qr}</div>
+      <div class="qrtxt">
+        <h3>Scan, sign in with Google, and keep going online — free, no app to install</h3>
+        <div class="benefits">
+          <div>✓ Track every shot type</div><div>✓ Run multiple challenges</div>
+          <div>✓ Keep your streak alive</div><div>✓ Team &amp; association leaderboards</div>
+          <div>✓ Challenge other players</div><div>✓ Share your progress instantly</div>
         </div>
+        <div class="brand">HockeyShotChallenge.com</div>
+        <div class="path">${trackerUrl}</div>
       </div>
     </div>
 
-    <div class="digitize">
-      <div class="digitize-qr">${qr}</div>
-      <div class="digitize-txt">
-        <h3>📱 Tired of coloring boxes?</h3>
-        <p>Scan to track it on your phone — live team leaderboards, streaks, and ranks. Free, no app to install.<br><span class="url">hockeyshotchallenge.com</span></p>
-      </div>
-    </div>
-
-    <div class="foot">🏒 Hockey Shot Challenge — free printable ${totalStr} shot tracker. Print it, stick it on the fridge, or track it live online.</div>
+    <div class="footbar">HockeyShotChallenge.com — free printable shot tracker. Print it, stick it on the fridge, or track it live online.</div>
   </div>
 
   <div class="actions">
-    <button class="btn btn--print" onclick="window.print()">🖨️ Print this sheet</button>
-    <a class="btn btn--live" href="https://hockeyshotchallenge.com/start?challenge=${id}&amp;src=sheet${id}">Track it live instead →</a>
+    <button class="btn btn--print" onclick="window.print()">Print this sheet</button>
+    <a class="btn btn--live" href="https://${trackerUrl}">Track it live instead →</a>
   </div>
   <script>
     // Auto-print only when explicitly asked (?print=1), which is what the app's
@@ -178,30 +198,8 @@ function page({ id, total, step, milestones, qrUrl, accent, gridCols = 10 }) {
 `
 }
 
-// Config comes from the shared spec so the printed sheet and the in-app grid
-// always have the same box count, shots-per-box, and medal positions.
-// The QR carries ?challenge=<id> so scanning the sheet sets that exact
-// challenge up after sign-in — the sheet "comes alive" rather than dumping
-// the kid on a generic signup.
-function fromSpec(spec) {
-  return {
-    id: spec.id,
-    total: spec.total,
-    step: spec.step,
-    accent: spec.accent,
-    gridCols: spec.cols,
-    qrUrl: `https://hockeyshotchallenge.com/start?challenge=${spec.id}&src=print${spec.id}`,
-    milestones: milestonesFor(spec).map((m) => ({ at: m.at, emoji: m.emoji })),
-  }
+for (const id of CHALLENGE_ORDER) {
+  const spec = CHALLENGE_SPECS[id]
+  fs.writeFileSync(`public/${id}-tracker.html`, page(spec))
 }
-
-const ONE = fromSpec(CHALLENGE_SPECS['1k'])
-const TWO_FIVE = fromSpec(CHALLENGE_SPECS['2_5k'])
-const FIVE = fromSpec(CHALLENGE_SPECS['5k'])
-const TEN = fromSpec(CHALLENGE_SPECS['10k'])
-
-fs.writeFileSync('public/1k-tracker.html', page(ONE))
-fs.writeFileSync('public/2_5k-tracker.html', page(TWO_FIVE))
-fs.writeFileSync('public/5k-tracker.html', page(FIVE))
-fs.writeFileSync('public/10k-tracker.html', page(TEN))
-console.log('✅ Wrote public/1k-tracker.html, public/2_5k-tracker.html, public/5k-tracker.html, and public/10k-tracker.html')
+console.log(`✅ Wrote ${CHALLENGE_ORDER.map((id) => `public/${id}-tracker.html`).join(', ')}`)

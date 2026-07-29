@@ -562,33 +562,8 @@ export default function HomeScreen() {
         })}
       </div>
 
-      {/* STICKHANDLING MINUTES */}
-      <div style={{ margin: '8px 14px' }}>
-        <button
-          onClick={() => setEntryType('Stickhandling')}
-          style={{
-            width: '100%',
-            padding: '12px 14px',
-            background: 'var(--surface)',
-            border: '0.5px solid var(--border-dim)',
-            borderRadius: 12,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            cursor: 'pointer',
-            transition: 'all 0.15s',
-          }}
-          onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
-          onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-        >
-          <div style={{ fontSize: 20 }}>🏑</div>
-          <div style={{ flex: 1, textAlign: 'left' }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>Stickhandling</div>
-            <div style={{ fontSize: 11, color: 'var(--text-mute)', marginTop: 2 }}>{(stats.todayByType['Stickhandling'] || 0).toLocaleString()} mins today</div>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent)' }}>→</div>
-        </button>
-      </div>
+      {/* Stickhandling is now the simple "did 10 sessions" bonus in the
+          tracker card below (TrackerGrid) — no more minutes entry here. */}
 
 
       {hasRecentLog && (

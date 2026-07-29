@@ -3,126 +3,272 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My 10,000 Shot Challenge — Printable Tracker</title>
+<title>Hall of Famer — 10,000 Shot Challenge — Printable Tracker</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Caprasimo:wght@400&family=Figtree:wght@400;600;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif; background: #e9eef5; color: #16233a; padding: 16px; }
-  .sheet { max-width: 780px; margin: 0 auto; background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+  body { font-family: 'Figtree', system-ui, sans-serif; background: #ded2ba; color: #201e1d; padding: 16px; }
+  h1 { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; }
+  .sheet { max-width: 780px; margin: 0 auto; background: #f5ead8; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 8px 30px rgba(32,30,29,0.18); padding: 0.42in; }
 
-  .banner { background: linear-gradient(135deg, #1a3a52 0%, #2979ff 100%); color: #fff; padding: 22px 26px; position: relative; }
-  .banner-kicker { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; opacity: .85; font-weight: 700; }
-  .banner h1 { font-size: 40px; line-height: .98; font-weight: 900; letter-spacing: -1px; margin: 4px 0 6px; }
-  .banner h1 .num { color: #ffd24a; }
-  .banner-sub { font-size: 14px; opacity: .95; }
-  .puck { position: absolute; top: 18px; right: 22px; font-size: 44px; }
+  .banner { background: #eee7db; color: #201e1d; border-radius: 20px; padding: 20px 22px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+  .banner-kicker { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; font-size: 14px; letter-spacing: 0.03em; color: #474238; }
+  .banner h1 { font-size: 34px; line-height: 1; margin: 6px 0; }
+  .banner h1 .sub { font-size: 17px; font-weight: 400; font-family: 'Figtree', system-ui, sans-serif; }
+  .banner-sub { font-size: 12.5px; opacity: .85; max-width: 4.4in; }
+  .badge { text-align: center; flex: none; background: #2e2b25; color: #ffc6a5;
+    border-radius: 14px; padding: 10px 16px; white-space: nowrap; }
+  .badge-name { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; font-size: 14px; }
+  .badge-level { font-size: 10px; opacity: .85; }
 
-  .who { display: flex; gap: 10px; padding: 16px 26px 6px; flex-wrap: wrap; }
-  .who .fld { flex: 1; min-width: 120px; }
-  .who label { display: block; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #7a8aa3; font-weight: 700; margin-bottom: 4px; }
-  .who .line { border-bottom: 2px solid #c3cede; height: 26px; }
-  .who .line--sm { max-width: 70px; }
+  .who { display: flex; gap: 0.4in; margin-bottom: 14px; }
+  .who .fld { flex: 1; }
+  .who label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; opacity: .55; margin-bottom: 6px; }
+  .who .line { border-bottom: 1.5px solid rgba(32,30,29,0.16); height: 4px; }
 
-  .how { padding: 6px 26px 4px; font-size: 13px; color: #46587a; font-weight: 600; }
-  .how b { color: #2979ff; }
+  .how { font-size: 12px; opacity: .75; margin-bottom: 14px; }
 
-  .grid { padding: 10px 26px 6px; }
-  .grid-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .row-label { width: 52px; text-align: right; font-size: 11px; font-weight: 800; color: #9aa8bf; }
-  .row-boxes { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; flex: 1; }
-  .box { aspect-ratio: 1; border: 2px solid #2b3a55; border-radius: 6px; background: #fff; }
-  .box--milestone { border-color: #2979ff; background: #fff7e0; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .grid { display: flex; flex-direction: column; gap: 0.14in; margin-bottom: 16px; }
+  .grid-row { display: flex; align-items: center; gap: 0.14in; }
+  .row-target { width: 0.55in; font-size: 11px; text-align: right; opacity: .7; flex: none; }
+  .row-boxes { display: grid; gap: 0.12in; flex: 1; }
+  .box { position: relative; height: 0.56in; border-radius: 8px; border: 2px solid; display: flex; overflow: hidden; }
+  .box-half { flex: 1; border-right: 1.5px dashed; }
+  .box-half + .box-val { }
+  .box-val { position: absolute; bottom: 3px; right: 5px; font-size: 8px; color: #a19786; }
 
-  .section-row { display: flex; gap: 14px; padding: 12px 26px; flex-wrap: wrap; }
-  .medals { flex: 1.4; min-width: 260px; }
-  .panel-title { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #7a8aa3; font-weight: 800; margin-bottom: 8px; }
-  .medal-row { display: flex; gap: 8px; }
-  .medal { flex: 1; border: 2px dashed #c3cede; border-radius: 10px; padding: 8px 4px; text-align: center; }
-  .medal-emoji { font-size: 26px; filter: grayscale(1); opacity: .55; }
-  .medal-num { font-size: 12px; font-weight: 800; color: #46587a; margin-top: 2px; }
+  .types { display: flex; align-items: center; gap: 0.12in; flex-wrap: wrap; font-size: 11.5px; margin-bottom: 14px; }
+  .types .lbl { opacity: .65; }
+  .pill { border: 1.5px solid rgba(32,30,29,0.16); border-radius: 999px; padding: 4px 12px; }
 
-  .tally { flex: 1; min-width: 200px; }
-  .tally-hint { font-size: 11px; color: #7a8aa3; margin: -4px 0 8px; }
-  .tally-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .tally-box { border: 2px solid #2b3a55; border-radius: 10px; padding: 8px 10px; }
-  .tally-box .t-name { font-size: 12px; font-weight: 800; color: #16233a; }
-  .tally-box .t-line { border-bottom: 1.5px solid #c3cede; height: 18px; margin-top: 6px; }
+  .qrband { display: flex; align-items: center; gap: 20px; background: #2e2b25; color: #f5ead8;
+    border-radius: 20px; padding: 18px 22px; margin-bottom: 12px; }
+  .qrbox { width: 0.95in; height: 0.95in; flex: none; background: #f5ead8; border-radius: 10px; padding: 6px; }
+  .qrbox svg { width: 100%; height: 100%; display: block; }
+  .qrtxt h3 { font-family: 'Figtree', system-ui, sans-serif; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+  .benefits { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 0.2in; font-size: 10.5px; opacity: .92; margin-bottom: 6px; }
+  .qrtxt .brand { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; font-size: 17px; color: #ffc6a5; }
+  .qrtxt .path { font-size: 9.5px; opacity: .6; }
 
-  .digitize { display: flex; align-items: center; gap: 16px; margin: 6px 26px 22px; padding: 16px; border-radius: 14px; background: #16233a; color: #fff; }
-  .digitize-qr { width: 92px; height: 92px; background: #fff; border-radius: 10px; padding: 7px; flex-shrink: 0; }
-  .digitize-qr svg { width: 100%; height: 100%; display: block; }
-  .digitize-txt h3 { font-size: 17px; font-weight: 900; margin-bottom: 3px; }
-  .digitize-txt p { font-size: 13px; opacity: .9; line-height: 1.4; }
-  .digitize-txt .url { color: #ffd24a; font-weight: 800; }
-
-  .foot { text-align: center; font-size: 11px; color: #9aa8bf; padding: 0 26px 16px; }
+  .footbar { text-align: center; background: #fff2eb; color: #8c491a; border-radius: 12px;
+    padding: 9px 0; font-size: 12px; font-weight: 700; }
 
   .actions { max-width: 780px; margin: 14px auto 30px; display: flex; gap: 10px;
     justify-content: center; flex-wrap: wrap; }
-  .btn { font-family: inherit; font-size: 14px; font-weight: 800; border-radius: 10px;
-    padding: 12px 20px; cursor: pointer; text-decoration: none; display: inline-block; }
-  .btn--print { background: #2979ff; color: #fff; border: none; }
-  .btn--live { background: #fff; color: #16233a; border: 2px solid #c3cede; }
+  .btn { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; font-size: 14px; border-radius: 12px;
+    padding: 12px 22px; cursor: pointer; text-decoration: none; display: inline-block; border: none; }
+  .btn--print { background: #c67139; color: #f5ead8; }
+  .btn--live { background: #f5ead8; color: #201e1d; border: 2px solid rgba(32,30,29,0.16); }
 
   @media print {
-    /* On-screen controls must never appear on the printed sheet. */
     .actions { display: none; }
     body { background: #fff; padding: 0; }
     .sheet { box-shadow: none; border-radius: 0; max-width: 100%; }
-    .digitize { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .banner { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>
 </head>
 <body>
   <div class="sheet">
     <div class="banner">
-      <div class="puck">🏒</div>
-      <div class="banner-kicker">Hockey Shot Challenge</div>
-      <h1><span class="num">10,000</span> Shot Challenge</h1>
-      <div class="banner-sub">Color a box every <b>100</b> shots. Fill the whole sheet to win. 🥅</div>
+      <div>
+        <div class="banner-kicker">HockeyShotChallenge<span style="opacity:.75">.com</span></div>
+        <h1>10,000 <span class="sub">Shot Challenge</span></h1>
+        <div class="banner-sub">Color a box every 200 shots. Fill the whole sheet to become a Hall of Famer.</div>
+      </div>
+      <div class="badge">
+        <div class="badge-name">Hall of Famer</div>
+        <div class="badge-level">Level 4 of 4</div>
+      </div>
     </div>
 
     <div class="who">
       <div class="fld"><label>Name</label><div class="line"></div></div>
-      <div class="fld" style="flex:0 0 70px"><label>Number</label><div class="line line--sm"></div></div>
+      <div class="fld"><label>Number</label><div class="line"></div></div>
       <div class="fld"><label>Team</label><div class="line"></div></div>
     </div>
 
-    <div class="how">Every practice, count your shots. Each box = <b>100 shots</b>. Watch the 10,000 fill up!</div>
+    <div class="how">Every practice, count your shots. Each box = 200 shots — watch the 10,000 fill up.</div>
 
-    <div class="grid"><div class="grid-row"><div class="row-label">1,000</div><div class="row-boxes"><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div></div></div><div class="grid-row"><div class="row-label">2,000</div><div class="row-boxes"><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div></div></div><div class="grid-row"><div class="row-label">3,000</div><div class="row-boxes"><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box box--milestone">🥉</div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div></div></div><div class="grid-row"><div class="row-label">4,000</div><div class="row-boxes"><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div></div></div><div class="grid-row"><div class="row-label">5,000</div><div class="row-boxes"><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box box--milestone">🥈</div></div></div><div class="grid-row"><div class="row-label">6,000</div><div class="row-boxes"><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div></div></div><div class="grid-row"><div class="row-label">7,000</div><div class="row-boxes"><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div></div></div><div class="grid-row"><div class="row-label">8,000</div><div class="row-boxes"><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box box--milestone">🥇</div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div></div></div><div class="grid-row"><div class="row-label">9,000</div><div class="row-boxes"><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div></div></div><div class="grid-row"><div class="row-label">10,000</div><div class="row-boxes"><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box"></div><div class="box box--milestone">🏆</div></div></div></div>
+    <div class="grid"><div class="grid-row"><div class="row-target">2,000</div><div class="row-boxes" style="grid-template-columns:repeat(10,1fr);"><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">200</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">400</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">600</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">800</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">1,000</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">1,200</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">1,400</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">1,600</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">1,800</span>
+      </div><div class="box" style="border-color:#aebf92;background:#f0fae1;">
+        <div class="box-half" style="border-right-color:#aebf92;"></div><div class="box-half"></div>
+        <span class="box-val">2,000</span>
+      </div></div></div><div class="grid-row"><div class="row-target">4,000</div><div class="row-boxes" style="grid-template-columns:repeat(10,1fr);"><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">2,200</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">2,400</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">2,600</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">2,800</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">3,000</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">3,200</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">3,400</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">3,600</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">3,800</span>
+      </div><div class="box" style="border-color:#aebf92;background:#f0fae1;">
+        <div class="box-half" style="border-right-color:#aebf92;"></div><div class="box-half"></div>
+        <span class="box-val">4,000</span>
+      </div></div></div><div class="grid-row"><div class="row-target">6,000</div><div class="row-boxes" style="grid-template-columns:repeat(10,1fr);"><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">4,200</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">4,400</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">4,600</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">4,800</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">5,000</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">5,200</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">5,400</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">5,600</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">5,800</span>
+      </div><div class="box" style="border-color:#aebf92;background:#f0fae1;">
+        <div class="box-half" style="border-right-color:#aebf92;"></div><div class="box-half"></div>
+        <span class="box-val">6,000</span>
+      </div></div></div><div class="grid-row"><div class="row-target">8,000</div><div class="row-boxes" style="grid-template-columns:repeat(10,1fr);"><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">6,200</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">6,400</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">6,600</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">6,800</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">7,000</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">7,200</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">7,400</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">7,600</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">7,800</span>
+      </div><div class="box" style="border-color:#aebf92;background:#f0fae1;">
+        <div class="box-half" style="border-right-color:#aebf92;"></div><div class="box-half"></div>
+        <span class="box-val">8,000</span>
+      </div></div></div><div class="grid-row"><div class="row-target">10,000</div><div class="row-boxes" style="grid-template-columns:repeat(10,1fr);"><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">8,200</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">8,400</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">8,600</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">8,800</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">9,000</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">9,200</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">9,400</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">9,600</span>
+      </div><div class="box" style="border-color:rgba(32,30,29,0.16);background:#fff;">
+        <div class="box-half" style="border-right-color:rgba(32,30,29,0.16);"></div><div class="box-half"></div>
+        <span class="box-val">9,800</span>
+      </div><div class="box" style="border-color:#aebf92;background:#f0fae1;">
+        <div class="box-half" style="border-right-color:#aebf92;"></div><div class="box-half"></div>
+        <span class="box-val">10,000</span>
+      </div></div></div></div>
 
-    <div class="section-row">
-      <div class="medals">
-        <div class="panel-title">Color the medal when you get there</div>
-        <div class="medal-row"><div class="medal"><div class="medal-emoji">🥉</div><div class="medal-num">2,500</div></div><div class="medal"><div class="medal-emoji">🥈</div><div class="medal-num">5,000</div></div><div class="medal"><div class="medal-emoji">🥇</div><div class="medal-num">7,500</div></div><div class="medal"><div class="medal-emoji">🏆</div><div class="medal-num">10,000</div></div></div>
-      </div>
-      <div class="tally">
-        <div class="panel-title">Keep a tally by shot type</div>
-        <div class="tally-hint">Add a mark (llll) for each shot as you practice — mix up all four!</div>
-        <div class="tally-grid">
-          <div class="tally-box"><div class="t-name">🎯 Wrist</div><div class="t-line"></div></div>
-          <div class="tally-box"><div class="t-name">⚡ Snap</div><div class="t-line"></div></div>
-          <div class="tally-box"><div class="t-name">💥 Slap</div><div class="t-line"></div></div>
-          <div class="tally-box"><div class="t-name">🔄 Backhand</div><div class="t-line"></div></div>
+    <div class="types">
+      <span class="lbl">Mix in all four shot types:</span>
+      <span class="pill">Wrist</span><span class="pill">Snap</span><span class="pill">Slap</span><span class="pill">Backhand</span>
+    </div>
+
+    <div class="qrband">
+      <div class="qrbox"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 148 148"  preserveAspectRatio="xMinYMin meet"><rect width="100%" height="100%" fill="white" cx="0" cy="0"/><path d="M0,0l4,0 0,4 -4,0 0,-4z M4,0l4,0 0,4 -4,0 0,-4z M8,0l4,0 0,4 -4,0 0,-4z M12,0l4,0 0,4 -4,0 0,-4z M16,0l4,0 0,4 -4,0 0,-4z M20,0l4,0 0,4 -4,0 0,-4z M24,0l4,0 0,4 -4,0 0,-4z M32,0l4,0 0,4 -4,0 0,-4z M40,0l4,0 0,4 -4,0 0,-4z M48,0l4,0 0,4 -4,0 0,-4z M52,0l4,0 0,4 -4,0 0,-4z M56,0l4,0 0,4 -4,0 0,-4z M60,0l4,0 0,4 -4,0 0,-4z M64,0l4,0 0,4 -4,0 0,-4z M76,0l4,0 0,4 -4,0 0,-4z M80,0l4,0 0,4 -4,0 0,-4z M84,0l4,0 0,4 -4,0 0,-4z M104,0l4,0 0,4 -4,0 0,-4z M108,0l4,0 0,4 -4,0 0,-4z M112,0l4,0 0,4 -4,0 0,-4z M120,0l4,0 0,4 -4,0 0,-4z M124,0l4,0 0,4 -4,0 0,-4z M128,0l4,0 0,4 -4,0 0,-4z M132,0l4,0 0,4 -4,0 0,-4z M136,0l4,0 0,4 -4,0 0,-4z M140,0l4,0 0,4 -4,0 0,-4z M144,0l4,0 0,4 -4,0 0,-4z M0,4l4,0 0,4 -4,0 0,-4z M24,4l4,0 0,4 -4,0 0,-4z M52,4l4,0 0,4 -4,0 0,-4z M56,4l4,0 0,4 -4,0 0,-4z M76,4l4,0 0,4 -4,0 0,-4z M84,4l4,0 0,4 -4,0 0,-4z M88,4l4,0 0,4 -4,0 0,-4z M92,4l4,0 0,4 -4,0 0,-4z M96,4l4,0 0,4 -4,0 0,-4z M100,4l4,0 0,4 -4,0 0,-4z M104,4l4,0 0,4 -4,0 0,-4z M120,4l4,0 0,4 -4,0 0,-4z M144,4l4,0 0,4 -4,0 0,-4z M0,8l4,0 0,4 -4,0 0,-4z M8,8l4,0 0,4 -4,0 0,-4z M12,8l4,0 0,4 -4,0 0,-4z M16,8l4,0 0,4 -4,0 0,-4z M24,8l4,0 0,4 -4,0 0,-4z M40,8l4,0 0,4 -4,0 0,-4z M44,8l4,0 0,4 -4,0 0,-4z M48,8l4,0 0,4 -4,0 0,-4z M60,8l4,0 0,4 -4,0 0,-4z M68,8l4,0 0,4 -4,0 0,-4z M84,8l4,0 0,4 -4,0 0,-4z M88,8l4,0 0,4 -4,0 0,-4z M96,8l4,0 0,4 -4,0 0,-4z M112,8l4,0 0,4 -4,0 0,-4z M120,8l4,0 0,4 -4,0 0,-4z M128,8l4,0 0,4 -4,0 0,-4z M132,8l4,0 0,4 -4,0 0,-4z M136,8l4,0 0,4 -4,0 0,-4z M144,8l4,0 0,4 -4,0 0,-4z M0,12l4,0 0,4 -4,0 0,-4z M8,12l4,0 0,4 -4,0 0,-4z M12,12l4,0 0,4 -4,0 0,-4z M16,12l4,0 0,4 -4,0 0,-4z M24,12l4,0 0,4 -4,0 0,-4z M32,12l4,0 0,4 -4,0 0,-4z M36,12l4,0 0,4 -4,0 0,-4z M44,12l4,0 0,4 -4,0 0,-4z M64,12l4,0 0,4 -4,0 0,-4z M72,12l4,0 0,4 -4,0 0,-4z M80,12l4,0 0,4 -4,0 0,-4z M100,12l4,0 0,4 -4,0 0,-4z M104,12l4,0 0,4 -4,0 0,-4z M108,12l4,0 0,4 -4,0 0,-4z M112,12l4,0 0,4 -4,0 0,-4z M120,12l4,0 0,4 -4,0 0,-4z M128,12l4,0 0,4 -4,0 0,-4z M132,12l4,0 0,4 -4,0 0,-4z M136,12l4,0 0,4 -4,0 0,-4z M144,12l4,0 0,4 -4,0 0,-4z M0,16l4,0 0,4 -4,0 0,-4z M8,16l4,0 0,4 -4,0 0,-4z M12,16l4,0 0,4 -4,0 0,-4z M16,16l4,0 0,4 -4,0 0,-4z M24,16l4,0 0,4 -4,0 0,-4z M32,16l4,0 0,4 -4,0 0,-4z M44,16l4,0 0,4 -4,0 0,-4z M48,16l4,0 0,4 -4,0 0,-4z M60,16l4,0 0,4 -4,0 0,-4z M64,16l4,0 0,4 -4,0 0,-4z M68,16l4,0 0,4 -4,0 0,-4z M72,16l4,0 0,4 -4,0 0,-4z M92,16l4,0 0,4 -4,0 0,-4z M104,16l4,0 0,4 -4,0 0,-4z M108,16l4,0 0,4 -4,0 0,-4z M112,16l4,0 0,4 -4,0 0,-4z M120,16l4,0 0,4 -4,0 0,-4z M128,16l4,0 0,4 -4,0 0,-4z M132,16l4,0 0,4 -4,0 0,-4z M136,16l4,0 0,4 -4,0 0,-4z M144,16l4,0 0,4 -4,0 0,-4z M0,20l4,0 0,4 -4,0 0,-4z M24,20l4,0 0,4 -4,0 0,-4z M32,20l4,0 0,4 -4,0 0,-4z M36,20l4,0 0,4 -4,0 0,-4z M40,20l4,0 0,4 -4,0 0,-4z M44,20l4,0 0,4 -4,0 0,-4z M56,20l4,0 0,4 -4,0 0,-4z M68,20l4,0 0,4 -4,0 0,-4z M76,20l4,0 0,4 -4,0 0,-4z M100,20l4,0 0,4 -4,0 0,-4z M104,20l4,0 0,4 -4,0 0,-4z M112,20l4,0 0,4 -4,0 0,-4z M120,20l4,0 0,4 -4,0 0,-4z M144,20l4,0 0,4 -4,0 0,-4z M0,24l4,0 0,4 -4,0 0,-4z M4,24l4,0 0,4 -4,0 0,-4z M8,24l4,0 0,4 -4,0 0,-4z M12,24l4,0 0,4 -4,0 0,-4z M16,24l4,0 0,4 -4,0 0,-4z M20,24l4,0 0,4 -4,0 0,-4z M24,24l4,0 0,4 -4,0 0,-4z M32,24l4,0 0,4 -4,0 0,-4z M40,24l4,0 0,4 -4,0 0,-4z M48,24l4,0 0,4 -4,0 0,-4z M56,24l4,0 0,4 -4,0 0,-4z M64,24l4,0 0,4 -4,0 0,-4z M72,24l4,0 0,4 -4,0 0,-4z M80,24l4,0 0,4 -4,0 0,-4z M88,24l4,0 0,4 -4,0 0,-4z M96,24l4,0 0,4 -4,0 0,-4z M104,24l4,0 0,4 -4,0 0,-4z M112,24l4,0 0,4 -4,0 0,-4z M120,24l4,0 0,4 -4,0 0,-4z M124,24l4,0 0,4 -4,0 0,-4z M128,24l4,0 0,4 -4,0 0,-4z M132,24l4,0 0,4 -4,0 0,-4z M136,24l4,0 0,4 -4,0 0,-4z M140,24l4,0 0,4 -4,0 0,-4z M144,24l4,0 0,4 -4,0 0,-4z M32,28l4,0 0,4 -4,0 0,-4z M36,28l4,0 0,4 -4,0 0,-4z M40,28l4,0 0,4 -4,0 0,-4z M56,28l4,0 0,4 -4,0 0,-4z M76,28l4,0 0,4 -4,0 0,-4z M84,28l4,0 0,4 -4,0 0,-4z M92,28l4,0 0,4 -4,0 0,-4z M96,28l4,0 0,4 -4,0 0,-4z M104,28l4,0 0,4 -4,0 0,-4z M112,28l4,0 0,4 -4,0 0,-4z M0,32l4,0 0,4 -4,0 0,-4z M16,32l4,0 0,4 -4,0 0,-4z M24,32l4,0 0,4 -4,0 0,-4z M28,32l4,0 0,4 -4,0 0,-4z M32,32l4,0 0,4 -4,0 0,-4z M36,32l4,0 0,4 -4,0 0,-4z M44,32l4,0 0,4 -4,0 0,-4z M48,32l4,0 0,4 -4,0 0,-4z M56,32l4,0 0,4 -4,0 0,-4z M60,32l4,0 0,4 -4,0 0,-4z M64,32l4,0 0,4 -4,0 0,-4z M76,32l4,0 0,4 -4,0 0,-4z M80,32l4,0 0,4 -4,0 0,-4z M112,32l4,0 0,4 -4,0 0,-4z M116,32l4,0 0,4 -4,0 0,-4z M120,32l4,0 0,4 -4,0 0,-4z M124,32l4,0 0,4 -4,0 0,-4z M128,32l4,0 0,4 -4,0 0,-4z M132,32l4,0 0,4 -4,0 0,-4z M144,32l4,0 0,4 -4,0 0,-4z M4,36l4,0 0,4 -4,0 0,-4z M8,36l4,0 0,4 -4,0 0,-4z M20,36l4,0 0,4 -4,0 0,-4z M36,36l4,0 0,4 -4,0 0,-4z M40,36l4,0 0,4 -4,0 0,-4z M44,36l4,0 0,4 -4,0 0,-4z M56,36l4,0 0,4 -4,0 0,-4z M72,36l4,0 0,4 -4,0 0,-4z M76,36l4,0 0,4 -4,0 0,-4z M88,36l4,0 0,4 -4,0 0,-4z M96,36l4,0 0,4 -4,0 0,-4z M104,36l4,0 0,4 -4,0 0,-4z M108,36l4,0 0,4 -4,0 0,-4z M112,36l4,0 0,4 -4,0 0,-4z M124,36l4,0 0,4 -4,0 0,-4z M128,36l4,0 0,4 -4,0 0,-4z M132,36l4,0 0,4 -4,0 0,-4z M136,36l4,0 0,4 -4,0 0,-4z M140,36l4,0 0,4 -4,0 0,-4z M0,40l4,0 0,4 -4,0 0,-4z M4,40l4,0 0,4 -4,0 0,-4z M12,40l4,0 0,4 -4,0 0,-4z M24,40l4,0 0,4 -4,0 0,-4z M28,40l4,0 0,4 -4,0 0,-4z M32,40l4,0 0,4 -4,0 0,-4z M44,40l4,0 0,4 -4,0 0,-4z M52,40l4,0 0,4 -4,0 0,-4z M60,40l4,0 0,4 -4,0 0,-4z M68,40l4,0 0,4 -4,0 0,-4z M76,40l4,0 0,4 -4,0 0,-4z M92,40l4,0 0,4 -4,0 0,-4z M96,40l4,0 0,4 -4,0 0,-4z M100,40l4,0 0,4 -4,0 0,-4z M104,40l4,0 0,4 -4,0 0,-4z M108,40l4,0 0,4 -4,0 0,-4z M112,40l4,0 0,4 -4,0 0,-4z M116,40l4,0 0,4 -4,0 0,-4z M120,40l4,0 0,4 -4,0 0,-4z M124,40l4,0 0,4 -4,0 0,-4z M128,40l4,0 0,4 -4,0 0,-4z M132,40l4,0 0,4 -4,0 0,-4z M8,44l4,0 0,4 -4,0 0,-4z M12,44l4,0 0,4 -4,0 0,-4z M16,44l4,0 0,4 -4,0 0,-4z M32,44l4,0 0,4 -4,0 0,-4z M36,44l4,0 0,4 -4,0 0,-4z M44,44l4,0 0,4 -4,0 0,-4z M48,44l4,0 0,4 -4,0 0,-4z M52,44l4,0 0,4 -4,0 0,-4z M60,44l4,0 0,4 -4,0 0,-4z M64,44l4,0 0,4 -4,0 0,-4z M68,44l4,0 0,4 -4,0 0,-4z M72,44l4,0 0,4 -4,0 0,-4z M76,44l4,0 0,4 -4,0 0,-4z M80,44l4,0 0,4 -4,0 0,-4z M84,44l4,0 0,4 -4,0 0,-4z M92,44l4,0 0,4 -4,0 0,-4z M104,44l4,0 0,4 -4,0 0,-4z M108,44l4,0 0,4 -4,0 0,-4z M112,44l4,0 0,4 -4,0 0,-4z M116,44l4,0 0,4 -4,0 0,-4z M128,44l4,0 0,4 -4,0 0,-4z M136,44l4,0 0,4 -4,0 0,-4z M140,44l4,0 0,4 -4,0 0,-4z M0,48l4,0 0,4 -4,0 0,-4z M4,48l4,0 0,4 -4,0 0,-4z M8,48l4,0 0,4 -4,0 0,-4z M12,48l4,0 0,4 -4,0 0,-4z M20,48l4,0 0,4 -4,0 0,-4z M24,48l4,0 0,4 -4,0 0,-4z M28,48l4,0 0,4 -4,0 0,-4z M36,48l4,0 0,4 -4,0 0,-4z M48,48l4,0 0,4 -4,0 0,-4z M56,48l4,0 0,4 -4,0 0,-4z M68,48l4,0 0,4 -4,0 0,-4z M84,48l4,0 0,4 -4,0 0,-4z M88,48l4,0 0,4 -4,0 0,-4z M96,48l4,0 0,4 -4,0 0,-4z M112,48l4,0 0,4 -4,0 0,-4z M116,48l4,0 0,4 -4,0 0,-4z M120,48l4,0 0,4 -4,0 0,-4z M124,48l4,0 0,4 -4,0 0,-4z M136,48l4,0 0,4 -4,0 0,-4z M140,48l4,0 0,4 -4,0 0,-4z M144,48l4,0 0,4 -4,0 0,-4z M0,52l4,0 0,4 -4,0 0,-4z M4,52l4,0 0,4 -4,0 0,-4z M12,52l4,0 0,4 -4,0 0,-4z M20,52l4,0 0,4 -4,0 0,-4z M44,52l4,0 0,4 -4,0 0,-4z M60,52l4,0 0,4 -4,0 0,-4z M64,52l4,0 0,4 -4,0 0,-4z M84,52l4,0 0,4 -4,0 0,-4z M92,52l4,0 0,4 -4,0 0,-4z M108,52l4,0 0,4 -4,0 0,-4z M112,52l4,0 0,4 -4,0 0,-4z M128,52l4,0 0,4 -4,0 0,-4z M132,52l4,0 0,4 -4,0 0,-4z M0,56l4,0 0,4 -4,0 0,-4z M8,56l4,0 0,4 -4,0 0,-4z M12,56l4,0 0,4 -4,0 0,-4z M24,56l4,0 0,4 -4,0 0,-4z M28,56l4,0 0,4 -4,0 0,-4z M36,56l4,0 0,4 -4,0 0,-4z M44,56l4,0 0,4 -4,0 0,-4z M48,56l4,0 0,4 -4,0 0,-4z M56,56l4,0 0,4 -4,0 0,-4z M60,56l4,0 0,4 -4,0 0,-4z M68,56l4,0 0,4 -4,0 0,-4z M80,56l4,0 0,4 -4,0 0,-4z M92,56l4,0 0,4 -4,0 0,-4z M100,56l4,0 0,4 -4,0 0,-4z M104,56l4,0 0,4 -4,0 0,-4z M108,56l4,0 0,4 -4,0 0,-4z M124,56l4,0 0,4 -4,0 0,-4z M128,56l4,0 0,4 -4,0 0,-4z M132,56l4,0 0,4 -4,0 0,-4z M136,56l4,0 0,4 -4,0 0,-4z M12,60l4,0 0,4 -4,0 0,-4z M32,60l4,0 0,4 -4,0 0,-4z M40,60l4,0 0,4 -4,0 0,-4z M48,60l4,0 0,4 -4,0 0,-4z M52,60l4,0 0,4 -4,0 0,-4z M56,60l4,0 0,4 -4,0 0,-4z M60,60l4,0 0,4 -4,0 0,-4z M64,60l4,0 0,4 -4,0 0,-4z M68,60l4,0 0,4 -4,0 0,-4z M72,60l4,0 0,4 -4,0 0,-4z M76,60l4,0 0,4 -4,0 0,-4z M80,60l4,0 0,4 -4,0 0,-4z M88,60l4,0 0,4 -4,0 0,-4z M92,60l4,0 0,4 -4,0 0,-4z M96,60l4,0 0,4 -4,0 0,-4z M108,60l4,0 0,4 -4,0 0,-4z M112,60l4,0 0,4 -4,0 0,-4z M116,60l4,0 0,4 -4,0 0,-4z M120,60l4,0 0,4 -4,0 0,-4z M124,60l4,0 0,4 -4,0 0,-4z M128,60l4,0 0,4 -4,0 0,-4z M136,60l4,0 0,4 -4,0 0,-4z M0,64l4,0 0,4 -4,0 0,-4z M4,64l4,0 0,4 -4,0 0,-4z M8,64l4,0 0,4 -4,0 0,-4z M12,64l4,0 0,4 -4,0 0,-4z M16,64l4,0 0,4 -4,0 0,-4z M24,64l4,0 0,4 -4,0 0,-4z M28,64l4,0 0,4 -4,0 0,-4z M36,64l4,0 0,4 -4,0 0,-4z M44,64l4,0 0,4 -4,0 0,-4z M48,64l4,0 0,4 -4,0 0,-4z M72,64l4,0 0,4 -4,0 0,-4z M88,64l4,0 0,4 -4,0 0,-4z M92,64l4,0 0,4 -4,0 0,-4z M96,64l4,0 0,4 -4,0 0,-4z M108,64l4,0 0,4 -4,0 0,-4z M112,64l4,0 0,4 -4,0 0,-4z M116,64l4,0 0,4 -4,0 0,-4z M120,64l4,0 0,4 -4,0 0,-4z M124,64l4,0 0,4 -4,0 0,-4z M132,64l4,0 0,4 -4,0 0,-4z M136,64l4,0 0,4 -4,0 0,-4z M140,64l4,0 0,4 -4,0 0,-4z M144,64l4,0 0,4 -4,0 0,-4z M8,68l4,0 0,4 -4,0 0,-4z M12,68l4,0 0,4 -4,0 0,-4z M20,68l4,0 0,4 -4,0 0,-4z M32,68l4,0 0,4 -4,0 0,-4z M36,68l4,0 0,4 -4,0 0,-4z M48,68l4,0 0,4 -4,0 0,-4z M52,68l4,0 0,4 -4,0 0,-4z M56,68l4,0 0,4 -4,0 0,-4z M64,68l4,0 0,4 -4,0 0,-4z M76,68l4,0 0,4 -4,0 0,-4z M80,68l4,0 0,4 -4,0 0,-4z M100,68l4,0 0,4 -4,0 0,-4z M108,68l4,0 0,4 -4,0 0,-4z M112,68l4,0 0,4 -4,0 0,-4z M116,68l4,0 0,4 -4,0 0,-4z M128,68l4,0 0,4 -4,0 0,-4z M132,68l4,0 0,4 -4,0 0,-4z M140,68l4,0 0,4 -4,0 0,-4z M4,72l4,0 0,4 -4,0 0,-4z M24,72l4,0 0,4 -4,0 0,-4z M28,72l4,0 0,4 -4,0 0,-4z M36,72l4,0 0,4 -4,0 0,-4z M40,72l4,0 0,4 -4,0 0,-4z M44,72l4,0 0,4 -4,0 0,-4z M56,72l4,0 0,4 -4,0 0,-4z M64,72l4,0 0,4 -4,0 0,-4z M80,72l4,0 0,4 -4,0 0,-4z M84,72l4,0 0,4 -4,0 0,-4z M104,72l4,0 0,4 -4,0 0,-4z M108,72l4,0 0,4 -4,0 0,-4z M120,72l4,0 0,4 -4,0 0,-4z M0,76l4,0 0,4 -4,0 0,-4z M16,76l4,0 0,4 -4,0 0,-4z M20,76l4,0 0,4 -4,0 0,-4z M28,76l4,0 0,4 -4,0 0,-4z M32,76l4,0 0,4 -4,0 0,-4z M40,76l4,0 0,4 -4,0 0,-4z M52,76l4,0 0,4 -4,0 0,-4z M68,76l4,0 0,4 -4,0 0,-4z M84,76l4,0 0,4 -4,0 0,-4z M96,76l4,0 0,4 -4,0 0,-4z M108,76l4,0 0,4 -4,0 0,-4z M120,76l4,0 0,4 -4,0 0,-4z M136,76l4,0 0,4 -4,0 0,-4z M140,76l4,0 0,4 -4,0 0,-4z M8,80l4,0 0,4 -4,0 0,-4z M16,80l4,0 0,4 -4,0 0,-4z M24,80l4,0 0,4 -4,0 0,-4z M28,80l4,0 0,4 -4,0 0,-4z M32,80l4,0 0,4 -4,0 0,-4z M36,80l4,0 0,4 -4,0 0,-4z M40,80l4,0 0,4 -4,0 0,-4z M56,80l4,0 0,4 -4,0 0,-4z M60,80l4,0 0,4 -4,0 0,-4z M68,80l4,0 0,4 -4,0 0,-4z M76,80l4,0 0,4 -4,0 0,-4z M80,80l4,0 0,4 -4,0 0,-4z M84,80l4,0 0,4 -4,0 0,-4z M92,80l4,0 0,4 -4,0 0,-4z M96,80l4,0 0,4 -4,0 0,-4z M108,80l4,0 0,4 -4,0 0,-4z M112,80l4,0 0,4 -4,0 0,-4z M116,80l4,0 0,4 -4,0 0,-4z M120,80l4,0 0,4 -4,0 0,-4z M124,80l4,0 0,4 -4,0 0,-4z M136,80l4,0 0,4 -4,0 0,-4z M0,84l4,0 0,4 -4,0 0,-4z M12,84l4,0 0,4 -4,0 0,-4z M16,84l4,0 0,4 -4,0 0,-4z M20,84l4,0 0,4 -4,0 0,-4z M32,84l4,0 0,4 -4,0 0,-4z M48,84l4,0 0,4 -4,0 0,-4z M52,84l4,0 0,4 -4,0 0,-4z M56,84l4,0 0,4 -4,0 0,-4z M60,84l4,0 0,4 -4,0 0,-4z M64,84l4,0 0,4 -4,0 0,-4z M68,84l4,0 0,4 -4,0 0,-4z M80,84l4,0 0,4 -4,0 0,-4z M92,84l4,0 0,4 -4,0 0,-4z M100,84l4,0 0,4 -4,0 0,-4z M104,84l4,0 0,4 -4,0 0,-4z M108,84l4,0 0,4 -4,0 0,-4z M112,84l4,0 0,4 -4,0 0,-4z M124,84l4,0 0,4 -4,0 0,-4z M128,84l4,0 0,4 -4,0 0,-4z M0,88l4,0 0,4 -4,0 0,-4z M4,88l4,0 0,4 -4,0 0,-4z M8,88l4,0 0,4 -4,0 0,-4z M12,88l4,0 0,4 -4,0 0,-4z M24,88l4,0 0,4 -4,0 0,-4z M28,88l4,0 0,4 -4,0 0,-4z M32,88l4,0 0,4 -4,0 0,-4z M40,88l4,0 0,4 -4,0 0,-4z M44,88l4,0 0,4 -4,0 0,-4z M56,88l4,0 0,4 -4,0 0,-4z M60,88l4,0 0,4 -4,0 0,-4z M64,88l4,0 0,4 -4,0 0,-4z M72,88l4,0 0,4 -4,0 0,-4z M80,88l4,0 0,4 -4,0 0,-4z M84,88l4,0 0,4 -4,0 0,-4z M88,88l4,0 0,4 -4,0 0,-4z M92,88l4,0 0,4 -4,0 0,-4z M104,88l4,0 0,4 -4,0 0,-4z M108,88l4,0 0,4 -4,0 0,-4z M116,88l4,0 0,4 -4,0 0,-4z M124,88l4,0 0,4 -4,0 0,-4z M128,88l4,0 0,4 -4,0 0,-4z M132,88l4,0 0,4 -4,0 0,-4z M136,88l4,0 0,4 -4,0 0,-4z M8,92l4,0 0,4 -4,0 0,-4z M20,92l4,0 0,4 -4,0 0,-4z M28,92l4,0 0,4 -4,0 0,-4z M48,92l4,0 0,4 -4,0 0,-4z M60,92l4,0 0,4 -4,0 0,-4z M64,92l4,0 0,4 -4,0 0,-4z M80,92l4,0 0,4 -4,0 0,-4z M84,92l4,0 0,4 -4,0 0,-4z M92,92l4,0 0,4 -4,0 0,-4z M96,92l4,0 0,4 -4,0 0,-4z M108,92l4,0 0,4 -4,0 0,-4z M120,92l4,0 0,4 -4,0 0,-4z M124,92l4,0 0,4 -4,0 0,-4z M128,92l4,0 0,4 -4,0 0,-4z M136,92l4,0 0,4 -4,0 0,-4z M140,92l4,0 0,4 -4,0 0,-4z M0,96l4,0 0,4 -4,0 0,-4z M12,96l4,0 0,4 -4,0 0,-4z M24,96l4,0 0,4 -4,0 0,-4z M28,96l4,0 0,4 -4,0 0,-4z M36,96l4,0 0,4 -4,0 0,-4z M40,96l4,0 0,4 -4,0 0,-4z M56,96l4,0 0,4 -4,0 0,-4z M60,96l4,0 0,4 -4,0 0,-4z M64,96l4,0 0,4 -4,0 0,-4z M80,96l4,0 0,4 -4,0 0,-4z M92,96l4,0 0,4 -4,0 0,-4z M96,96l4,0 0,4 -4,0 0,-4z M104,96l4,0 0,4 -4,0 0,-4z M112,96l4,0 0,4 -4,0 0,-4z M116,96l4,0 0,4 -4,0 0,-4z M120,96l4,0 0,4 -4,0 0,-4z M132,96l4,0 0,4 -4,0 0,-4z M136,96l4,0 0,4 -4,0 0,-4z M140,96l4,0 0,4 -4,0 0,-4z M0,100l4,0 0,4 -4,0 0,-4z M8,100l4,0 0,4 -4,0 0,-4z M20,100l4,0 0,4 -4,0 0,-4z M28,100l4,0 0,4 -4,0 0,-4z M32,100l4,0 0,4 -4,0 0,-4z M36,100l4,0 0,4 -4,0 0,-4z M44,100l4,0 0,4 -4,0 0,-4z M52,100l4,0 0,4 -4,0 0,-4z M56,100l4,0 0,4 -4,0 0,-4z M72,100l4,0 0,4 -4,0 0,-4z M76,100l4,0 0,4 -4,0 0,-4z M84,100l4,0 0,4 -4,0 0,-4z M88,100l4,0 0,4 -4,0 0,-4z M96,100l4,0 0,4 -4,0 0,-4z M100,100l4,0 0,4 -4,0 0,-4z M108,100l4,0 0,4 -4,0 0,-4z M116,100l4,0 0,4 -4,0 0,-4z M124,100l4,0 0,4 -4,0 0,-4z M128,100l4,0 0,4 -4,0 0,-4z M132,100l4,0 0,4 -4,0 0,-4z M8,104l4,0 0,4 -4,0 0,-4z M16,104l4,0 0,4 -4,0 0,-4z M20,104l4,0 0,4 -4,0 0,-4z M24,104l4,0 0,4 -4,0 0,-4z M28,104l4,0 0,4 -4,0 0,-4z M40,104l4,0 0,4 -4,0 0,-4z M56,104l4,0 0,4 -4,0 0,-4z M60,104l4,0 0,4 -4,0 0,-4z M68,104l4,0 0,4 -4,0 0,-4z M72,104l4,0 0,4 -4,0 0,-4z M76,104l4,0 0,4 -4,0 0,-4z M92,104l4,0 0,4 -4,0 0,-4z M96,104l4,0 0,4 -4,0 0,-4z M100,104l4,0 0,4 -4,0 0,-4z M108,104l4,0 0,4 -4,0 0,-4z M116,104l4,0 0,4 -4,0 0,-4z M124,104l4,0 0,4 -4,0 0,-4z M136,104l4,0 0,4 -4,0 0,-4z M8,108l4,0 0,4 -4,0 0,-4z M12,108l4,0 0,4 -4,0 0,-4z M16,108l4,0 0,4 -4,0 0,-4z M36,108l4,0 0,4 -4,0 0,-4z M40,108l4,0 0,4 -4,0 0,-4z M44,108l4,0 0,4 -4,0 0,-4z M48,108l4,0 0,4 -4,0 0,-4z M60,108l4,0 0,4 -4,0 0,-4z M64,108l4,0 0,4 -4,0 0,-4z M68,108l4,0 0,4 -4,0 0,-4z M76,108l4,0 0,4 -4,0 0,-4z M80,108l4,0 0,4 -4,0 0,-4z M84,108l4,0 0,4 -4,0 0,-4z M88,108l4,0 0,4 -4,0 0,-4z M104,108l4,0 0,4 -4,0 0,-4z M112,108l4,0 0,4 -4,0 0,-4z M120,108l4,0 0,4 -4,0 0,-4z M132,108l4,0 0,4 -4,0 0,-4z M136,108l4,0 0,4 -4,0 0,-4z M140,108l4,0 0,4 -4,0 0,-4z M0,112l4,0 0,4 -4,0 0,-4z M4,112l4,0 0,4 -4,0 0,-4z M8,112l4,0 0,4 -4,0 0,-4z M12,112l4,0 0,4 -4,0 0,-4z M16,112l4,0 0,4 -4,0 0,-4z M24,112l4,0 0,4 -4,0 0,-4z M32,112l4,0 0,4 -4,0 0,-4z M36,112l4,0 0,4 -4,0 0,-4z M56,112l4,0 0,4 -4,0 0,-4z M68,112l4,0 0,4 -4,0 0,-4z M72,112l4,0 0,4 -4,0 0,-4z M80,112l4,0 0,4 -4,0 0,-4z M84,112l4,0 0,4 -4,0 0,-4z M88,112l4,0 0,4 -4,0 0,-4z M92,112l4,0 0,4 -4,0 0,-4z M96,112l4,0 0,4 -4,0 0,-4z M112,112l4,0 0,4 -4,0 0,-4z M116,112l4,0 0,4 -4,0 0,-4z M120,112l4,0 0,4 -4,0 0,-4z M124,112l4,0 0,4 -4,0 0,-4z M128,112l4,0 0,4 -4,0 0,-4z M132,112l4,0 0,4 -4,0 0,-4z M136,112l4,0 0,4 -4,0 0,-4z M144,112l4,0 0,4 -4,0 0,-4z M32,116l4,0 0,4 -4,0 0,-4z M36,116l4,0 0,4 -4,0 0,-4z M40,116l4,0 0,4 -4,0 0,-4z M48,116l4,0 0,4 -4,0 0,-4z M52,116l4,0 0,4 -4,0 0,-4z M60,116l4,0 0,4 -4,0 0,-4z M64,116l4,0 0,4 -4,0 0,-4z M84,116l4,0 0,4 -4,0 0,-4z M92,116l4,0 0,4 -4,0 0,-4z M100,116l4,0 0,4 -4,0 0,-4z M104,116l4,0 0,4 -4,0 0,-4z M112,116l4,0 0,4 -4,0 0,-4z M128,116l4,0 0,4 -4,0 0,-4z M0,120l4,0 0,4 -4,0 0,-4z M4,120l4,0 0,4 -4,0 0,-4z M8,120l4,0 0,4 -4,0 0,-4z M12,120l4,0 0,4 -4,0 0,-4z M16,120l4,0 0,4 -4,0 0,-4z M20,120l4,0 0,4 -4,0 0,-4z M24,120l4,0 0,4 -4,0 0,-4z M32,120l4,0 0,4 -4,0 0,-4z M40,120l4,0 0,4 -4,0 0,-4z M44,120l4,0 0,4 -4,0 0,-4z M56,120l4,0 0,4 -4,0 0,-4z M60,120l4,0 0,4 -4,0 0,-4z M68,120l4,0 0,4 -4,0 0,-4z M80,120l4,0 0,4 -4,0 0,-4z M92,120l4,0 0,4 -4,0 0,-4z M96,120l4,0 0,4 -4,0 0,-4z M112,120l4,0 0,4 -4,0 0,-4z M120,120l4,0 0,4 -4,0 0,-4z M128,120l4,0 0,4 -4,0 0,-4z M0,124l4,0 0,4 -4,0 0,-4z M24,124l4,0 0,4 -4,0 0,-4z M36,124l4,0 0,4 -4,0 0,-4z M48,124l4,0 0,4 -4,0 0,-4z M52,124l4,0 0,4 -4,0 0,-4z M56,124l4,0 0,4 -4,0 0,-4z M64,124l4,0 0,4 -4,0 0,-4z M68,124l4,0 0,4 -4,0 0,-4z M72,124l4,0 0,4 -4,0 0,-4z M76,124l4,0 0,4 -4,0 0,-4z M80,124l4,0 0,4 -4,0 0,-4z M88,124l4,0 0,4 -4,0 0,-4z M92,124l4,0 0,4 -4,0 0,-4z M104,124l4,0 0,4 -4,0 0,-4z M112,124l4,0 0,4 -4,0 0,-4z M128,124l4,0 0,4 -4,0 0,-4z M132,124l4,0 0,4 -4,0 0,-4z M136,124l4,0 0,4 -4,0 0,-4z M140,124l4,0 0,4 -4,0 0,-4z M0,128l4,0 0,4 -4,0 0,-4z M8,128l4,0 0,4 -4,0 0,-4z M12,128l4,0 0,4 -4,0 0,-4z M16,128l4,0 0,4 -4,0 0,-4z M24,128l4,0 0,4 -4,0 0,-4z M32,128l4,0 0,4 -4,0 0,-4z M36,128l4,0 0,4 -4,0 0,-4z M56,128l4,0 0,4 -4,0 0,-4z M72,128l4,0 0,4 -4,0 0,-4z M88,128l4,0 0,4 -4,0 0,-4z M96,128l4,0 0,4 -4,0 0,-4z M104,128l4,0 0,4 -4,0 0,-4z M112,128l4,0 0,4 -4,0 0,-4z M116,128l4,0 0,4 -4,0 0,-4z M120,128l4,0 0,4 -4,0 0,-4z M124,128l4,0 0,4 -4,0 0,-4z M128,128l4,0 0,4 -4,0 0,-4z M132,128l4,0 0,4 -4,0 0,-4z M136,128l4,0 0,4 -4,0 0,-4z M140,128l4,0 0,4 -4,0 0,-4z M0,132l4,0 0,4 -4,0 0,-4z M8,132l4,0 0,4 -4,0 0,-4z M12,132l4,0 0,4 -4,0 0,-4z M16,132l4,0 0,4 -4,0 0,-4z M24,132l4,0 0,4 -4,0 0,-4z M52,132l4,0 0,4 -4,0 0,-4z M56,132l4,0 0,4 -4,0 0,-4z M64,132l4,0 0,4 -4,0 0,-4z M68,132l4,0 0,4 -4,0 0,-4z M76,132l4,0 0,4 -4,0 0,-4z M80,132l4,0 0,4 -4,0 0,-4z M92,132l4,0 0,4 -4,0 0,-4z M108,132l4,0 0,4 -4,0 0,-4z M112,132l4,0 0,4 -4,0 0,-4z M116,132l4,0 0,4 -4,0 0,-4z M120,132l4,0 0,4 -4,0 0,-4z M124,132l4,0 0,4 -4,0 0,-4z M132,132l4,0 0,4 -4,0 0,-4z M136,132l4,0 0,4 -4,0 0,-4z M144,132l4,0 0,4 -4,0 0,-4z M0,136l4,0 0,4 -4,0 0,-4z M8,136l4,0 0,4 -4,0 0,-4z M12,136l4,0 0,4 -4,0 0,-4z M16,136l4,0 0,4 -4,0 0,-4z M24,136l4,0 0,4 -4,0 0,-4z M36,136l4,0 0,4 -4,0 0,-4z M40,136l4,0 0,4 -4,0 0,-4z M52,136l4,0 0,4 -4,0 0,-4z M56,136l4,0 0,4 -4,0 0,-4z M64,136l4,0 0,4 -4,0 0,-4z M72,136l4,0 0,4 -4,0 0,-4z M80,136l4,0 0,4 -4,0 0,-4z M88,136l4,0 0,4 -4,0 0,-4z M92,136l4,0 0,4 -4,0 0,-4z M108,136l4,0 0,4 -4,0 0,-4z M116,136l4,0 0,4 -4,0 0,-4z M120,136l4,0 0,4 -4,0 0,-4z M136,136l4,0 0,4 -4,0 0,-4z M0,140l4,0 0,4 -4,0 0,-4z M24,140l4,0 0,4 -4,0 0,-4z M40,140l4,0 0,4 -4,0 0,-4z M44,140l4,0 0,4 -4,0 0,-4z M52,140l4,0 0,4 -4,0 0,-4z M68,140l4,0 0,4 -4,0 0,-4z M72,140l4,0 0,4 -4,0 0,-4z M84,140l4,0 0,4 -4,0 0,-4z M92,140l4,0 0,4 -4,0 0,-4z M108,140l4,0 0,4 -4,0 0,-4z M116,140l4,0 0,4 -4,0 0,-4z M128,140l4,0 0,4 -4,0 0,-4z M132,140l4,0 0,4 -4,0 0,-4z M136,140l4,0 0,4 -4,0 0,-4z M140,140l4,0 0,4 -4,0 0,-4z M0,144l4,0 0,4 -4,0 0,-4z M4,144l4,0 0,4 -4,0 0,-4z M8,144l4,0 0,4 -4,0 0,-4z M12,144l4,0 0,4 -4,0 0,-4z M16,144l4,0 0,4 -4,0 0,-4z M20,144l4,0 0,4 -4,0 0,-4z M24,144l4,0 0,4 -4,0 0,-4z M32,144l4,0 0,4 -4,0 0,-4z M36,144l4,0 0,4 -4,0 0,-4z M40,144l4,0 0,4 -4,0 0,-4z M44,144l4,0 0,4 -4,0 0,-4z M60,144l4,0 0,4 -4,0 0,-4z M68,144l4,0 0,4 -4,0 0,-4z M76,144l4,0 0,4 -4,0 0,-4z M80,144l4,0 0,4 -4,0 0,-4z M84,144l4,0 0,4 -4,0 0,-4z M88,144l4,0 0,4 -4,0 0,-4z M96,144l4,0 0,4 -4,0 0,-4z M108,144l4,0 0,4 -4,0 0,-4z M124,144l4,0 0,4 -4,0 0,-4z M132,144l4,0 0,4 -4,0 0,-4z M136,144l4,0 0,4 -4,0 0,-4z M140,144l4,0 0,4 -4,0 0,-4z M144,144l4,0 0,4 -4,0 0,-4z " stroke="transparent" fill="black"/></svg></div>
+      <div class="qrtxt">
+        <h3>Scan, sign in with Google, and keep going online — free, no app to install</h3>
+        <div class="benefits">
+          <div>✓ Track every shot type</div><div>✓ Run multiple challenges</div>
+          <div>✓ Keep your streak alive</div><div>✓ Team &amp; association leaderboards</div>
+          <div>✓ Challenge other players</div><div>✓ Share your progress instantly</div>
         </div>
+        <div class="brand">HockeyShotChallenge.com</div>
+        <div class="path">hockeyshotchallenge.com/start?challenge=10k&src=print10k</div>
       </div>
     </div>
 
-    <div class="digitize">
-      <div class="digitize-qr"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 148 148"  preserveAspectRatio="xMinYMin meet"><rect width="100%" height="100%" fill="white" cx="0" cy="0"/><path d="M0,0l4,0 0,4 -4,0 0,-4z M4,0l4,0 0,4 -4,0 0,-4z M8,0l4,0 0,4 -4,0 0,-4z M12,0l4,0 0,4 -4,0 0,-4z M16,0l4,0 0,4 -4,0 0,-4z M20,0l4,0 0,4 -4,0 0,-4z M24,0l4,0 0,4 -4,0 0,-4z M32,0l4,0 0,4 -4,0 0,-4z M40,0l4,0 0,4 -4,0 0,-4z M48,0l4,0 0,4 -4,0 0,-4z M52,0l4,0 0,4 -4,0 0,-4z M56,0l4,0 0,4 -4,0 0,-4z M60,0l4,0 0,4 -4,0 0,-4z M64,0l4,0 0,4 -4,0 0,-4z M76,0l4,0 0,4 -4,0 0,-4z M80,0l4,0 0,4 -4,0 0,-4z M84,0l4,0 0,4 -4,0 0,-4z M104,0l4,0 0,4 -4,0 0,-4z M108,0l4,0 0,4 -4,0 0,-4z M112,0l4,0 0,4 -4,0 0,-4z M120,0l4,0 0,4 -4,0 0,-4z M124,0l4,0 0,4 -4,0 0,-4z M128,0l4,0 0,4 -4,0 0,-4z M132,0l4,0 0,4 -4,0 0,-4z M136,0l4,0 0,4 -4,0 0,-4z M140,0l4,0 0,4 -4,0 0,-4z M144,0l4,0 0,4 -4,0 0,-4z M0,4l4,0 0,4 -4,0 0,-4z M24,4l4,0 0,4 -4,0 0,-4z M52,4l4,0 0,4 -4,0 0,-4z M56,4l4,0 0,4 -4,0 0,-4z M76,4l4,0 0,4 -4,0 0,-4z M84,4l4,0 0,4 -4,0 0,-4z M88,4l4,0 0,4 -4,0 0,-4z M92,4l4,0 0,4 -4,0 0,-4z M96,4l4,0 0,4 -4,0 0,-4z M100,4l4,0 0,4 -4,0 0,-4z M104,4l4,0 0,4 -4,0 0,-4z M120,4l4,0 0,4 -4,0 0,-4z M144,4l4,0 0,4 -4,0 0,-4z M0,8l4,0 0,4 -4,0 0,-4z M8,8l4,0 0,4 -4,0 0,-4z M12,8l4,0 0,4 -4,0 0,-4z M16,8l4,0 0,4 -4,0 0,-4z M24,8l4,0 0,4 -4,0 0,-4z M40,8l4,0 0,4 -4,0 0,-4z M44,8l4,0 0,4 -4,0 0,-4z M48,8l4,0 0,4 -4,0 0,-4z M60,8l4,0 0,4 -4,0 0,-4z M68,8l4,0 0,4 -4,0 0,-4z M84,8l4,0 0,4 -4,0 0,-4z M88,8l4,0 0,4 -4,0 0,-4z M96,8l4,0 0,4 -4,0 0,-4z M112,8l4,0 0,4 -4,0 0,-4z M120,8l4,0 0,4 -4,0 0,-4z M128,8l4,0 0,4 -4,0 0,-4z M132,8l4,0 0,4 -4,0 0,-4z M136,8l4,0 0,4 -4,0 0,-4z M144,8l4,0 0,4 -4,0 0,-4z M0,12l4,0 0,4 -4,0 0,-4z M8,12l4,0 0,4 -4,0 0,-4z M12,12l4,0 0,4 -4,0 0,-4z M16,12l4,0 0,4 -4,0 0,-4z M24,12l4,0 0,4 -4,0 0,-4z M32,12l4,0 0,4 -4,0 0,-4z M36,12l4,0 0,4 -4,0 0,-4z M44,12l4,0 0,4 -4,0 0,-4z M64,12l4,0 0,4 -4,0 0,-4z M72,12l4,0 0,4 -4,0 0,-4z M80,12l4,0 0,4 -4,0 0,-4z M100,12l4,0 0,4 -4,0 0,-4z M104,12l4,0 0,4 -4,0 0,-4z M108,12l4,0 0,4 -4,0 0,-4z M112,12l4,0 0,4 -4,0 0,-4z M120,12l4,0 0,4 -4,0 0,-4z M128,12l4,0 0,4 -4,0 0,-4z M132,12l4,0 0,4 -4,0 0,-4z M136,12l4,0 0,4 -4,0 0,-4z M144,12l4,0 0,4 -4,0 0,-4z M0,16l4,0 0,4 -4,0 0,-4z M8,16l4,0 0,4 -4,0 0,-4z M12,16l4,0 0,4 -4,0 0,-4z M16,16l4,0 0,4 -4,0 0,-4z M24,16l4,0 0,4 -4,0 0,-4z M32,16l4,0 0,4 -4,0 0,-4z M44,16l4,0 0,4 -4,0 0,-4z M48,16l4,0 0,4 -4,0 0,-4z M60,16l4,0 0,4 -4,0 0,-4z M64,16l4,0 0,4 -4,0 0,-4z M68,16l4,0 0,4 -4,0 0,-4z M72,16l4,0 0,4 -4,0 0,-4z M92,16l4,0 0,4 -4,0 0,-4z M104,16l4,0 0,4 -4,0 0,-4z M108,16l4,0 0,4 -4,0 0,-4z M112,16l4,0 0,4 -4,0 0,-4z M120,16l4,0 0,4 -4,0 0,-4z M128,16l4,0 0,4 -4,0 0,-4z M132,16l4,0 0,4 -4,0 0,-4z M136,16l4,0 0,4 -4,0 0,-4z M144,16l4,0 0,4 -4,0 0,-4z M0,20l4,0 0,4 -4,0 0,-4z M24,20l4,0 0,4 -4,0 0,-4z M32,20l4,0 0,4 -4,0 0,-4z M36,20l4,0 0,4 -4,0 0,-4z M40,20l4,0 0,4 -4,0 0,-4z M44,20l4,0 0,4 -4,0 0,-4z M56,20l4,0 0,4 -4,0 0,-4z M68,20l4,0 0,4 -4,0 0,-4z M76,20l4,0 0,4 -4,0 0,-4z M100,20l4,0 0,4 -4,0 0,-4z M104,20l4,0 0,4 -4,0 0,-4z M112,20l4,0 0,4 -4,0 0,-4z M120,20l4,0 0,4 -4,0 0,-4z M144,20l4,0 0,4 -4,0 0,-4z M0,24l4,0 0,4 -4,0 0,-4z M4,24l4,0 0,4 -4,0 0,-4z M8,24l4,0 0,4 -4,0 0,-4z M12,24l4,0 0,4 -4,0 0,-4z M16,24l4,0 0,4 -4,0 0,-4z M20,24l4,0 0,4 -4,0 0,-4z M24,24l4,0 0,4 -4,0 0,-4z M32,24l4,0 0,4 -4,0 0,-4z M40,24l4,0 0,4 -4,0 0,-4z M48,24l4,0 0,4 -4,0 0,-4z M56,24l4,0 0,4 -4,0 0,-4z M64,24l4,0 0,4 -4,0 0,-4z M72,24l4,0 0,4 -4,0 0,-4z M80,24l4,0 0,4 -4,0 0,-4z M88,24l4,0 0,4 -4,0 0,-4z M96,24l4,0 0,4 -4,0 0,-4z M104,24l4,0 0,4 -4,0 0,-4z M112,24l4,0 0,4 -4,0 0,-4z M120,24l4,0 0,4 -4,0 0,-4z M124,24l4,0 0,4 -4,0 0,-4z M128,24l4,0 0,4 -4,0 0,-4z M132,24l4,0 0,4 -4,0 0,-4z M136,24l4,0 0,4 -4,0 0,-4z M140,24l4,0 0,4 -4,0 0,-4z M144,24l4,0 0,4 -4,0 0,-4z M32,28l4,0 0,4 -4,0 0,-4z M36,28l4,0 0,4 -4,0 0,-4z M40,28l4,0 0,4 -4,0 0,-4z M56,28l4,0 0,4 -4,0 0,-4z M76,28l4,0 0,4 -4,0 0,-4z M84,28l4,0 0,4 -4,0 0,-4z M92,28l4,0 0,4 -4,0 0,-4z M96,28l4,0 0,4 -4,0 0,-4z M104,28l4,0 0,4 -4,0 0,-4z M112,28l4,0 0,4 -4,0 0,-4z M0,32l4,0 0,4 -4,0 0,-4z M16,32l4,0 0,4 -4,0 0,-4z M24,32l4,0 0,4 -4,0 0,-4z M28,32l4,0 0,4 -4,0 0,-4z M32,32l4,0 0,4 -4,0 0,-4z M36,32l4,0 0,4 -4,0 0,-4z M44,32l4,0 0,4 -4,0 0,-4z M48,32l4,0 0,4 -4,0 0,-4z M56,32l4,0 0,4 -4,0 0,-4z M60,32l4,0 0,4 -4,0 0,-4z M64,32l4,0 0,4 -4,0 0,-4z M76,32l4,0 0,4 -4,0 0,-4z M80,32l4,0 0,4 -4,0 0,-4z M112,32l4,0 0,4 -4,0 0,-4z M116,32l4,0 0,4 -4,0 0,-4z M120,32l4,0 0,4 -4,0 0,-4z M124,32l4,0 0,4 -4,0 0,-4z M128,32l4,0 0,4 -4,0 0,-4z M132,32l4,0 0,4 -4,0 0,-4z M144,32l4,0 0,4 -4,0 0,-4z M4,36l4,0 0,4 -4,0 0,-4z M8,36l4,0 0,4 -4,0 0,-4z M20,36l4,0 0,4 -4,0 0,-4z M36,36l4,0 0,4 -4,0 0,-4z M40,36l4,0 0,4 -4,0 0,-4z M44,36l4,0 0,4 -4,0 0,-4z M56,36l4,0 0,4 -4,0 0,-4z M72,36l4,0 0,4 -4,0 0,-4z M76,36l4,0 0,4 -4,0 0,-4z M88,36l4,0 0,4 -4,0 0,-4z M96,36l4,0 0,4 -4,0 0,-4z M104,36l4,0 0,4 -4,0 0,-4z M108,36l4,0 0,4 -4,0 0,-4z M112,36l4,0 0,4 -4,0 0,-4z M124,36l4,0 0,4 -4,0 0,-4z M128,36l4,0 0,4 -4,0 0,-4z M132,36l4,0 0,4 -4,0 0,-4z M136,36l4,0 0,4 -4,0 0,-4z M140,36l4,0 0,4 -4,0 0,-4z M0,40l4,0 0,4 -4,0 0,-4z M4,40l4,0 0,4 -4,0 0,-4z M12,40l4,0 0,4 -4,0 0,-4z M24,40l4,0 0,4 -4,0 0,-4z M28,40l4,0 0,4 -4,0 0,-4z M32,40l4,0 0,4 -4,0 0,-4z M44,40l4,0 0,4 -4,0 0,-4z M52,40l4,0 0,4 -4,0 0,-4z M60,40l4,0 0,4 -4,0 0,-4z M68,40l4,0 0,4 -4,0 0,-4z M76,40l4,0 0,4 -4,0 0,-4z M92,40l4,0 0,4 -4,0 0,-4z M96,40l4,0 0,4 -4,0 0,-4z M100,40l4,0 0,4 -4,0 0,-4z M104,40l4,0 0,4 -4,0 0,-4z M108,40l4,0 0,4 -4,0 0,-4z M112,40l4,0 0,4 -4,0 0,-4z M116,40l4,0 0,4 -4,0 0,-4z M120,40l4,0 0,4 -4,0 0,-4z M124,40l4,0 0,4 -4,0 0,-4z M128,40l4,0 0,4 -4,0 0,-4z M132,40l4,0 0,4 -4,0 0,-4z M8,44l4,0 0,4 -4,0 0,-4z M12,44l4,0 0,4 -4,0 0,-4z M16,44l4,0 0,4 -4,0 0,-4z M32,44l4,0 0,4 -4,0 0,-4z M36,44l4,0 0,4 -4,0 0,-4z M44,44l4,0 0,4 -4,0 0,-4z M48,44l4,0 0,4 -4,0 0,-4z M52,44l4,0 0,4 -4,0 0,-4z M60,44l4,0 0,4 -4,0 0,-4z M64,44l4,0 0,4 -4,0 0,-4z M68,44l4,0 0,4 -4,0 0,-4z M72,44l4,0 0,4 -4,0 0,-4z M76,44l4,0 0,4 -4,0 0,-4z M80,44l4,0 0,4 -4,0 0,-4z M84,44l4,0 0,4 -4,0 0,-4z M92,44l4,0 0,4 -4,0 0,-4z M104,44l4,0 0,4 -4,0 0,-4z M108,44l4,0 0,4 -4,0 0,-4z M112,44l4,0 0,4 -4,0 0,-4z M116,44l4,0 0,4 -4,0 0,-4z M128,44l4,0 0,4 -4,0 0,-4z M136,44l4,0 0,4 -4,0 0,-4z M140,44l4,0 0,4 -4,0 0,-4z M0,48l4,0 0,4 -4,0 0,-4z M4,48l4,0 0,4 -4,0 0,-4z M8,48l4,0 0,4 -4,0 0,-4z M12,48l4,0 0,4 -4,0 0,-4z M20,48l4,0 0,4 -4,0 0,-4z M24,48l4,0 0,4 -4,0 0,-4z M28,48l4,0 0,4 -4,0 0,-4z M36,48l4,0 0,4 -4,0 0,-4z M48,48l4,0 0,4 -4,0 0,-4z M56,48l4,0 0,4 -4,0 0,-4z M68,48l4,0 0,4 -4,0 0,-4z M84,48l4,0 0,4 -4,0 0,-4z M88,48l4,0 0,4 -4,0 0,-4z M96,48l4,0 0,4 -4,0 0,-4z M112,48l4,0 0,4 -4,0 0,-4z M116,48l4,0 0,4 -4,0 0,-4z M120,48l4,0 0,4 -4,0 0,-4z M124,48l4,0 0,4 -4,0 0,-4z M136,48l4,0 0,4 -4,0 0,-4z M140,48l4,0 0,4 -4,0 0,-4z M144,48l4,0 0,4 -4,0 0,-4z M0,52l4,0 0,4 -4,0 0,-4z M4,52l4,0 0,4 -4,0 0,-4z M12,52l4,0 0,4 -4,0 0,-4z M20,52l4,0 0,4 -4,0 0,-4z M44,52l4,0 0,4 -4,0 0,-4z M60,52l4,0 0,4 -4,0 0,-4z M64,52l4,0 0,4 -4,0 0,-4z M84,52l4,0 0,4 -4,0 0,-4z M92,52l4,0 0,4 -4,0 0,-4z M108,52l4,0 0,4 -4,0 0,-4z M112,52l4,0 0,4 -4,0 0,-4z M128,52l4,0 0,4 -4,0 0,-4z M132,52l4,0 0,4 -4,0 0,-4z M0,56l4,0 0,4 -4,0 0,-4z M8,56l4,0 0,4 -4,0 0,-4z M12,56l4,0 0,4 -4,0 0,-4z M24,56l4,0 0,4 -4,0 0,-4z M28,56l4,0 0,4 -4,0 0,-4z M36,56l4,0 0,4 -4,0 0,-4z M44,56l4,0 0,4 -4,0 0,-4z M48,56l4,0 0,4 -4,0 0,-4z M56,56l4,0 0,4 -4,0 0,-4z M60,56l4,0 0,4 -4,0 0,-4z M68,56l4,0 0,4 -4,0 0,-4z M80,56l4,0 0,4 -4,0 0,-4z M92,56l4,0 0,4 -4,0 0,-4z M100,56l4,0 0,4 -4,0 0,-4z M104,56l4,0 0,4 -4,0 0,-4z M108,56l4,0 0,4 -4,0 0,-4z M124,56l4,0 0,4 -4,0 0,-4z M128,56l4,0 0,4 -4,0 0,-4z M132,56l4,0 0,4 -4,0 0,-4z M136,56l4,0 0,4 -4,0 0,-4z M12,60l4,0 0,4 -4,0 0,-4z M32,60l4,0 0,4 -4,0 0,-4z M40,60l4,0 0,4 -4,0 0,-4z M48,60l4,0 0,4 -4,0 0,-4z M52,60l4,0 0,4 -4,0 0,-4z M56,60l4,0 0,4 -4,0 0,-4z M60,60l4,0 0,4 -4,0 0,-4z M64,60l4,0 0,4 -4,0 0,-4z M68,60l4,0 0,4 -4,0 0,-4z M72,60l4,0 0,4 -4,0 0,-4z M76,60l4,0 0,4 -4,0 0,-4z M80,60l4,0 0,4 -4,0 0,-4z M88,60l4,0 0,4 -4,0 0,-4z M92,60l4,0 0,4 -4,0 0,-4z M96,60l4,0 0,4 -4,0 0,-4z M108,60l4,0 0,4 -4,0 0,-4z M112,60l4,0 0,4 -4,0 0,-4z M116,60l4,0 0,4 -4,0 0,-4z M120,60l4,0 0,4 -4,0 0,-4z M124,60l4,0 0,4 -4,0 0,-4z M128,60l4,0 0,4 -4,0 0,-4z M136,60l4,0 0,4 -4,0 0,-4z M0,64l4,0 0,4 -4,0 0,-4z M4,64l4,0 0,4 -4,0 0,-4z M8,64l4,0 0,4 -4,0 0,-4z M12,64l4,0 0,4 -4,0 0,-4z M16,64l4,0 0,4 -4,0 0,-4z M24,64l4,0 0,4 -4,0 0,-4z M28,64l4,0 0,4 -4,0 0,-4z M36,64l4,0 0,4 -4,0 0,-4z M44,64l4,0 0,4 -4,0 0,-4z M48,64l4,0 0,4 -4,0 0,-4z M72,64l4,0 0,4 -4,0 0,-4z M88,64l4,0 0,4 -4,0 0,-4z M92,64l4,0 0,4 -4,0 0,-4z M96,64l4,0 0,4 -4,0 0,-4z M108,64l4,0 0,4 -4,0 0,-4z M112,64l4,0 0,4 -4,0 0,-4z M116,64l4,0 0,4 -4,0 0,-4z M120,64l4,0 0,4 -4,0 0,-4z M124,64l4,0 0,4 -4,0 0,-4z M132,64l4,0 0,4 -4,0 0,-4z M136,64l4,0 0,4 -4,0 0,-4z M140,64l4,0 0,4 -4,0 0,-4z M144,64l4,0 0,4 -4,0 0,-4z M8,68l4,0 0,4 -4,0 0,-4z M12,68l4,0 0,4 -4,0 0,-4z M20,68l4,0 0,4 -4,0 0,-4z M32,68l4,0 0,4 -4,0 0,-4z M36,68l4,0 0,4 -4,0 0,-4z M48,68l4,0 0,4 -4,0 0,-4z M52,68l4,0 0,4 -4,0 0,-4z M56,68l4,0 0,4 -4,0 0,-4z M64,68l4,0 0,4 -4,0 0,-4z M76,68l4,0 0,4 -4,0 0,-4z M80,68l4,0 0,4 -4,0 0,-4z M100,68l4,0 0,4 -4,0 0,-4z M108,68l4,0 0,4 -4,0 0,-4z M112,68l4,0 0,4 -4,0 0,-4z M116,68l4,0 0,4 -4,0 0,-4z M128,68l4,0 0,4 -4,0 0,-4z M132,68l4,0 0,4 -4,0 0,-4z M140,68l4,0 0,4 -4,0 0,-4z M4,72l4,0 0,4 -4,0 0,-4z M24,72l4,0 0,4 -4,0 0,-4z M28,72l4,0 0,4 -4,0 0,-4z M36,72l4,0 0,4 -4,0 0,-4z M40,72l4,0 0,4 -4,0 0,-4z M44,72l4,0 0,4 -4,0 0,-4z M56,72l4,0 0,4 -4,0 0,-4z M64,72l4,0 0,4 -4,0 0,-4z M80,72l4,0 0,4 -4,0 0,-4z M84,72l4,0 0,4 -4,0 0,-4z M104,72l4,0 0,4 -4,0 0,-4z M108,72l4,0 0,4 -4,0 0,-4z M120,72l4,0 0,4 -4,0 0,-4z M0,76l4,0 0,4 -4,0 0,-4z M16,76l4,0 0,4 -4,0 0,-4z M20,76l4,0 0,4 -4,0 0,-4z M28,76l4,0 0,4 -4,0 0,-4z M32,76l4,0 0,4 -4,0 0,-4z M40,76l4,0 0,4 -4,0 0,-4z M52,76l4,0 0,4 -4,0 0,-4z M68,76l4,0 0,4 -4,0 0,-4z M84,76l4,0 0,4 -4,0 0,-4z M96,76l4,0 0,4 -4,0 0,-4z M108,76l4,0 0,4 -4,0 0,-4z M120,76l4,0 0,4 -4,0 0,-4z M136,76l4,0 0,4 -4,0 0,-4z M140,76l4,0 0,4 -4,0 0,-4z M8,80l4,0 0,4 -4,0 0,-4z M16,80l4,0 0,4 -4,0 0,-4z M24,80l4,0 0,4 -4,0 0,-4z M28,80l4,0 0,4 -4,0 0,-4z M32,80l4,0 0,4 -4,0 0,-4z M36,80l4,0 0,4 -4,0 0,-4z M40,80l4,0 0,4 -4,0 0,-4z M56,80l4,0 0,4 -4,0 0,-4z M60,80l4,0 0,4 -4,0 0,-4z M68,80l4,0 0,4 -4,0 0,-4z M76,80l4,0 0,4 -4,0 0,-4z M80,80l4,0 0,4 -4,0 0,-4z M84,80l4,0 0,4 -4,0 0,-4z M92,80l4,0 0,4 -4,0 0,-4z M96,80l4,0 0,4 -4,0 0,-4z M108,80l4,0 0,4 -4,0 0,-4z M112,80l4,0 0,4 -4,0 0,-4z M116,80l4,0 0,4 -4,0 0,-4z M120,80l4,0 0,4 -4,0 0,-4z M124,80l4,0 0,4 -4,0 0,-4z M136,80l4,0 0,4 -4,0 0,-4z M0,84l4,0 0,4 -4,0 0,-4z M12,84l4,0 0,4 -4,0 0,-4z M16,84l4,0 0,4 -4,0 0,-4z M20,84l4,0 0,4 -4,0 0,-4z M32,84l4,0 0,4 -4,0 0,-4z M48,84l4,0 0,4 -4,0 0,-4z M52,84l4,0 0,4 -4,0 0,-4z M56,84l4,0 0,4 -4,0 0,-4z M60,84l4,0 0,4 -4,0 0,-4z M64,84l4,0 0,4 -4,0 0,-4z M68,84l4,0 0,4 -4,0 0,-4z M80,84l4,0 0,4 -4,0 0,-4z M92,84l4,0 0,4 -4,0 0,-4z M100,84l4,0 0,4 -4,0 0,-4z M104,84l4,0 0,4 -4,0 0,-4z M108,84l4,0 0,4 -4,0 0,-4z M112,84l4,0 0,4 -4,0 0,-4z M124,84l4,0 0,4 -4,0 0,-4z M128,84l4,0 0,4 -4,0 0,-4z M0,88l4,0 0,4 -4,0 0,-4z M4,88l4,0 0,4 -4,0 0,-4z M8,88l4,0 0,4 -4,0 0,-4z M12,88l4,0 0,4 -4,0 0,-4z M24,88l4,0 0,4 -4,0 0,-4z M28,88l4,0 0,4 -4,0 0,-4z M32,88l4,0 0,4 -4,0 0,-4z M40,88l4,0 0,4 -4,0 0,-4z M44,88l4,0 0,4 -4,0 0,-4z M56,88l4,0 0,4 -4,0 0,-4z M60,88l4,0 0,4 -4,0 0,-4z M64,88l4,0 0,4 -4,0 0,-4z M72,88l4,0 0,4 -4,0 0,-4z M80,88l4,0 0,4 -4,0 0,-4z M84,88l4,0 0,4 -4,0 0,-4z M88,88l4,0 0,4 -4,0 0,-4z M92,88l4,0 0,4 -4,0 0,-4z M104,88l4,0 0,4 -4,0 0,-4z M108,88l4,0 0,4 -4,0 0,-4z M116,88l4,0 0,4 -4,0 0,-4z M124,88l4,0 0,4 -4,0 0,-4z M128,88l4,0 0,4 -4,0 0,-4z M132,88l4,0 0,4 -4,0 0,-4z M136,88l4,0 0,4 -4,0 0,-4z M8,92l4,0 0,4 -4,0 0,-4z M20,92l4,0 0,4 -4,0 0,-4z M28,92l4,0 0,4 -4,0 0,-4z M48,92l4,0 0,4 -4,0 0,-4z M60,92l4,0 0,4 -4,0 0,-4z M64,92l4,0 0,4 -4,0 0,-4z M80,92l4,0 0,4 -4,0 0,-4z M84,92l4,0 0,4 -4,0 0,-4z M92,92l4,0 0,4 -4,0 0,-4z M96,92l4,0 0,4 -4,0 0,-4z M108,92l4,0 0,4 -4,0 0,-4z M120,92l4,0 0,4 -4,0 0,-4z M124,92l4,0 0,4 -4,0 0,-4z M128,92l4,0 0,4 -4,0 0,-4z M136,92l4,0 0,4 -4,0 0,-4z M140,92l4,0 0,4 -4,0 0,-4z M0,96l4,0 0,4 -4,0 0,-4z M12,96l4,0 0,4 -4,0 0,-4z M24,96l4,0 0,4 -4,0 0,-4z M28,96l4,0 0,4 -4,0 0,-4z M36,96l4,0 0,4 -4,0 0,-4z M40,96l4,0 0,4 -4,0 0,-4z M56,96l4,0 0,4 -4,0 0,-4z M60,96l4,0 0,4 -4,0 0,-4z M64,96l4,0 0,4 -4,0 0,-4z M80,96l4,0 0,4 -4,0 0,-4z M92,96l4,0 0,4 -4,0 0,-4z M96,96l4,0 0,4 -4,0 0,-4z M104,96l4,0 0,4 -4,0 0,-4z M112,96l4,0 0,4 -4,0 0,-4z M116,96l4,0 0,4 -4,0 0,-4z M120,96l4,0 0,4 -4,0 0,-4z M132,96l4,0 0,4 -4,0 0,-4z M136,96l4,0 0,4 -4,0 0,-4z M140,96l4,0 0,4 -4,0 0,-4z M0,100l4,0 0,4 -4,0 0,-4z M8,100l4,0 0,4 -4,0 0,-4z M20,100l4,0 0,4 -4,0 0,-4z M28,100l4,0 0,4 -4,0 0,-4z M32,100l4,0 0,4 -4,0 0,-4z M36,100l4,0 0,4 -4,0 0,-4z M44,100l4,0 0,4 -4,0 0,-4z M52,100l4,0 0,4 -4,0 0,-4z M56,100l4,0 0,4 -4,0 0,-4z M72,100l4,0 0,4 -4,0 0,-4z M76,100l4,0 0,4 -4,0 0,-4z M84,100l4,0 0,4 -4,0 0,-4z M88,100l4,0 0,4 -4,0 0,-4z M96,100l4,0 0,4 -4,0 0,-4z M100,100l4,0 0,4 -4,0 0,-4z M108,100l4,0 0,4 -4,0 0,-4z M116,100l4,0 0,4 -4,0 0,-4z M124,100l4,0 0,4 -4,0 0,-4z M128,100l4,0 0,4 -4,0 0,-4z M132,100l4,0 0,4 -4,0 0,-4z M8,104l4,0 0,4 -4,0 0,-4z M16,104l4,0 0,4 -4,0 0,-4z M20,104l4,0 0,4 -4,0 0,-4z M24,104l4,0 0,4 -4,0 0,-4z M28,104l4,0 0,4 -4,0 0,-4z M40,104l4,0 0,4 -4,0 0,-4z M56,104l4,0 0,4 -4,0 0,-4z M60,104l4,0 0,4 -4,0 0,-4z M68,104l4,0 0,4 -4,0 0,-4z M72,104l4,0 0,4 -4,0 0,-4z M76,104l4,0 0,4 -4,0 0,-4z M92,104l4,0 0,4 -4,0 0,-4z M96,104l4,0 0,4 -4,0 0,-4z M100,104l4,0 0,4 -4,0 0,-4z M108,104l4,0 0,4 -4,0 0,-4z M116,104l4,0 0,4 -4,0 0,-4z M124,104l4,0 0,4 -4,0 0,-4z M136,104l4,0 0,4 -4,0 0,-4z M8,108l4,0 0,4 -4,0 0,-4z M12,108l4,0 0,4 -4,0 0,-4z M16,108l4,0 0,4 -4,0 0,-4z M36,108l4,0 0,4 -4,0 0,-4z M40,108l4,0 0,4 -4,0 0,-4z M44,108l4,0 0,4 -4,0 0,-4z M48,108l4,0 0,4 -4,0 0,-4z M60,108l4,0 0,4 -4,0 0,-4z M64,108l4,0 0,4 -4,0 0,-4z M68,108l4,0 0,4 -4,0 0,-4z M76,108l4,0 0,4 -4,0 0,-4z M80,108l4,0 0,4 -4,0 0,-4z M84,108l4,0 0,4 -4,0 0,-4z M88,108l4,0 0,4 -4,0 0,-4z M104,108l4,0 0,4 -4,0 0,-4z M112,108l4,0 0,4 -4,0 0,-4z M120,108l4,0 0,4 -4,0 0,-4z M132,108l4,0 0,4 -4,0 0,-4z M136,108l4,0 0,4 -4,0 0,-4z M140,108l4,0 0,4 -4,0 0,-4z M0,112l4,0 0,4 -4,0 0,-4z M4,112l4,0 0,4 -4,0 0,-4z M8,112l4,0 0,4 -4,0 0,-4z M12,112l4,0 0,4 -4,0 0,-4z M16,112l4,0 0,4 -4,0 0,-4z M24,112l4,0 0,4 -4,0 0,-4z M32,112l4,0 0,4 -4,0 0,-4z M36,112l4,0 0,4 -4,0 0,-4z M56,112l4,0 0,4 -4,0 0,-4z M68,112l4,0 0,4 -4,0 0,-4z M72,112l4,0 0,4 -4,0 0,-4z M80,112l4,0 0,4 -4,0 0,-4z M84,112l4,0 0,4 -4,0 0,-4z M88,112l4,0 0,4 -4,0 0,-4z M92,112l4,0 0,4 -4,0 0,-4z M96,112l4,0 0,4 -4,0 0,-4z M112,112l4,0 0,4 -4,0 0,-4z M116,112l4,0 0,4 -4,0 0,-4z M120,112l4,0 0,4 -4,0 0,-4z M124,112l4,0 0,4 -4,0 0,-4z M128,112l4,0 0,4 -4,0 0,-4z M132,112l4,0 0,4 -4,0 0,-4z M136,112l4,0 0,4 -4,0 0,-4z M144,112l4,0 0,4 -4,0 0,-4z M32,116l4,0 0,4 -4,0 0,-4z M36,116l4,0 0,4 -4,0 0,-4z M40,116l4,0 0,4 -4,0 0,-4z M48,116l4,0 0,4 -4,0 0,-4z M52,116l4,0 0,4 -4,0 0,-4z M60,116l4,0 0,4 -4,0 0,-4z M64,116l4,0 0,4 -4,0 0,-4z M84,116l4,0 0,4 -4,0 0,-4z M92,116l4,0 0,4 -4,0 0,-4z M100,116l4,0 0,4 -4,0 0,-4z M104,116l4,0 0,4 -4,0 0,-4z M112,116l4,0 0,4 -4,0 0,-4z M128,116l4,0 0,4 -4,0 0,-4z M0,120l4,0 0,4 -4,0 0,-4z M4,120l4,0 0,4 -4,0 0,-4z M8,120l4,0 0,4 -4,0 0,-4z M12,120l4,0 0,4 -4,0 0,-4z M16,120l4,0 0,4 -4,0 0,-4z M20,120l4,0 0,4 -4,0 0,-4z M24,120l4,0 0,4 -4,0 0,-4z M32,120l4,0 0,4 -4,0 0,-4z M40,120l4,0 0,4 -4,0 0,-4z M44,120l4,0 0,4 -4,0 0,-4z M56,120l4,0 0,4 -4,0 0,-4z M60,120l4,0 0,4 -4,0 0,-4z M68,120l4,0 0,4 -4,0 0,-4z M80,120l4,0 0,4 -4,0 0,-4z M92,120l4,0 0,4 -4,0 0,-4z M96,120l4,0 0,4 -4,0 0,-4z M112,120l4,0 0,4 -4,0 0,-4z M120,120l4,0 0,4 -4,0 0,-4z M128,120l4,0 0,4 -4,0 0,-4z M0,124l4,0 0,4 -4,0 0,-4z M24,124l4,0 0,4 -4,0 0,-4z M36,124l4,0 0,4 -4,0 0,-4z M48,124l4,0 0,4 -4,0 0,-4z M52,124l4,0 0,4 -4,0 0,-4z M56,124l4,0 0,4 -4,0 0,-4z M64,124l4,0 0,4 -4,0 0,-4z M68,124l4,0 0,4 -4,0 0,-4z M72,124l4,0 0,4 -4,0 0,-4z M76,124l4,0 0,4 -4,0 0,-4z M80,124l4,0 0,4 -4,0 0,-4z M88,124l4,0 0,4 -4,0 0,-4z M92,124l4,0 0,4 -4,0 0,-4z M104,124l4,0 0,4 -4,0 0,-4z M112,124l4,0 0,4 -4,0 0,-4z M128,124l4,0 0,4 -4,0 0,-4z M132,124l4,0 0,4 -4,0 0,-4z M136,124l4,0 0,4 -4,0 0,-4z M140,124l4,0 0,4 -4,0 0,-4z M0,128l4,0 0,4 -4,0 0,-4z M8,128l4,0 0,4 -4,0 0,-4z M12,128l4,0 0,4 -4,0 0,-4z M16,128l4,0 0,4 -4,0 0,-4z M24,128l4,0 0,4 -4,0 0,-4z M32,128l4,0 0,4 -4,0 0,-4z M36,128l4,0 0,4 -4,0 0,-4z M56,128l4,0 0,4 -4,0 0,-4z M72,128l4,0 0,4 -4,0 0,-4z M88,128l4,0 0,4 -4,0 0,-4z M96,128l4,0 0,4 -4,0 0,-4z M104,128l4,0 0,4 -4,0 0,-4z M112,128l4,0 0,4 -4,0 0,-4z M116,128l4,0 0,4 -4,0 0,-4z M120,128l4,0 0,4 -4,0 0,-4z M124,128l4,0 0,4 -4,0 0,-4z M128,128l4,0 0,4 -4,0 0,-4z M132,128l4,0 0,4 -4,0 0,-4z M136,128l4,0 0,4 -4,0 0,-4z M140,128l4,0 0,4 -4,0 0,-4z M0,132l4,0 0,4 -4,0 0,-4z M8,132l4,0 0,4 -4,0 0,-4z M12,132l4,0 0,4 -4,0 0,-4z M16,132l4,0 0,4 -4,0 0,-4z M24,132l4,0 0,4 -4,0 0,-4z M52,132l4,0 0,4 -4,0 0,-4z M56,132l4,0 0,4 -4,0 0,-4z M64,132l4,0 0,4 -4,0 0,-4z M68,132l4,0 0,4 -4,0 0,-4z M76,132l4,0 0,4 -4,0 0,-4z M80,132l4,0 0,4 -4,0 0,-4z M92,132l4,0 0,4 -4,0 0,-4z M108,132l4,0 0,4 -4,0 0,-4z M112,132l4,0 0,4 -4,0 0,-4z M116,132l4,0 0,4 -4,0 0,-4z M120,132l4,0 0,4 -4,0 0,-4z M124,132l4,0 0,4 -4,0 0,-4z M132,132l4,0 0,4 -4,0 0,-4z M136,132l4,0 0,4 -4,0 0,-4z M144,132l4,0 0,4 -4,0 0,-4z M0,136l4,0 0,4 -4,0 0,-4z M8,136l4,0 0,4 -4,0 0,-4z M12,136l4,0 0,4 -4,0 0,-4z M16,136l4,0 0,4 -4,0 0,-4z M24,136l4,0 0,4 -4,0 0,-4z M36,136l4,0 0,4 -4,0 0,-4z M40,136l4,0 0,4 -4,0 0,-4z M52,136l4,0 0,4 -4,0 0,-4z M56,136l4,0 0,4 -4,0 0,-4z M64,136l4,0 0,4 -4,0 0,-4z M72,136l4,0 0,4 -4,0 0,-4z M80,136l4,0 0,4 -4,0 0,-4z M88,136l4,0 0,4 -4,0 0,-4z M92,136l4,0 0,4 -4,0 0,-4z M108,136l4,0 0,4 -4,0 0,-4z M116,136l4,0 0,4 -4,0 0,-4z M120,136l4,0 0,4 -4,0 0,-4z M136,136l4,0 0,4 -4,0 0,-4z M0,140l4,0 0,4 -4,0 0,-4z M24,140l4,0 0,4 -4,0 0,-4z M40,140l4,0 0,4 -4,0 0,-4z M44,140l4,0 0,4 -4,0 0,-4z M52,140l4,0 0,4 -4,0 0,-4z M68,140l4,0 0,4 -4,0 0,-4z M72,140l4,0 0,4 -4,0 0,-4z M84,140l4,0 0,4 -4,0 0,-4z M92,140l4,0 0,4 -4,0 0,-4z M108,140l4,0 0,4 -4,0 0,-4z M116,140l4,0 0,4 -4,0 0,-4z M128,140l4,0 0,4 -4,0 0,-4z M132,140l4,0 0,4 -4,0 0,-4z M136,140l4,0 0,4 -4,0 0,-4z M140,140l4,0 0,4 -4,0 0,-4z M0,144l4,0 0,4 -4,0 0,-4z M4,144l4,0 0,4 -4,0 0,-4z M8,144l4,0 0,4 -4,0 0,-4z M12,144l4,0 0,4 -4,0 0,-4z M16,144l4,0 0,4 -4,0 0,-4z M20,144l4,0 0,4 -4,0 0,-4z M24,144l4,0 0,4 -4,0 0,-4z M32,144l4,0 0,4 -4,0 0,-4z M36,144l4,0 0,4 -4,0 0,-4z M40,144l4,0 0,4 -4,0 0,-4z M44,144l4,0 0,4 -4,0 0,-4z M60,144l4,0 0,4 -4,0 0,-4z M68,144l4,0 0,4 -4,0 0,-4z M76,144l4,0 0,4 -4,0 0,-4z M80,144l4,0 0,4 -4,0 0,-4z M84,144l4,0 0,4 -4,0 0,-4z M88,144l4,0 0,4 -4,0 0,-4z M96,144l4,0 0,4 -4,0 0,-4z M108,144l4,0 0,4 -4,0 0,-4z M124,144l4,0 0,4 -4,0 0,-4z M132,144l4,0 0,4 -4,0 0,-4z M136,144l4,0 0,4 -4,0 0,-4z M140,144l4,0 0,4 -4,0 0,-4z M144,144l4,0 0,4 -4,0 0,-4z " stroke="transparent" fill="black"/></svg></div>
-      <div class="digitize-txt">
-        <h3>📱 Tired of coloring boxes?</h3>
-        <p>Scan to track it on your phone — live team leaderboards, streaks, and ranks. Free, no app to install.<br><span class="url">hockeyshotchallenge.com</span></p>
-      </div>
-    </div>
-
-    <div class="foot">🏒 Hockey Shot Challenge — free printable 10,000 shot tracker. Print it, stick it on the fridge, or track it live online.</div>
+    <div class="footbar">HockeyShotChallenge.com — free printable shot tracker. Print it, stick it on the fridge, or track it live online.</div>
   </div>
 
   <div class="actions">
-    <button class="btn btn--print" onclick="window.print()">🖨️ Print this sheet</button>
-    <a class="btn btn--live" href="https://hockeyshotchallenge.com/start?challenge=10k&amp;src=sheet10k">Track it live instead →</a>
+    <button class="btn btn--print" onclick="window.print()">Print this sheet</button>
+    <a class="btn btn--live" href="https://hockeyshotchallenge.com/start?challenge=10k&src=print10k">Track it live instead →</a>
   </div>
   <script>
     // Auto-print only when explicitly asked (?print=1), which is what the app's

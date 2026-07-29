@@ -1,5 +1,26 @@
 import { supabase } from './supabase'
 
+// Paper -> digital bridge: a player who's already been coloring in boxes on
+// the printed sheet sets their lifetime total directly, rather than logging
+// each past session. Overwrites (never adds to) lifetime_shots — the dashboard
+// UI never lets this go below what's already there, but the guard lives here
+// too since this is the one function that can move the total backwards.
+export async function setLifetimeShots(playerId, total) {
+  const { data: player, error: readError } = await supabase
+    .from('players')
+    .select('lifetime_shots')
+    .eq('id', playerId)
+    .single()
+  if (readError) throw readError
+  const next = Math.max(total, player?.lifetime_shots || 0)
+  const { error } = await supabase
+    .from('players')
+    .update({ lifetime_shots: next })
+    .eq('id', playerId)
+  if (error) throw error
+  return next
+}
+
 export async function logShots({ playerId, shotType, count = 1 }) {
   const { error } = await supabase.from('shot_logs').insert({
     player_id: playerId,
@@ -50,6 +71,31 @@ export async function getStats(playerId) {
   todayRows.forEach(r => { todayByType[r.shot_type] = (todayByType[r.shot_type] || 0) + r.count })
 
   return { todayTotal, weekTotal, todayByType }
+}
+
+// Stickhandling bonus: a lightweight "did 10 sessions" counter, intentionally
+// decoupled from the shot-count metric — no minutes entry, just a checkbox
+// per session. Each checked session writes one Stickhandling row (count=1) via
+// a plain insert, NOT logShots — logShots adds its count into
+// players.lifetime_shots, and a stickhandling session is not a shot; routing
+// it through there would silently inflate the challenge total.
+export async function logStickhandlingSession(playerId) {
+  const { error } = await supabase.from('shot_logs').insert({
+    player_id: playerId,
+    shot_type: 'Stickhandling',
+    count: 1,
+  })
+  if (error) throw error
+}
+
+export async function getStickhandlingCount(playerId) {
+  const { count, error } = await supabase
+    .from('shot_logs')
+    .select('*', { count: 'exact', head: true })
+    .eq('player_id', playerId)
+    .eq('shot_type', 'Stickhandling')
+  if (error) throw error
+  return count || 0
 }
 
 export async function getLifetimeBreakdown(playerId) {
