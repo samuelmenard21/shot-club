@@ -688,13 +688,6 @@ function ChallengePickerGate({ playerId, onPicked }) {
             </div>
           </button>
         ))}
-        {/* Custom goal — same grid, routes to its own screen instead of an
-            instant pick since it needs a number from the player first. */}
-        <button className="cpg-card cpg-card--custom" disabled={!!savingId} onClick={() => nav('/challenges/custom')}>
-          <div className="cpg-card-label" style={{ color: '#a78bfa' }}>Custom</div>
-          <div className="cpg-card-shots">?</div>
-          <div className="cpg-card-arrow" style={{ color: '#a78bfa' }}>→</div>
-        </button>
       </div>
       <style>{gateStyles}</style>
     </div>
