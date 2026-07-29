@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { NotificationProvider } from './hooks/useNotifications'
@@ -45,12 +45,25 @@ const MoreScreen = lazy(() => import('./screens/MoreScreen'))
 const AddPlayerScreen = lazy(() => import('./screens/AddPlayerScreen'))
 const CustomChallengeScreen = lazy(() => import('./screens/CustomChallengeScreen'))
 
+// Shown while auth resolves (AuthProvider's initial refresh()) and as the
+// Suspense fallback for every lazy route. Either can hang forever on a
+// dropped connection or a stalled Supabase call — with nothing else on
+// screen and no error thrown, that reads to a user as "the site is broken,"
+// and the only fix they can find themselves is clearing site data (which
+// merely forces the reload the app should have offered on its own). After a
+// few seconds stuck here, offer that reload directly instead of leaving a
+// dead spinner as the only thing on screen.
 function LoadingScreen() {
+  const [stuck, setStuck] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setStuck(true), 8000)
+    return () => clearTimeout(t)
+  }, [])
   return (
     <div style={{
       minHeight: '100dvh', width: '100%',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'var(--bg)',
+      display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center', justifyContent: 'center',
+      background: 'var(--bg)', padding: 20, textAlign: 'center',
     }}>
       <div style={{
         fontFamily: 'var(--font-display)', color: 'var(--text-mute)',
@@ -58,6 +71,20 @@ function LoadingScreen() {
       }}>
         LOADING…
       </div>
+      {stuck && (
+        <>
+          <div style={{ color: 'var(--text-soft)', fontSize: 13, maxWidth: 280 }}>
+            This is taking longer than it should.
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 8,
+              padding: '10px 20px', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}
+          >
+            Reload
+          </button>
+        </>
+      )}
     </div>
   )
 }

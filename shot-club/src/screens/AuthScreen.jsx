@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { signUp, signIn, signInWithGooglePlayer, createPlayerWithGoogleAuth } from '../lib/auth'
+import { signIn, signInWithGooglePlayer, createPlayerWithGoogleAuth } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
 import {
   getClubBySlug,
@@ -9,8 +9,7 @@ import {
   AGE_DIVISIONS,
   TIERS,
 } from '../lib/clubs'
-import { setSEO, CANONICAL_URL } from '../lib/seo'
-import { getSpec } from '../lib/challengeSpecs'
+import { setSEO } from '../lib/seo'
 import { applyPendingChallenge, stashPendingChallenge } from '../lib/challenges'
 
 const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
