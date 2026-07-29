@@ -17,3 +17,19 @@ export const supabase = createClient(url, key, {
     storageKey: 'hsc-auth',
   },
 })
+
+// supabase.auth.getUser() can hang indefinitely if the stored refresh token is
+// stale/invalid — the SDK retries the token refresh against the network rather
+// than failing fast. Every caller in this app goes through here instead of
+// calling supabase.auth.getUser() directly, so a hang self-heals everywhere at
+// once: the local session is wiped (which is what "clearing cache" was really
+// fixing) and the caller gets a clean signed-out result instead of hanging.
+export async function getUserSafe() {
+  const timeout = new Promise((resolve) => setTimeout(() => resolve('timeout'), 6000))
+  const result = await Promise.race([supabase.auth.getUser(), timeout])
+  if (result === 'timeout') {
+    await supabase.auth.signOut({ scope: 'local' })
+    return null
+  }
+  return result.data.user
+}

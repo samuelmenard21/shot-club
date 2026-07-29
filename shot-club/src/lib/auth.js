@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase, getUserSafe } from './supabase'
 
 const DOMAIN = 'hsc.app'
 const UNIVERSAL_PW = 'shotclub-' + 'pw-' + 'v1'
@@ -163,7 +163,7 @@ export async function deleteAccount(playerId) {
 }
 
 export async function getCurrentPlayer() {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getUserSafe()
   if (!user) return null
 
   // Family account: check account_id first (Google OAuth players)
@@ -206,7 +206,7 @@ export async function createPlayerWithGoogleAuth({
   lifetimeShotGoal = 5000,
   stickhandlingHourGoal = 5,
 }) {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getUserSafe()
   if (!user) throw new Error('Must be signed in with Google')
 
   const username = makeUsername(firstName || displayName)
@@ -236,7 +236,7 @@ export async function createPlayerWithGoogleAuth({
 
 // Return all player profiles linked to the current Google account
 export async function getPlayersForAccount() {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getUserSafe()
   if (!user) return []
   const { data } = await supabase
     .from('players')
@@ -304,7 +304,7 @@ export async function signInCoach({ email, password }) {
 }
 
 export async function getCurrentCoach() {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getUserSafe()
   if (!user) return null
 
   const { data } = await supabase
