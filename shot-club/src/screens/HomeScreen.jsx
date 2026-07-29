@@ -644,6 +644,27 @@ export default function HomeScreen() {
 // The ONLY thing a player with no challenge sees — no rank card, no daily
 // widgets, no shot tiles competing for attention. Picking a challenge is the
 // single onboarding step; everything else waits for it.
+// Pulls a human-readable string out of whatever actually got thrown. Plain
+// `.message` went blank on a real production failure (a Supabase/PostgREST
+// error, or a request an extension/network layer killed before it ever
+// reached the server, can both surface as an object with no populated
+// `message`) — this checks every field those error shapes actually use
+// before falling back to a raw dump, so a blank error banner can't happen
+// twice.
+function describeError(e) {
+  if (!e) return 'Unknown error (nothing was thrown).'
+  const parts = [
+    e.message, e.error_description, e.error, e.hint, e.details,
+    e.code && `code ${e.code}`, e.status && `HTTP ${e.status}`, e.statusText, e.name,
+  ].filter(Boolean)
+  if (parts.length) return parts.join(' — ')
+  try {
+    const json = JSON.stringify(e)
+    if (json && json !== '{}') return json
+  } catch { /* circular or non-serializable — fall through */ }
+  return String(e) || 'Unknown error with no readable detail.'
+}
+
 function ChallengePickerGate({ playerId, onPicked }) {
   const [savingId, setSavingId] = useState(null)
   const [error, setError] = useState('')
@@ -657,11 +678,7 @@ function ChallengePickerGate({ playerId, onPicked }) {
       onPicked(ch)
     } catch (e) {
       console.error('Failed to set challenge:', e)
-      // Surfacing the real DB message (not a generic string) — this is a
-      // brand-new write path against a table created moments ago, and
-      // masking the error here is exactly what makes a permissions/schema
-      // mismatch impossible to diagnose from the outside.
-      setError(e?.message || 'Could not save that — try again.')
+      setError(describeError(e))
       setSavingId(null)
     }
   }
