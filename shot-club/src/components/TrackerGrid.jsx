@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { logShots, getStats, setLifetimeShots, logStickhandlingSession, getStickhandlingCount } from '../lib/shots'
 import { setPlayerChallenge } from '../lib/challenges'
+import { searchClubs, findOrCreateTeamForPlayer, updatePlayerClub, AGE_DIVISIONS, TIERS } from '../lib/clubs'
 import { useNotifications } from '../hooks/useNotifications'
 import { CHALLENGE_LIST, getSpec, milestonesFor, boxCount } from '../lib/challengeSpecs'
 
@@ -24,7 +25,7 @@ const SHOT_TYPES = [
 const EMPTY_SESSION = { Wrist: 0, Snap: 0, Slap: 0, Backhand: 0 }
 const GRID_ROWS = 5 // fixed row count — matches the printable, whatever the tier
 
-export default function TrackerGrid({ player, playerChallenge, playerChallengeProgress, onShotLogged }) {
+export default function TrackerGrid({ player, playerChallenge, playerChallengeProgress, onShotLogged, onClubConnected }) {
   const { toast } = useNotifications()
   const [session, setSession] = useState(EMPTY_SESSION)
   const [saving, setSaving] = useState(false)
@@ -160,7 +161,9 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
         <div className="tg-hero-main">
           <div className="tg-kicker">Your challenge</div>
           <div className="tg-title">{spec.label} Shot Challenge</div>
-          {teamLine && <div className="tg-team">{teamLine}</div>}
+          {teamLine
+            ? <div className="tg-team">{teamLine}</div>
+            : <ConnectClubPrompt playerId={player.id} onConnected={onClubConnected} />}
           <div className="tg-progress-note">
             {Math.max(0, total - currentShots).toLocaleString()} shots left to finish the {spec.label} Challenge.
           </div>
@@ -303,6 +306,102 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
   )
 }
 
+// A player who skipped club/team at signup gets a second, low-friction chance
+// right here instead of a hard signup requirement — collecting club/age/tier
+// matters for leaderboard grouping, but blocking sign-up on it risks losing a
+// kid before they've logged a single shot. Reuses the exact same search +
+// find_or_create_team_for_player path signup goes through, so a player who
+// connects here lands on the identical team row a teammate who filled it in
+// at signup would.
+function ConnectClubPrompt({ playerId, onConnected }) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [club, setClub] = useState(null)
+  const [ageDivision, setAgeDivision] = useState('')
+  const [tier, setTier] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const timer = useRef(null)
+
+  useEffect(() => {
+    if (timer.current) clearTimeout(timer.current)
+    if (!query.trim() || query.trim().length < 2) { setResults([]); return }
+    timer.current = setTimeout(() => {
+      searchClubs(query, 6).then(setResults).catch(() => setResults([]))
+    }, 200)
+    return () => { if (timer.current) clearTimeout(timer.current) }
+  }, [query])
+
+  if (!open) {
+    return (
+      <button className="tg-connect-btn" onClick={() => setOpen(true)}>
+        + Connect your club
+      </button>
+    )
+  }
+
+  const connect = async () => {
+    if (!club || !ageDivision || !tier || saving) return
+    setSaving(true)
+    setError('')
+    try {
+      const { teamId } = await findOrCreateTeamForPlayer({ clubId: club.id, ageDivision, tier })
+      await updatePlayerClub(playerId, { clubId: club.id, clubName: club.name, teamId })
+      await onConnected?.()
+      setOpen(false)
+    } catch (e) {
+      console.error('Failed to connect club:', e)
+      setError('Could not connect — try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="tg-connect">
+      {!club ? (
+        <div className="tg-connect-search">
+          <input
+            className="tg-connect-input"
+            type="text"
+            placeholder="Burlington Eagles, Mississauga…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoFocus
+          />
+          {query.trim().length >= 2 && results.length > 0 && (
+            <div className="tg-connect-results">
+              {results.map((c) => (
+                <button key={c.id} className="tg-connect-result" onClick={() => { setClub(c); setQuery(''); setResults([]) }}>
+                  {c.name}{c.city ? ` · ${c.city}` : ''}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="tg-connect-club">{club.name}</div>
+          <select className="tg-connect-select" value={ageDivision} onChange={(e) => setAgeDivision(e.target.value)}>
+            <option value="">Age division</option>
+            {AGE_DIVISIONS.map((a) => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <select className="tg-connect-select" value={tier} onChange={(e) => setTier(e.target.value)}>
+            <option value="">Tier</option>
+            {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <button className="tg-connect-save" disabled={!ageDivision || !tier || saving} onClick={connect}>
+            {saving ? 'Connecting…' : 'Connect'}
+          </button>
+        </>
+      )}
+      {error && <div className="tg-connect-error">{error}</div>}
+      <button className="tg-connect-cancel" onClick={() => setOpen(false)}>Cancel</button>
+    </div>
+  )
+}
+
 const gridStyles = `
 .tg { margin: 16px 14px; padding: 18px; border-radius: 20px; background: #f5ead8; color: #201e1d;
   font-family: 'Figtree', system-ui, sans-serif;
@@ -313,6 +412,28 @@ const gridStyles = `
 .tg-kicker { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; color: var(--tg-accentText); margin-bottom: 4px; }
 .tg-title { font-family: 'Caprasimo', Georgia, serif; font-weight: 400; font-size: 21px; margin-bottom: 6px; }
 .tg-team { font-size: 12.5px; font-weight: 600; opacity: .78; margin-bottom: 4px; }
+.tg-connect-btn { font-family: inherit; font-size: 12px; font-weight: 700; background: transparent;
+  border: 1px dashed var(--tg-accentText); color: var(--tg-accentText); border-radius: 999px;
+  padding: 5px 12px; cursor: pointer; margin-bottom: 4px; }
+.tg-connect { background: rgba(255,255,255,0.35); border-radius: 10px; padding: 10px; margin-bottom: 8px;
+  display: flex; flex-direction: column; gap: 8px; max-width: 320px; }
+.tg-connect-search { position: relative; }
+.tg-connect-input { width: 100%; padding: 7px 10px; font-size: 13px; border-radius: 8px;
+  border: 1px solid var(--tg-divider); background: #fff; color: #201e1d; }
+.tg-connect-results { position: absolute; top: 100%; left: 0; right: 0; z-index: 5; background: #fff;
+  border: 1px solid var(--tg-divider); border-radius: 8px; margin-top: 4px; overflow: hidden; }
+.tg-connect-result { display: block; width: 100%; text-align: left; padding: 8px 10px; font-size: 12.5px;
+  background: transparent; border: none; cursor: pointer; color: #201e1d; }
+.tg-connect-result:hover { background: rgba(0,0,0,0.05); }
+.tg-connect-club { font-weight: 700; font-size: 13px; }
+.tg-connect-select { width: 100%; padding: 7px 10px; font-size: 13px; border-radius: 8px;
+  border: 1px solid var(--tg-divider); background: #fff; color: #201e1d; }
+.tg-connect-save { font-family: inherit; font-weight: 700; font-size: 12.5px; border: none; border-radius: 8px;
+  padding: 8px; cursor: pointer; background: #201e1d; color: #fff; }
+.tg-connect-save:disabled { opacity: .5; cursor: default; }
+.tg-connect-cancel { font-family: inherit; font-size: 11px; background: transparent; border: none;
+  color: var(--tg-accentText); text-decoration: underline; cursor: pointer; align-self: flex-start; }
+.tg-connect-error { font-size: 11.5px; color: #b3261e; }
 .tg-progress-note { font-size: 13px; opacity: .82; margin-bottom: 12px; }
 .tg-seg { display: inline-flex; flex-wrap: wrap; overflow: hidden; border: 1px solid var(--tg-divider); border-radius: 12px; }
 .tg-seg-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; background: transparent;

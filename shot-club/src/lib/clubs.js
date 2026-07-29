@@ -96,6 +96,19 @@ export async function getTeamsInClub(clubId) {
 }
 
 // Wraps the find_or_create_team_for_player RPC for the search-from-home flow
+// Connects an EXISTING player to a club/team after the fact — the dashboard's
+// "connect your club" prompt for anyone who skipped it at signup. Reuses the
+// same find_or_create_team_for_player RPC signup already goes through, so a
+// player who joins here lands on the exact same team row a teammate who
+// picked the same club/age/tier at signup would.
+export async function updatePlayerClub(playerId, { clubId, clubName, teamId }) {
+  const { error } = await supabase
+    .from('players')
+    .update({ team_id: teamId, club_id: clubId, club_name: clubName })
+    .eq('id', playerId)
+  if (error) throw error
+}
+
 export async function findOrCreateTeamForPlayer({ clubId, ageDivision, tier, season = '2025-26' }) {
   const { data, error } = await supabase.rpc('find_or_create_team_for_player', {
     p_club_id: clubId,

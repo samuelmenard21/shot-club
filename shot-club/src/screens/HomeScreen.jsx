@@ -523,6 +523,7 @@ export default function HomeScreen() {
               refreshStats()
               setGoalRefreshKey(k => k + 1)
             }}
+            onClubConnected={refresh}
           />
         </div>
       )}
@@ -656,7 +657,11 @@ function ChallengePickerGate({ playerId, onPicked }) {
       onPicked(ch)
     } catch (e) {
       console.error('Failed to set challenge:', e)
-      setError('Could not save that — try again.')
+      // Surfacing the real DB message (not a generic string) — this is a
+      // brand-new write path against a table created moments ago, and
+      // masking the error here is exactly what makes a permissions/schema
+      // mismatch impossible to diagnose from the outside.
+      setError(e?.message || 'Could not save that — try again.')
       setSavingId(null)
     }
   }
@@ -678,12 +683,18 @@ function ChallengePickerGate({ playerId, onPicked }) {
           >
             <div className="cpg-card-label" style={{ color: s.badge }}>{s.label}</div>
             <div className="cpg-card-shots">{s.total.toLocaleString()}</div>
-            <div className="cpg-card-blurb">{s.blurb}</div>
-            <div className="cpg-card-cta" style={{ background: s.badge, color: s.badgeFg }}>
-              {savingId === s.id ? 'Starting…' : 'Start this challenge →'}
+            <div className="cpg-card-arrow" style={{ color: s.badge }}>
+              {savingId === s.id ? '…' : '→'}
             </div>
           </button>
         ))}
+        {/* Custom goal — same grid, routes to its own screen instead of an
+            instant pick since it needs a number from the player first. */}
+        <button className="cpg-card cpg-card--custom" disabled={!!savingId} onClick={() => nav('/challenges/custom')}>
+          <div className="cpg-card-label" style={{ color: '#a78bfa' }}>Custom</div>
+          <div className="cpg-card-shots">?</div>
+          <div className="cpg-card-arrow" style={{ color: '#a78bfa' }}>→</div>
+        </button>
       </div>
       <style>{gateStyles}</style>
     </div>
@@ -691,19 +702,24 @@ function ChallengePickerGate({ playerId, onPicked }) {
 }
 
 const gateStyles = `
-.cpg { min-height: 100dvh; padding: 40px 20px; max-width: 640px; margin: 0 auto; text-align: center; }
-.cpg-kicker { font-size: 12px; font-weight: 800; letter-spacing: 2px; color: var(--accent); margin-bottom: 10px; }
-.cpg-title { font-family: var(--font-display); font-size: clamp(26px, 7vw, 36px); font-weight: 800; color: white; margin-bottom: 10px; }
-.cpg-sub { font-size: 14px; color: var(--text-soft); margin-bottom: 28px; line-height: 1.5; }
-.cpg-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 20px; }
-.cpg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-.cpg-card { border: 2px solid; border-radius: 14px; padding: 20px; background: rgba(255,255,255,0.02); cursor: pointer; text-align: left; transition: transform 0.15s; }
-.cpg-card:not(:disabled):hover { transform: translateY(-3px); }
+.cpg { min-height: 100dvh; padding: 28px 16px; max-width: 560px; margin: 0 auto; text-align: center;
+  display: flex; flex-direction: column; justify-content: center; }
+.cpg-kicker { font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--accent); margin-bottom: 8px; }
+.cpg-title { font-family: var(--font-display); font-size: clamp(22px, 6vw, 30px); font-weight: 800; color: white; margin-bottom: 6px; }
+.cpg-sub { font-size: 13px; color: var(--text-soft); margin-bottom: 18px; line-height: 1.4; }
+.cpg-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 8px; padding: 9px 12px; font-size: 12.5px; margin-bottom: 14px; }
+/* Fixed 2-up (3-up once there's room) so all 5 cards read as one compact
+   board instead of a long single-column scroll on a phone. */
+.cpg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (min-width: 420px) { .cpg-grid { grid-template-columns: repeat(3, 1fr); } }
+.cpg-card { border: 2px solid; border-radius: 12px; padding: 12px 10px; background: rgba(255,255,255,0.02);
+  cursor: pointer; text-align: left; transition: transform 0.15s; display: flex; flex-direction: column; gap: 2px; }
+.cpg-card:not(:disabled):hover { transform: translateY(-2px); }
 .cpg-card:disabled { cursor: default; }
-.cpg-card-label { font-weight: 800; font-size: 15px; margin-bottom: 4px; }
-.cpg-card-shots { font-family: var(--font-display); font-size: 26px; font-weight: 900; color: white; margin-bottom: 6px; }
-.cpg-card-blurb { font-size: 12.5px; color: var(--text-mute); line-height: 1.4; margin-bottom: 14px; min-height: 34px; }
-.cpg-card-cta { border-radius: 8px; padding: 9px; text-align: center; font-weight: 800; font-size: 13px; }
+.cpg-card--custom { border-style: dashed; }
+.cpg-card-label { font-weight: 800; font-size: 12.5px; }
+.cpg-card-shots { font-family: var(--font-display); font-size: 19px; font-weight: 900; color: white; }
+.cpg-card-arrow { font-weight: 800; font-size: 13px; margin-top: 2px; }
 `
 
 function JoinTeamPanel({ playerId, onJoined }) {

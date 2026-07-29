@@ -19,9 +19,12 @@ export default function AuthScreen() {
   const [mode, setMode] = useState('signup')
   const [step, setStep] = useState(1)
   const [signingUpFor, setSigningUpFor] = useState(null) // 'self' | 'player'
-  // Default to 'solo' so a kid can blow straight through — they can join a team
-  // later once they're hooked. Job 1 is getting them tracking, not onboarding.
-  const [path, setPath] = useState('solo') // 'club' | 'join' | 'solo'
+  // No default: club/age/tier matters for leaderboard grouping, so the club
+  // search is the page's default posture — 'solo' now only sets when the
+  // player consciously clicks "I don't have a club yet". A dashboard prompt
+  // (TrackerGrid's ConnectClubPrompt) gives a second, lower-friction chance
+  // to fill this in later for anyone who skips it here.
+  const [path, setPath] = useState(null) // 'club' | 'join' | 'solo'
   const [teamName, setTeamName] = useState('')
   const [clubName, setClubName] = useState('')
   const [preClub, setPreClub] = useState(null) // when arriving from /join/<slug>
@@ -131,11 +134,6 @@ export default function AuthScreen() {
       }
     })()
   }, [searchParams])
-
-  const choosePath = (p) => {
-    setPath(p)
-    setError('')
-  }
 
   // Derive age bracket from division so we don't need to ask separately
   function ageBracketFromDivision(div) {
@@ -509,196 +507,109 @@ export default function AuthScreen() {
                   )}
                 </div>
 
-                <div className={`path-card ${path === 'join' ? 'path-card--active' : ''}`} onClick={() => choosePath('join')}>
+                {/* One club-search flow, not two near-identical cards. Grouping by
+                    club/age/tier matters for leaderboards, so the search is the
+                    default posture — "I don't have a club yet" is a small,
+                    conscious link, not a pre-selected sibling option. */}
+                <div className="path-card path-card--active">
                   <div className="path-head">
                     <div className="path-icon">🏒</div>
                     <div>
-                      <div className="path-title">Join a team</div>
-                      <div className="path-sub">Compete with your teammates</div>
-                    </div>
-                    <div className={`path-check ${path === 'join' ? 'path-check--active' : ''}`}>
-                      {path === 'join' ? '✓' : ''}
+                      <div className="path-title">Find your club</div>
+                      <div className="path-sub">Groups you with your team on the leaderboard</div>
                     </div>
                   </div>
-                  {path === 'join' && (
-                    <div className="path-body">
-                      {!joinClub ? (
-                        <>
-                          <div className="path-hint" style={{ marginBottom: 10 }}>
-                            Search for your club to find your team.
-                          </div>
-                          <div style={{ position: 'relative' }}>
-                            <input
-                              type="text"
-                              value={joinClubQuery}
-                              onChange={(e) => setJoinClubQuery(e.target.value)}
-                              placeholder="Burlington Eagles, Mississauga…"
-                              autoCorrect="off"
-                              autoCapitalize="none"
-                              spellCheck="false"
-                              className="input-field"
-                              autoFocus
-                            />
-                            {joinClubQuery.trim().length >= 2 && (
-                              <div className="join-club-dropdown">
-                                {joinSearching && <div className="join-club-status">Searching…</div>}
-                                {!joinSearching && joinClubResults.length === 0 && (
-                                  <div className="join-club-status">No clubs found.</div>
-                                )}
-                                {joinClubResults.map((c) => (
-                                  <button
-                                    key={c.id}
-                                    className="join-club-result"
-                                    onClick={() => { setJoinClub(c); setJoinClubQuery(''); setJoinClubResults([]) }}
-                                  >
-                                    <span className="join-club-result-name">{c.name}</span>
-                                    {c.city && <span className="join-club-result-meta">{c.city}</span>}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          {!showFreeText ? (
-                            <button className="btn-text" style={{ marginTop: 6, fontSize: 11 }} onClick={() => setShowFreeText(true)}>
-                              My club isn't listed
-                            </button>
-                          ) : (
-                            <>
-                              <label className="input-label" style={{ marginTop: 12 }}>
-                                <span>Team name</span>
-                                <input
-                                  type="text"
-                                  value={teamName}
-                                  onChange={(e) => setTeamName(e.target.value.toUpperCase())}
-                                  placeholder="e.g. NORTHSTARS"
-                                  autoCapitalize="characters"
-                                  autoCorrect="off"
-                                  spellCheck="false"
-                                  className="input-field input-field--code"
-                                />
-                              </label>
-                              <div className="path-hint">Same name as your teammates = same leaderboard.</div>
-                            </>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <div className="join-club-selected">
-                            <div className="join-club-selected-name">{joinClub.name}</div>
-                            {joinClub.city && <div className="join-club-selected-city">{joinClub.city}</div>}
-                            <button className="join-club-change" onClick={() => { setJoinClub(null); setAgeDivision(''); setTier('') }}>Change</button>
-                          </div>
-                          <label className="input-label" style={{ marginTop: 12 }}>
-                            <span>Age division</span>
-                            <select value={ageDivision} onChange={(e) => setAgeDivision(e.target.value)} className="input-field">
-                              <option value="">Pick one</option>
-                              {AGE_DIVISIONS.map((a) => <option key={a} value={a}>{a}</option>)}
-                            </select>
-                          </label>
-                          <label className="input-label" style={{ marginTop: 10 }}>
-                            <span>Tier</span>
-                            <select value={tier} onChange={(e) => setTier(e.target.value)} className="input-field">
-                              <option value="">Pick one</option>
-                              {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
-                            </select>
-                          </label>
-                          <div className="path-hint" style={{ marginTop: 6 }}>Not sure? Ask your coach.</div>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="or-divider">or</div>
-
-                <div
-                  className={`path-card ${path === 'solo' ? 'path-card--active' : ''}`}
-                  onClick={() => { if (path !== 'solo') choosePath('solo') }}
-                >
-                  <div className="path-head">
-                    <div className="path-icon">🎯</div>
-                    <div>
-                      <div className="path-title">No team invite yet</div>
-                      <div className="path-sub">Start on your own — you can join a team later</div>
-                    </div>
-                    <div className={`path-check ${path === 'solo' ? 'path-check--active' : ''}`}>
-                      {path === 'solo' ? '✓' : ''}
-                    </div>
-                  </div>
-                  {path === 'solo' && (
-                    <div className="path-body" onClick={(e) => e.stopPropagation()}>
-                      <div className="path-hint" style={{ marginBottom: 10 }}>
-                        Find your club so your stats count on the association leaderboard.
-                      </div>
-                      {!joinClub ? (
-                        <>
-                          <div style={{ position: 'relative' }}>
-                            <input
-                              type="text"
-                              value={joinClubQuery}
-                              onChange={(e) => setJoinClubQuery(e.target.value)}
-                              placeholder="Burlington Eagles, Mississauga…"
-                              autoCorrect="off"
-                              autoCapitalize="none"
-                              spellCheck="false"
-                              className="input-field"
-                              autoFocus
-                            />
-                            {joinClubQuery.trim().length >= 2 && (
-                              <div className="join-club-dropdown">
-                                {joinSearching && <div className="join-club-status">Searching…</div>}
-                                {!joinSearching && joinClubResults.length === 0 && (
-                                  <div className="join-club-status">No clubs found.</div>
-                                )}
-                                {joinClubResults.map((c) => (
-                                  <button
-                                    key={c.id}
-                                    className="join-club-result"
-                                    onClick={() => { setJoinClub(c); setJoinClubQuery(''); setJoinClubResults([]) }}
-                                  >
-                                    <span className="join-club-result-name">{c.name}</span>
-                                    {c.city && <span className="join-club-result-meta">{c.city}</span>}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          {!showFreeText ? (
-                            <button className="btn-text" style={{ marginTop: 6, fontSize: 11 }} onClick={() => setShowFreeText(true)}>
-                              My club isn't listed
-                            </button>
-                          ) : (
-                            <div className="path-hint" style={{ marginTop: 8 }}>
-                              No problem — your stats will be personal for now. You can link your club later.
+                  <div className="path-body">
+                    {!joinClub ? (
+                      <>
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            type="text"
+                            value={joinClubQuery}
+                            onChange={(e) => setJoinClubQuery(e.target.value)}
+                            placeholder="Burlington Eagles, Mississauga…"
+                            autoCorrect="off"
+                            autoCapitalize="none"
+                            spellCheck="false"
+                            className="input-field"
+                            autoFocus
+                          />
+                          {joinClubQuery.trim().length >= 2 && (
+                            <div className="join-club-dropdown">
+                              {joinSearching && <div className="join-club-status">Searching…</div>}
+                              {!joinSearching && joinClubResults.length === 0 && (
+                                <div className="join-club-status">No clubs found.</div>
+                              )}
+                              {joinClubResults.map((c) => (
+                                <button
+                                  key={c.id}
+                                  className="join-club-result"
+                                  onClick={() => { setJoinClub(c); setJoinClubQuery(''); setJoinClubResults([]); setPath('join') }}
+                                >
+                                  <span className="join-club-result-name">{c.name}</span>
+                                  {c.city && <span className="join-club-result-meta">{c.city}</span>}
+                                </button>
+                              ))}
                             </div>
                           )}
-                        </>
-                      ) : (
-                        <>
-                          <div className="join-club-selected">
-                            <div className="join-club-selected-name">{joinClub.name}</div>
-                            {joinClub.city && <div className="join-club-selected-city">{joinClub.city}</div>}
-                            <button className="join-club-change" onClick={() => { setJoinClub(null); setAgeDivision(''); setTier('') }}>Change</button>
+                        </div>
+                        {!showFreeText ? (
+                          <button className="btn-text" style={{ marginTop: 6, fontSize: 11 }} onClick={() => setShowFreeText(true)}>
+                            My club isn't listed
+                          </button>
+                        ) : (
+                          <>
+                            <label className="input-label" style={{ marginTop: 12 }}>
+                              <span>Team name</span>
+                              <input
+                                type="text"
+                                value={teamName}
+                                onChange={(e) => { setTeamName(e.target.value.toUpperCase()); setPath('join') }}
+                                placeholder="e.g. NORTHSTARS"
+                                autoCapitalize="characters"
+                                autoCorrect="off"
+                                spellCheck="false"
+                                className="input-field input-field--code"
+                              />
+                            </label>
+                            <div className="path-hint">Same name as your teammates = same leaderboard.</div>
+                          </>
+                        )}
+                        {path === 'solo' ? (
+                          <div className="path-hint" style={{ marginTop: 10, fontWeight: 700 }}>
+                            No problem — starting without a club. <button className="btn-text" style={{ fontSize: 11, padding: 0 }} onClick={() => setPath(null)}>Actually, let me search</button>
                           </div>
-                          <label className="input-label" style={{ marginTop: 12 }}>
-                            <span>Age division</span>
-                            <select value={ageDivision} onChange={(e) => setAgeDivision(e.target.value)} className="input-field">
-                              <option value="">Pick one</option>
-                              {AGE_DIVISIONS.map((a) => <option key={a} value={a}>{a}</option>)}
-                            </select>
-                          </label>
-                          <label className="input-label" style={{ marginTop: 10 }}>
-                            <span>Tier</span>
-                            <select value={tier} onChange={(e) => setTier(e.target.value)} className="input-field">
-                              <option value="">Pick one</option>
-                              {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
-                            </select>
-                          </label>
-                          <div className="path-hint" style={{ marginTop: 6 }}>Not sure? Ask your coach.</div>
-                        </>
-                      )}
-                    </div>
-                  )}
+                        ) : (
+                          <button className="btn-text" style={{ marginTop: 10, fontSize: 12 }} onClick={() => setPath('solo')}>
+                            I don't have a club yet — skip this
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="join-club-selected">
+                          <div className="join-club-selected-name">{joinClub.name}</div>
+                          {joinClub.city && <div className="join-club-selected-city">{joinClub.city}</div>}
+                          <button className="join-club-change" onClick={() => { setJoinClub(null); setAgeDivision(''); setTier('') }}>Change</button>
+                        </div>
+                        <label className="input-label" style={{ marginTop: 12 }}>
+                          <span>Age division</span>
+                          <select value={ageDivision} onChange={(e) => setAgeDivision(e.target.value)} className="input-field">
+                            <option value="">Pick one</option>
+                            {AGE_DIVISIONS.map((a) => <option key={a} value={a}>{a}</option>)}
+                          </select>
+                        </label>
+                        <label className="input-label" style={{ marginTop: 10 }}>
+                          <span>Tier</span>
+                          <select value={tier} onChange={(e) => setTier(e.target.value)} className="input-field">
+                            <option value="">Pick one</option>
+                            {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        </label>
+                        <div className="path-hint" style={{ marginTop: 6 }}>Not sure? Ask your coach.</div>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
