@@ -6,5 +6,10 @@
 /sitemap-static.xml   /sitemap.xml   301
 /sitemap-clubs.xml    /sitemap.xml   301
 
+# Old two-tier challenge pages -> the matching page in the new four-tier
+# (Rookie/Pro/Elite/Hall of Famer) system, carrying over search equity.
+/5000-shot-challenge    /5000-shot-elite-challenge             301
+/10000-shot-challenge   /10000-shot-hall-of-famer-challenge    301
+
 # SPA fallback — all client routes serve index.html
 /* /index.html 200

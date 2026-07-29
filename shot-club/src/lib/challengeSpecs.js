@@ -25,6 +25,7 @@ export const CHALLENGE_SPECS = {
     shortLabel: 'Rookie · 1,000 shots',
     weeks: 2,
     blurb: 'Finish in a couple weeks and get hooked',
+    landingPath: '/1000-shot-rookie-challenge',
   },
   '2_5k': {
     id: '2_5k',
@@ -36,6 +37,7 @@ export const CHALLENGE_SPECS = {
     shortLabel: 'Pro · 2,500 shots',
     weeks: 4,
     blurb: 'Step up after Rookie, or a quick 4-week sprint',
+    landingPath: '/2500-shot-pro-challenge',
   },
   '5k': {
     id: '5k',
@@ -47,6 +49,7 @@ export const CHALLENGE_SPECS = {
     shortLabel: 'Elite · 5,000 shots',
     weeks: 8,
     blurb: 'A full summer of work',
+    landingPath: '/5000-shot-elite-challenge',
   },
   '10k': {
     id: '10k',
@@ -58,6 +61,7 @@ export const CHALLENGE_SPECS = {
     shortLabel: 'Hall of Famer · 10,000 shots',
     weeks: 8,
     blurb: 'The classic summer challenge',
+    landingPath: '/10000-shot-hall-of-famer-challenge',
   },
 }
 

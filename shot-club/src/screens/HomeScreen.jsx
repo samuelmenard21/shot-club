@@ -8,7 +8,11 @@ import { getRank } from '../lib/ranks'
 import { claimAchievements, isStreakInRecovery } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
 import { getSkillVideos } from '../lib/videos'
-import { getTeamChallenge, getTeamWeeklyShots, getMyBattle, getPlayerChallenge, getPlayerChallengeProgress, applyPendingChallenge } from '../lib/challenges'
+import {
+  getTeamChallenge, getTeamWeeklyShots, getMyBattle, getPlayerChallenge, getPlayerChallengeProgress,
+  applyPendingChallenge, setPlayerChallenge as savePlayerChallenge, // aliased — this file's own state setter is named setPlayerChallenge
+} from '../lib/challenges'
+import { CHALLENGE_LIST } from '../lib/challengeSpecs'
 import { checkMilestone, getMilestoneMessage, getGoalCompletionMessage } from '../lib/milestones'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
@@ -53,6 +57,10 @@ export default function HomeScreen() {
   const [squadBattle, setSquadBattle] = useState(null)
   const [playerChallenge, setPlayerChallenge] = useState(null)
   const [playerChallengeProgress, setPlayerChallengeProgress] = useState(null)
+  // Distinct from playerChallenge===null: that's ALSO the pre-fetch state, and
+  // without this the "pick a challenge" gate below would flash open on every
+  // load (challenge or not) for the instant before the fetch resolves.
+  const [challengeChecked, setChallengeChecked] = useState(false)
   const prevChallengeProgressRef = useRef(null)
 
   const shotTypes = player?.position === 'G' ? SHOT_TYPES_GOALIE : SHOT_TYPES_SHOOTER
@@ -76,6 +84,7 @@ export default function HomeScreen() {
       })
       .then((progress) => setPlayerChallengeProgress(progress))
       .catch(() => {})
+      .finally(() => setChallengeChecked(true))
 
     if (player.team_id) {
       Promise.all([
@@ -241,6 +250,28 @@ export default function HomeScreen() {
   }
 
   if (!player) return null
+
+  // Onboarding is picking a challenge — nothing else. A player with no
+  // challenge yet used to see the FULL dashboard (rank card, an unrelated
+  // "Today's Challenge: 50 wrist shots" daily-goal widget, shot-logging
+  // tiles) with the actual prompt buried as one card among several. Until
+  // challengeChecked flips (the fetch above resolves), render nothing rather
+  // than flash this gate open for players who already have a challenge.
+  if (challengeChecked && !playerChallenge) {
+    return (
+      <ChallengePickerGate
+        playerId={player.id}
+        onPicked={(ch) => {
+          setPlayerChallenge(ch)
+          // TrackerGrid needs both playerChallenge AND playerChallengeProgress
+          // to render — the effect that normally loads progress only re-runs
+          // on [player], which hasn't changed, so fetch it directly here.
+          getPlayerChallengeProgress(player.id).then(setPlayerChallengeProgress).catch(() => {})
+        }}
+      />
+    )
+  }
+  if (!challengeChecked) return null
 
   const lastLog = undoStack[undoStack.length - 1]
   const hasRecentLog = !!lastLog
@@ -608,6 +639,72 @@ export default function HomeScreen() {
     </div>
   )
 }
+
+// The ONLY thing a player with no challenge sees — no rank card, no daily
+// widgets, no shot tiles competing for attention. Picking a challenge is the
+// single onboarding step; everything else waits for it.
+function ChallengePickerGate({ playerId, onPicked }) {
+  const [savingId, setSavingId] = useState(null)
+  const [error, setError] = useState('')
+
+  const pick = async (spec) => {
+    if (savingId) return
+    setSavingId(spec.id)
+    setError('')
+    try {
+      const ch = await savePlayerChallenge(playerId, spec.id, spec.total)
+      onPicked(ch)
+    } catch (e) {
+      console.error('Failed to set challenge:', e)
+      setError('Could not save that — try again.')
+      setSavingId(null)
+    }
+  }
+
+  return (
+    <div className="cpg">
+      <div className="cpg-kicker">START HERE</div>
+      <h1 className="cpg-title">Pick Your Challenge</h1>
+      <p className="cpg-sub">Everything else — logging shots, your rank, your streak — starts once you've picked a goal.</p>
+      {error && <div className="cpg-error">{error}</div>}
+      <div className="cpg-grid">
+        {CHALLENGE_LIST.map((s) => (
+          <button
+            key={s.id}
+            className="cpg-card"
+            style={{ borderColor: s.badge, opacity: savingId && savingId !== s.id ? 0.5 : 1 }}
+            disabled={!!savingId}
+            onClick={() => pick(s)}
+          >
+            <div className="cpg-card-label" style={{ color: s.badge }}>{s.label}</div>
+            <div className="cpg-card-shots">{s.total.toLocaleString()}</div>
+            <div className="cpg-card-blurb">{s.blurb}</div>
+            <div className="cpg-card-cta" style={{ background: s.badge, color: s.badgeFg }}>
+              {savingId === s.id ? 'Starting…' : 'Start this challenge →'}
+            </div>
+          </button>
+        ))}
+      </div>
+      <style>{gateStyles}</style>
+    </div>
+  )
+}
+
+const gateStyles = `
+.cpg { min-height: 100dvh; padding: 40px 20px; max-width: 640px; margin: 0 auto; text-align: center; }
+.cpg-kicker { font-size: 12px; font-weight: 800; letter-spacing: 2px; color: var(--accent); margin-bottom: 10px; }
+.cpg-title { font-family: var(--font-display); font-size: clamp(26px, 7vw, 36px); font-weight: 800; color: white; margin-bottom: 10px; }
+.cpg-sub { font-size: 14px; color: var(--text-soft); margin-bottom: 28px; line-height: 1.5; }
+.cpg-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 20px; }
+.cpg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.cpg-card { border: 2px solid; border-radius: 14px; padding: 20px; background: rgba(255,255,255,0.02); cursor: pointer; text-align: left; transition: transform 0.15s; }
+.cpg-card:not(:disabled):hover { transform: translateY(-3px); }
+.cpg-card:disabled { cursor: default; }
+.cpg-card-label { font-weight: 800; font-size: 15px; margin-bottom: 4px; }
+.cpg-card-shots { font-family: var(--font-display); font-size: 26px; font-weight: 900; color: white; margin-bottom: 6px; }
+.cpg-card-blurb { font-size: 12.5px; color: var(--text-mute); line-height: 1.4; margin-bottom: 14px; min-height: 34px; }
+.cpg-card-cta { border-radius: 8px; padding: 9px; text-align: center; font-weight: 800; font-size: 13px; }
+`
 
 function JoinTeamPanel({ playerId, onJoined }) {
   const [code, setCode] = useState('')

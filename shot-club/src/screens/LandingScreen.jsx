@@ -5,7 +5,7 @@ import ContactSection from '../components/ContactSection'
 import { searchClubs } from '../lib/clubs'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { CHALLENGE_LIST, weeklyPace, printableHref } from '../lib/challengeSpecs'
+import { CHALLENGE_LIST, weeklyPace } from '../lib/challengeSpecs'
 
 export default function LandingScreen() {
   const nav = useNavigate()
@@ -14,7 +14,6 @@ export default function LandingScreen() {
   const [clubResults, setClubResults] = useState([])
   const [searchingClubs, setSearchingClubs] = useState(false)
   const [totalShots, setTotalShots] = useState(null)
-  const [selectedChallenge, setSelectedChallenge] = useState(null)
   const searchTimer = useRef(null)
   const searchInputRef = useRef(null)
 
@@ -24,8 +23,9 @@ export default function LandingScreen() {
     id: s.id,
     shots: s.total,
     pace: weeklyPace(s),
-    label: s.shortLabel,
+    label: s.label,
     color: s.badge,
+    landingPath: s.landingPath,
   }))
 
   useEffect(() => {
@@ -127,122 +127,48 @@ export default function LandingScreen() {
           </div>
         )}
 
-        {/* CHALLENGE ENTRY HUB */}
+        {/* CHALLENGE HUB — one picker, not two. Each card goes straight to that
+            challenge's own page, where paper vs. digital gets a real choice with
+            room to sell both — not a cramped sub-picker crammed onto the homepage. */}
         <div style={{ maxWidth: 900, margin: '60px auto 0', padding: '40px 20px', borderTop: '2px solid rgba(255,255,255,0.1)' }}>
           <div style={{ textAlign: 'center', marginBottom: 30 }}>
             <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, color: 'var(--accent)', marginBottom: 12, textTransform: 'uppercase' }}>
               START HERE
             </div>
             <h2 style={{ fontSize: 28, fontWeight: 800, color: 'white', marginBottom: 8 }}>Pick a Challenge</h2>
-            <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
-              {selectedChallenge
-                ? 'Choose paper or digital tracking'
-                : 'Choose your goal, then pick paper or digital'}
-            </p>
+            <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>Free on paper or online — every sheet links straight to the app when you're ready.</p>
           </div>
 
-          {!selectedChallenge ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, maxWidth: 800, margin: '0 auto' }}>
-              {challenges.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setSelectedChallenge(c)}
-                  style={{
-                    border: '2px solid',
-                    borderColor: c.color,
-                    borderRadius: 12,
-                    background: `linear-gradient(135deg, rgba(${parseInt(c.color.slice(1,3), 16)}, ${parseInt(c.color.slice(3,5), 16)}, ${parseInt(c.color.slice(5,7), 16)}, 0.05) 0%, rgba(${parseInt(c.color.slice(1,3), 16)}, ${parseInt(c.color.slice(3,5), 16)}, ${parseInt(c.color.slice(5,7), 16)}, 0) 100%)`,
-                    padding: 20,
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    transition: 'all 0.3s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)'
-                    e.currentTarget.style.boxShadow = `0 12px 24px rgba(${parseInt(c.color.slice(1,3), 16)}, ${parseInt(c.color.slice(3,5), 16)}, ${parseInt(c.color.slice(5,7), 16)}, 0.2)`
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
-                >
-                  <div style={{ fontSize: 20, fontWeight: 800, color: c.color, marginBottom: 8 }}>{c.label}</div>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: 'white', marginBottom: 4 }}>{c.shots.toLocaleString()}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>{c.pace.toLocaleString()} shots/week</div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div style={{ maxWidth: 600, margin: '0 auto' }}>
-              <div style={{ marginBottom: 20, textAlign: 'center' }}>
-                <button
-                  onClick={() => setSelectedChallenge(null)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-soft)',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    textDecoration: 'underline',
-                  }}
-                >
-                  ← Pick a different challenge
-                </button>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <button
-                  onClick={() => window.open(printableHref(selectedChallenge.id, { autoPrint: true }), '_blank', 'noopener')}
-                  style={{
-                    border: '2px solid rgba(255,255,255,0.2)',
-                    borderRadius: 12,
-                    background: 'rgba(255,255,255,0.02)',
-                    padding: 24,
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    color: 'white',
-                    fontWeight: 700,
-                    transition: 'all 0.3s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.02)'
-                  }}
-                >
-                  <div style={{ fontSize: 28, marginBottom: 8 }}>📄</div>
-                  <div>Get the Paper Tracker</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-soft)', marginTop: 8 }}>Print & stick on your fridge</div>
-                </button>
-                <button
-                  onClick={() => nav(`/start?challenge=${selectedChallenge.id}&src=home`)}
-                  style={{
-                    border: `2px solid ${selectedChallenge.color}`,
-                    borderRadius: 12,
-                    background: `linear-gradient(135deg, rgba(${parseInt(selectedChallenge.color.slice(1,3), 16)}, ${parseInt(selectedChallenge.color.slice(3,5), 16)}, ${parseInt(selectedChallenge.color.slice(5,7), 16)}, 0.15) 0%, rgba(${parseInt(selectedChallenge.color.slice(1,3), 16)}, ${parseInt(selectedChallenge.color.slice(3,5), 16)}, ${parseInt(selectedChallenge.color.slice(5,7), 16)}, 0.05) 100%)`,
-                    padding: 24,
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    color: 'white',
-                    fontWeight: 700,
-                    transition: 'all 0.3s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)'
-                  }}
-                >
-                  <div style={{ fontSize: 28, marginBottom: 8 }}>📱</div>
-                  <div>Track Digitally</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-soft)', marginTop: 8 }}>Live leaderboards & ranks</div>
-                </button>
-              </div>
-            </div>
-          )}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, maxWidth: 800, margin: '0 auto' }}>
+            {challenges.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => nav(c.landingPath)}
+                style={{
+                  border: '2px solid',
+                  borderColor: c.color,
+                  borderRadius: 12,
+                  background: `linear-gradient(135deg, rgba(${parseInt(c.color.slice(1,3), 16)}, ${parseInt(c.color.slice(3,5), 16)}, ${parseInt(c.color.slice(5,7), 16)}, 0.05) 0%, rgba(${parseInt(c.color.slice(1,3), 16)}, ${parseInt(c.color.slice(3,5), 16)}, ${parseInt(c.color.slice(5,7), 16)}, 0) 100%)`,
+                  padding: 20,
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  transition: 'all 0.3s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)'
+                  e.currentTarget.style.boxShadow = `0 12px 24px rgba(${parseInt(c.color.slice(1,3), 16)}, ${parseInt(c.color.slice(3,5), 16)}, ${parseInt(c.color.slice(5,7), 16)}, 0.2)`
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+              >
+                <div style={{ fontSize: 20, fontWeight: 800, color: c.color, marginBottom: 8 }}>{c.label}</div>
+                <div style={{ fontSize: 24, fontWeight: 900, color: 'white', marginBottom: 4 }}>{c.shots.toLocaleString()}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>{c.pace.toLocaleString()} shots/week</div>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Three-path split */}
@@ -330,20 +256,6 @@ export default function LandingScreen() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PREFER PAPER? (printable trackers) ── */}
-      <section style={{ maxWidth: 720, margin: '8px auto 0', padding: '20px', textAlign: 'center' }}>
-        <div style={{ border: '1px solid var(--border-dim)', borderRadius: 16, padding: '22px 20px', background: 'rgba(255,255,255,0.02)' }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>📄 Prefer paper? Grab a free printable tracker</div>
-          <div style={{ fontSize: 13, color: 'var(--text-mute)', marginBottom: 16 }}>
-            Print it, stick it on the fridge, color a box every practice. Each sheet has a QR code to go digital whenever you're ready.
-          </div>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="/5k-tracker.html?print=1" target="_blank" rel="noopener" style={{ background: 'rgba(255,122,41,0.15)', border: '1px solid rgba(255,122,41,0.4)', color: '#ffb27a', textDecoration: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, fontSize: 14 }}>🎯 5,000 Shot Sheet</a>
-            <a href="/10k-tracker.html?print=1" target="_blank" rel="noopener" style={{ background: 'rgba(41,121,255,0.15)', border: '1px solid rgba(41,121,255,0.4)', color: 'var(--ice)', textDecoration: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 700, fontSize: 14 }}>🏒 10,000 Shot Sheet</a>
           </div>
         </div>
       </section>
@@ -535,8 +447,9 @@ export default function LandingScreen() {
           <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/for-clubs')}>For clubs</button>
           <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/coach')}>Coaches</button>
           <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/blog')}>Guides</button>
-          <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/10000-shot-challenge')}>10K Challenge</button>
-          <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/5000-shot-challenge')}>5K Challenge</button>
+          {challenges.map((c) => (
+            <button key={c.id} className="foot-link foot-link--hide-mobile" onClick={() => nav(c.landingPath)}>{c.label}</button>
+          ))}
           <a href="https://www.usahockey.com" target="_blank" rel="noopener noreferrer" className="foot-link foot-link--hide-mobile" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>USA Hockey</a>
           <a href="https://www.hockeycanada.ca" target="_blank" rel="noopener noreferrer" className="foot-link foot-link--hide-mobile" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>Hockey Canada</a>
         </div>

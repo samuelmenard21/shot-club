@@ -19,8 +19,7 @@ import SquadBattlesPost from './screens/blog/SquadBattlesPost'
 import OffIceDrillsPost from './screens/blog/OffIceDrillsPost'
 import PracticeRoutinePost from './screens/blog/PracticeRoutinePost'
 import ParentsGuidePost from './screens/blog/ParentsGuidePost'
-import TenKChallengeScreen from './screens/TenKChallengeScreen'
-import FiveKChallengeScreen from './screens/FiveKChallengeScreen'
+import ChallengeLandingScreen from './screens/ChallengeLandingScreen'
 import AssociationPartnershipScreen from './screens/AssociationPartnershipScreen'
 import ChallengeSelector from './screens/ChallengeSelector'
 import ProvinceWideChallengeScreen from './screens/ProvinceWideChallengeScreen'
@@ -164,8 +163,13 @@ function ShellWrapper() {
         <Route path="/blog/parents-guide-youth-hockey" element={<ParentsGuidePost />} />
         <Route path="/challenges" element={<ChallengeSelector />} />
         <Route path="/challenges/custom" element={<Protected><CustomChallengeScreen /></Protected>} />
-        <Route path="/5000-shot-challenge" element={<FiveKChallengeScreen />} />
-        <Route path="/10000-shot-challenge" element={<TenKChallengeScreen />} />
+        {/* One template, four tiers — old /5000-shot-challenge and
+            /10000-shot-challenge 301 to their -elite-/-hall-of-famer- successors
+            (see public/_redirects), so those two routes are gone entirely. */}
+        <Route path="/1000-shot-rookie-challenge" element={<ChallengeLandingScreen challengeId="1k" />} />
+        <Route path="/2500-shot-pro-challenge" element={<ChallengeLandingScreen challengeId="2_5k" />} />
+        <Route path="/5000-shot-elite-challenge" element={<ChallengeLandingScreen challengeId="5k" />} />
+        <Route path="/10000-shot-hall-of-famer-challenge" element={<ChallengeLandingScreen challengeId="10k" />} />
         <Route path="/association-partnership" element={<AssociationPartnershipScreen />} />
         <Route path="/province-wide-challenge" element={<ProvinceWideChallengeScreen />} />
 
