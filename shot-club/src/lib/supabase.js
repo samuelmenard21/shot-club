@@ -25,7 +25,7 @@ export const supabase = createClient(url, key, {
 // once: the local session is wiped (which is what "clearing cache" was really
 // fixing) and the caller gets a clean signed-out result instead of hanging.
 export async function getUserSafe() {
-  const timeout = new Promise((resolve) => setTimeout(() => resolve('timeout'), 6000))
+  const timeout = new Promise((resolve) => setTimeout(() => resolve('timeout'), 3000))
   const result = await Promise.race([supabase.auth.getUser(), timeout])
   if (result === 'timeout') {
     await supabase.auth.signOut({ scope: 'local' })

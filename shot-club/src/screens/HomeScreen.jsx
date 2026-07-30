@@ -690,21 +690,26 @@ function ChallengePickerGate({ playerId, onPicked }) {
       <p className="cpg-sub">Everything else — logging shots, your rank, your streak — starts once you've picked a goal.</p>
       {error && <div className="cpg-error">{error}</div>}
       <div className="cpg-grid">
-        {CHALLENGE_LIST.map((s) => (
-          <button
-            key={s.id}
-            className="cpg-card"
-            style={{ borderColor: s.badge, opacity: savingId && savingId !== s.id ? 0.5 : 1 }}
-            disabled={!!savingId}
-            onClick={() => pick(s)}
-          >
-            <div className="cpg-card-label" style={{ color: s.badge }}>{s.label}</div>
-            <div className="cpg-card-shots">{s.total.toLocaleString()}</div>
-            <div className="cpg-card-arrow" style={{ color: s.badge }}>
-              {savingId === s.id ? '…' : '→'}
-            </div>
-          </button>
-        ))}
+        {CHALLENGE_LIST.map((s) => {
+          // s.badge is tuned for light cream cards elsewhere — '10k' badge is
+          // near-black and unreadable on this dark card background.
+          const accent = s.id === '10k' ? '#d4af6a' : s.badge
+          return (
+            <button
+              key={s.id}
+              className="cpg-card"
+              style={{ borderColor: accent, opacity: savingId && savingId !== s.id ? 0.5 : 1 }}
+              disabled={!!savingId}
+              onClick={() => pick(s)}
+            >
+              <div className="cpg-card-label" style={{ color: accent }}>{s.label}</div>
+              <div className="cpg-card-shots">{s.total.toLocaleString()}</div>
+              <div className="cpg-card-arrow" style={{ color: accent }}>
+                {savingId === s.id ? '…' : '→'}
+              </div>
+            </button>
+          )
+        })}
       </div>
       <style>{gateStyles}</style>
     </div>

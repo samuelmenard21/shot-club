@@ -24,7 +24,10 @@ export default function LandingScreen() {
     shots: s.total,
     pace: weeklyPace(s),
     label: s.label,
-    color: s.badge,
+    // s.badge is tuned for the light cream cards elsewhere (printables,
+    // dashboard) — '10k' badge is near-black and unreadable on this dark
+    // homepage background, so give it a brighter gold stand-in here only.
+    color: s.id === '10k' ? '#d4af6a' : s.badge,
     landingPath: s.landingPath,
   }))
 
@@ -103,7 +106,6 @@ export default function LandingScreen() {
           <span>Hockey Shot Challenge</span>
         </button>
         <div className="land-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <a href="#how-it-works" className="land-nav-link" style={{ color: 'var(--text-soft)', fontSize: '14px', textDecoration: 'none' }}>How it works</a>
           <a href="#faq" className="land-nav-link" style={{ color: 'var(--text-soft)', fontSize: '14px', textDecoration: 'none' }}>FAQ</a>
           <button className="land-nav-link" onClick={() => nav('/challenges')} style={{ color: 'var(--text-soft)', fontSize: '14px', background: 'transparent', cursor: 'pointer', border: 'none' }}>Challenges</button>
           <button className="land-nav-link" onClick={() => nav('/province-wide-challenge')} style={{ color: 'var(--text-soft)', fontSize: '14px', background: 'transparent', cursor: 'pointer', border: 'none' }}>For Leagues</button>
@@ -116,7 +118,7 @@ export default function LandingScreen() {
       {/* ── HERO ── */}
       <section className="hero">
         <div className="hero-eyebrow">FREE · FOR HOCKEY PLAYERS · AGES 6–18</div>
-        <h1 className="hero-title">Shoot more. Track it. Beat your rival.</h1>
+        <h1 className="hero-title">Shoot more. Track it. Shoot with your teammates.</h1>
         <p className="hero-sub">
           Log your shots and stickhandling after every practice. Parents can manage multiple kids. Your teammates, parents, and coach can all see how hard you're working.
         </p>
@@ -260,68 +262,6 @@ export default function LandingScreen() {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" className="hiw">
-        <div className="hiw-label">HOW IT WORKS</div>
-        <div className="hiw-steps">
-
-          <div className="hiw-step">
-            <div className="hiw-step-num">1</div>
-            <div className="hiw-step-visual hiw-step-visual--signin">
-              <div className="hiw-google-btn">
-                <GoogleIcon />
-                Sign in with Google
-              </div>
-              <div className="hiw-visual-hint">Takes 30 seconds</div>
-            </div>
-            <div className="hiw-step-text">Sign in with your Google account. Pick a name for your player. Done.</div>
-          </div>
-
-          <div className="hiw-arrow">→</div>
-
-          <div className="hiw-step">
-            <div className="hiw-step-num">2</div>
-            <div className="hiw-step-visual hiw-step-visual--log">
-              <div className="hiw-shot-types">
-                <div className="hiw-shot-pill hiw-shot-pill--active">Wrist</div>
-                <div className="hiw-shot-pill">Snap</div>
-                <div className="hiw-shot-pill">Slap</div>
-                <div className="hiw-shot-pill">BH</div>
-              </div>
-              <div className="hiw-shot-count">
-                <span className="hiw-shot-num">50</span>
-                <span className="hiw-shot-save">Save →</span>
-              </div>
-            </div>
-            <div className="hiw-step-text">After practice, tap a shot type, enter how many, hit save. Takes 5 seconds.</div>
-          </div>
-
-          <div className="hiw-arrow hiw-arrow--hide-mobile">→</div>
-
-          <div className="hiw-step hiw-step--hide-mobile">
-            <div className="hiw-step-num">3</div>
-            <div className="hiw-step-visual hiw-step-visual--board">
-              {[
-                { name: 'Liam K.', shots: 191, you: false },
-                { name: 'You', shots: 168, you: true },
-                { name: 'Jake T.', shots: 84, you: false },
-              ].map((p, i) => (
-                <div key={p.name} className={`hiw-board-row${p.you ? ' hiw-board-row--you' : ''}`}>
-                  <span className="hiw-board-pos">#{i + 1}</span>
-                  <span className="hiw-board-name">{p.name}</span>
-                  <span className="hiw-board-shots">{p.shots}</span>
-                </div>
-              ))}
-            </div>
-            <div className="hiw-step-text">See exactly where you rank on your team. Your coach and parents can see it too.</div>
-          </div>
-
-        </div>
-        <div className="hiw-footer">
-          Next time you open the app — you're straight to your dashboard. Just log and go.
-        </div>
-      </section>
-
       {/* ── FAMILY ACCOUNTS ── */}
       <section className="section section--family">
         <div className="section-head">
@@ -458,17 +398,6 @@ export default function LandingScreen() {
 
       <style>{styles}</style>
     </div>
-  )
-}
-
-function GoogleIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 18 18" style={{ flexShrink: 0 }}>
-      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-      <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
-      <path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/>
-      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
-    </svg>
   )
 }
 

@@ -318,7 +318,7 @@ export default function AuthScreen() {
       setLoading(true)
       setError('')
       try {
-        await createPlayerWithGoogleAuth({
+        const { playerId } = await createPlayerWithGoogleAuth({
           firstName: firstName.trim(),
           displayName: displayName.trim(),
           position,
@@ -326,6 +326,11 @@ export default function AuthScreen() {
           clubId: joinClub?.id || null,
           clubName: joinClub?.name || null,
         })
+        // A challenge picked on the homepage/challenge page before this
+        // shortcut sign-in was stashed in localStorage — apply it now, same
+        // as the full signup flow does, so this path doesn't drop it and
+        // dump the player back on the challenge picker after signing in.
+        await applyPendingChallenge(playerId)
         await refresh()
         nav('/home', { replace: true })
       } catch (e) {

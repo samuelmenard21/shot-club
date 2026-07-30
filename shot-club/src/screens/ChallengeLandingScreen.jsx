@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
 import { getSpec, weeklyPace, printableHref, CHALLENGE_ORDER, CHALLENGE_SPECS } from '../lib/challengeSpecs'
+import { stashPendingChallenge } from '../lib/challenges'
+import { signInWithGooglePlayer } from '../lib/auth'
 
 // One template drives all four challenge pages. Copy differs per tier (below)
 // so the pages don't read as duplicate content to Google, but layout, CSS,
@@ -113,6 +115,14 @@ export default function ChallengeLandingScreen({ challengeId }) {
 
   const goPrint = () => window.open(printableHref(challengeId, { autoPrint: true }), '_blank', 'noopener')
   const goDigital = () => nav(`/start?challenge=${challengeId}&src=${challengeId}landing`)
+  // Skips the multi-step club/position form entirely — straight to Google,
+  // straight back to the dashboard (AuthScreen's quick-setup fallback screen
+  // still asks for name/position, but in one step instead of two).
+  const goDigitalFast = (e) => {
+    e.stopPropagation()
+    stashPendingChallenge(challengeId)
+    signInWithGooglePlayer()
+  }
 
   return (
     <div className="tenk-wrap">
@@ -127,16 +137,43 @@ export default function ChallengeLandingScreen({ challengeId }) {
         <h1 className="tenk-title">{copy.tagline}</h1>
         <p className="tenk-sub">{copy.sub}</p>
 
-        <div className="cl-choice">
+        <div className="cl-choice cl-choice--big">
           <button className="cl-choice-card cl-choice-card--paper" onClick={goPrint}>
-            <div className="cl-choice-icon">📄</div>
+            <div className="cl-choice-eyebrow">FREE PRINTABLE</div>
             <div className="cl-choice-title">Print the Sheet</div>
             <div className="cl-choice-body">Free printable tracker. Stick it on the fridge, color a box every practice.</div>
+            <div className="cl-mock cl-mock--paper">
+              <div className="cl-mock-paper-sheet">
+                <div className="cl-mock-paper-head">{spec.label.toUpperCase()} · {spec.total.toLocaleString()}</div>
+                <div className="cl-mock-paper-grid">
+                  {Array.from({ length: 15 }).map((_, i) => (
+                    <div key={i} className={`cl-mock-box${i < 6 ? ' cl-mock-box--filled' : ''}`} style={i < 6 ? { background: spec.badge } : undefined} />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="cl-choice-cta">Open printable PDF →</div>
           </button>
+
           <button className="cl-choice-card cl-choice-card--digital" style={{ borderColor: spec.badge }} onClick={goDigital}>
-            <div className="cl-choice-icon">📱</div>
+            <div className="cl-choice-eyebrow" style={{ color: spec.badge }}>LIVE APP</div>
             <div className="cl-choice-title">Track It Live</div>
             <div className="cl-choice-body">Same {spec.total.toLocaleString()}-shot goal, upgraded: live leaderboards, streaks, and ranks.</div>
+            <div className="cl-mock cl-mock--digital" style={{ background: spec.tint }}>
+              <div className="cl-mock-digital-label" style={{ color: spec.accentText }}>YOUR CHALLENGE</div>
+              <div className="cl-mock-digital-title" style={{ color: spec.accentText }}>{spec.label} Shot Challenge</div>
+              <div className="cl-mock-digital-bar">
+                <div className="cl-mock-digital-bar-fill" style={{ width: '40%', background: spec.badge }} />
+              </div>
+              <div className="cl-mock-digital-stats" style={{ color: spec.accentText }}>
+                <span>{Math.round(spec.total * 0.4).toLocaleString()} / {spec.total.toLocaleString()}</span>
+                <span>40%</span>
+              </div>
+            </div>
+            <div className="cl-choice-google" onClick={goDigitalFast} role="button" tabIndex={0}>
+              <GoogleIcon />
+              Sign in with Google
+            </div>
           </button>
         </div>
         <div className="cl-choice-note">Not sure? Print it now — every sheet has a QR code that switches you to digital any time, and nothing you've logged is lost.</div>
@@ -259,6 +296,17 @@ export default function ChallengeLandingScreen({ challengeId }) {
   )
 }
 
+function GoogleIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 18 18" style={{ flexShrink: 0 }}>
+      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+      <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+      <path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
+    </svg>
+  )
+}
+
 const styles = `
 .tenk-wrap { min-height: 100dvh; background: var(--bg); color: var(--text); font-family: var(--font-body); }
 body:has(.tenk-wrap) { background: var(--bg) !important; }
@@ -273,14 +321,35 @@ body:has(.tenk-wrap) { background: var(--bg) !important; }
 .tenk-sub { font-size: 18px; color: var(--text-soft); margin-bottom: 32px; max-width: 640px; margin-left: auto; margin-right: auto; }
 
 .cl-choice { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; max-width: 620px; margin: 0 auto; }
+.cl-choice--big { max-width: 760px; gap: 22px; }
 .cl-choice-card { border: 2px solid var(--border-dim); border-radius: 14px; padding: 22px; cursor: pointer; text-align: left;
   background: rgba(255,255,255,0.02); transition: transform 0.2s, box-shadow 0.2s; }
+.cl-choice--big .cl-choice-card { padding: 26px; border-radius: 18px; }
 .cl-choice-card:hover { transform: translateY(-3px); }
 .cl-choice-card--digital:hover { box-shadow: 0 10px 24px rgba(0,0,0,0.25); }
 .cl-choice-icon { font-size: 28px; margin-bottom: 8px; }
+.cl-choice-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: var(--text-mute); margin-bottom: 8px; }
 .cl-choice-title { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: white; margin-bottom: 6px; }
+.cl-choice--big .cl-choice-title { font-size: 22px; }
 .cl-choice-body { font-size: 13px; color: var(--text-soft); line-height: 1.5; }
+.cl-choice-cta { font-size: 13px; font-weight: 700; color: var(--text-soft); margin-top: 16px; }
+.cl-choice-google { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--text-soft);
+  margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-dim); cursor: pointer; }
 .cl-choice-note { font-size: 13px; color: var(--text-mute); max-width: 480px; margin: 18px auto 0; }
+
+/* Mini "what it looks like" previews inside each choice card */
+.cl-mock { margin-top: 16px; border-radius: 10px; overflow: hidden; }
+.cl-mock-paper-sheet { background: #f4f1ea; border-radius: 10px; padding: 14px; }
+.cl-mock-paper-head { font-family: var(--font-display); font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #45403a; margin-bottom: 8px; }
+.cl-mock-paper-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.cl-mock-box { aspect-ratio: 1; border-radius: 3px; border: 1.5px solid #c9c2b4; background: transparent; }
+.cl-mock-box--filled { border-color: transparent; }
+.cl-mock-digital { border-radius: 10px; padding: 14px; }
+.cl-mock-digital-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; opacity: 0.7; }
+.cl-mock-digital-title { font-family: var(--font-display); font-size: 15px; font-weight: 800; margin-top: 2px; }
+.cl-mock-digital-bar { height: 8px; border-radius: 999px; background: rgba(0,0,0,0.12); margin-top: 10px; overflow: hidden; }
+.cl-mock-digital-bar-fill { height: 100%; border-radius: 999px; }
+.cl-mock-digital-stats { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-top: 6px; }
 
 .tenk-section { max-width: 1000px; margin: 0 auto; padding: 60px 20px; }
 .tenk-section h2 { font-family: var(--font-display); font-size: clamp(28px, 6vw, 42px); font-weight: 800; color: white; margin-bottom: 40px; text-align: center; }
