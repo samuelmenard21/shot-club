@@ -328,9 +328,6 @@ export default function HomeScreen() {
 
       {/* COMPACT PROGRESS + DAILY CHALLENGE */}
       {player.lifetime_shot_goal && (() => {
-        const dailyGoal = player.daily_goal || 50
-        const dailyMet = stats.todayTotal >= dailyGoal
-
         // Milestone tiers
         const tiers = [
           { name: '🥉 Bronze', threshold: 0, nextThreshold: 250 },
@@ -345,31 +342,6 @@ export default function HomeScreen() {
         const currentTier = tiers.find(t => currentLifetimeShots >= t.threshold && currentLifetimeShots < t.nextThreshold) || tiers[tiers.length - 1]
         const shotsToNext = currentTier.nextThreshold - currentLifetimeShots
         const progressToNext = Math.round(((currentLifetimeShots - currentTier.threshold) / (currentTier.nextThreshold - currentTier.threshold)) * 100)
-
-        // Calculate daily pace for target date
-        let dailyPaceText = ''
-        if (player.lifetime_shot_goal_date) {
-          const today = new Date()
-          today.setHours(0, 0, 0, 0)
-          const targetDate = new Date(player.lifetime_shot_goal_date)
-          targetDate.setHours(0, 0, 0, 0)
-          const daysRemaining = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24))
-          const shotsRemaining = Math.max(0, player.lifetime_shot_goal - currentLifetimeShots)
-
-          if (daysRemaining > 0) {
-            const dailyPaceNeeded = Math.ceil(shotsRemaining / daysRemaining)
-            const shortDate = new Date(player.lifetime_shot_goal_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            if (shotsRemaining > 0) {
-              dailyPaceText = `You need ${dailyPaceNeeded} shots/day to hit ${player.lifetime_shot_goal.toLocaleString()} by ${shortDate}`
-            } else {
-              dailyPaceText = `🎉 Goal reached!`
-            }
-          } else if (daysRemaining === 0) {
-            dailyPaceText = `Goal target is today! Need ${shotsRemaining.toLocaleString()} more shots`
-          } else {
-            dailyPaceText = `Target date passed — keep grinding!`
-          }
-        }
 
         const messages = [
           '🚀 You\'re crushing it!',
@@ -407,44 +379,6 @@ export default function HomeScreen() {
                 {message}
               </div>
             </div>
-
-            {/* Daily challenge - prominent */}
-            <div style={{
-              padding: 12,
-              background: dailyMet ? 'rgba(61, 214, 140, 0.15)' : 'rgba(41, 121, 255, 0.15)',
-              border: `1.5px solid ${dailyMet ? 'rgba(61, 214, 140, 0.4)' : 'rgba(41, 121, 255, 0.4)'}`,
-              borderRadius: 10,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              marginBottom: dailyPaceText ? 12 : 0,
-            }}>
-              <input type="checkbox" checked={dailyMet} disabled style={{ width: 18, height: 18, cursor: 'not-allowed', flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: dailyMet ? '#3dd68c' : 'white', marginBottom: 2 }}>
-                  Today's Challenge
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>
-                  {dailyMet ? '✓ Goal met!' : `${dailyGoal} wrist shots`}
-                </div>
-              </div>
-            </div>
-
-            {/* Daily pace toward goal */}
-            {dailyPaceText && (
-              <div style={{
-                padding: 12,
-                background: 'rgba(156, 163, 175, 0.1)',
-                border: '1.5px solid rgba(156, 163, 175, 0.3)',
-                borderRadius: 10,
-                fontSize: 13,
-                fontWeight: 600,
-                color: 'var(--ice)',
-                textAlign: 'center',
-              }}>
-                {dailyPaceText}
-              </div>
-            )}
           </div>
         )
       })()}

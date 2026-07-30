@@ -159,13 +159,13 @@ export default function ChallengeLandingScreen({ challengeId }) {
             <div className="cl-choice-eyebrow" style={{ color: spec.badge }}>LIVE APP</div>
             <div className="cl-choice-title">Track It Live</div>
             <div className="cl-choice-body">Same {spec.total.toLocaleString()}-shot goal, upgraded: live leaderboards, streaks, and ranks.</div>
-            <div className="cl-mock cl-mock--digital" style={{ background: spec.tint }}>
-              <div className="cl-mock-digital-label" style={{ color: spec.accentText }}>YOUR CHALLENGE</div>
-              <div className="cl-mock-digital-title" style={{ color: spec.accentText }}>{spec.label} Shot Challenge</div>
+            <div className="cl-mock cl-mock--digital">
+              <div className="cl-mock-digital-label" style={{ color: spec.badge }}>YOUR CHALLENGE</div>
+              <div className="cl-mock-digital-title">{spec.label} Shot Challenge</div>
               <div className="cl-mock-digital-bar">
                 <div className="cl-mock-digital-bar-fill" style={{ width: '40%', background: spec.badge }} />
               </div>
-              <div className="cl-mock-digital-stats" style={{ color: spec.accentText }}>
+              <div className="cl-mock-digital-stats">
                 <span>{Math.round(spec.total * 0.4).toLocaleString()} / {spec.total.toLocaleString()}</span>
                 <span>40%</span>
               </div>
@@ -344,12 +344,12 @@ body:has(.tenk-wrap) { background: var(--bg) !important; }
 .cl-mock-paper-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .cl-mock-box { aspect-ratio: 1; border-radius: 3px; border: 1.5px solid #c9c2b4; background: transparent; }
 .cl-mock-box--filled { border-color: transparent; }
-.cl-mock-digital { border-radius: 10px; padding: 14px; }
-.cl-mock-digital-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; opacity: 0.7; }
-.cl-mock-digital-title { font-family: var(--font-display); font-size: 15px; font-weight: 800; margin-top: 2px; }
-.cl-mock-digital-bar { height: 8px; border-radius: 999px; background: rgba(0,0,0,0.12); margin-top: 10px; overflow: hidden; }
+.cl-mock-digital { border-radius: 10px; padding: 14px; background: var(--surface-raised); border: 0.5px solid var(--border-dim); }
+.cl-mock-digital-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; }
+.cl-mock-digital-title { font-family: var(--font-display); font-size: 15px; font-weight: 800; margin-top: 2px; color: white; }
+.cl-mock-digital-bar { height: 8px; border-radius: 999px; background: var(--bg); margin-top: 10px; overflow: hidden; }
 .cl-mock-digital-bar-fill { height: 100%; border-radius: 999px; }
-.cl-mock-digital-stats { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-top: 6px; }
+.cl-mock-digital-stats { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-soft); margin-top: 6px; }
 
 .tenk-section { max-width: 1000px; margin: 0 auto; padding: 60px 20px; }
 .tenk-section h2 { font-family: var(--font-display); font-size: clamp(28px, 6vw, 42px); font-weight: 800; color: white; margin-bottom: 40px; text-align: center; }
