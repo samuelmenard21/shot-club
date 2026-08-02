@@ -11,7 +11,7 @@ import {
   getTeamChallenge, getTeamWeeklyShots, getMyBattle, getPlayerChallenge, getPlayerChallengeProgress,
   applyPendingChallenge, setPlayerChallenge as savePlayerChallenge, // aliased — this file's own state setter is named setPlayerChallenge
 } from '../lib/challenges'
-import { CHALLENGE_LIST } from '../lib/challengeSpecs'
+import { CHALLENGE_LIST, weeklyPace } from '../lib/challengeSpecs'
 import { checkMilestone, getMilestoneMessage, getGoalCompletionMessage } from '../lib/milestones'
 import DailyGoalRing from '../components/DailyGoalRing'
 import StreakRiskBanner from '../components/StreakRiskBanner'
@@ -477,6 +477,7 @@ function ChallengePickerGate({ playerId, onPicked }) {
           // s.badge is tuned for light cream cards elsewhere — '10k' badge is
           // near-black and unreadable on this dark card background.
           const accent = s.id === '10k' ? '#d4af6a' : s.badge
+          const dailyPace = Math.round(weeklyPace(s) / 5)
           return (
             <button
               key={s.id}
@@ -487,6 +488,7 @@ function ChallengePickerGate({ playerId, onPicked }) {
             >
               <div className="cpg-card-label" style={{ color: accent }}>{s.label}</div>
               <div className="cpg-card-shots">{s.total.toLocaleString()}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-mute)', marginTop: 2 }}>{dailyPace} shots/day</div>
               <div className="cpg-card-arrow" style={{ color: accent }}>
                 {savingId === s.id ? '…' : '→'}
               </div>
