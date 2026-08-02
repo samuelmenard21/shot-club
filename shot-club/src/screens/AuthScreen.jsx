@@ -379,6 +379,38 @@ export default function AuthScreen() {
   if (mode === 'signin') {
     return (
       <div className="auth-wrap fade-in">
+        <div style={{ maxWidth: 420, margin: '0 auto', width: '100%' }}>
+          {/* Prominent "New here?" banner */}
+          <div style={{
+            background: 'rgba(45, 180, 100, 0.1)',
+            border: '1px solid rgba(45, 180, 100, 0.3)',
+            borderRadius: 12,
+            padding: '12px 14px',
+            marginBottom: 16,
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 13, color: 'var(--text-soft)', marginBottom: 6 }}>
+              New to Hockey Shot Challenge?
+            </div>
+            <button
+              onClick={() => { setMode('signup'); setError('') }}
+              style={{
+                background: 'rgba(45, 180, 100, 0.2)',
+                color: '#4ade80',
+                border: '1.5px solid rgba(45, 180, 100, 0.4)',
+                borderRadius: 8,
+                padding: '8px 14px',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                width: '100%',
+              }}
+            >
+              Create a card →
+            </button>
+          </div>
+        </div>
+
         <div className="auth-card">
           <div className="brand">
             <BrandLogo />
@@ -392,11 +424,7 @@ export default function AuthScreen() {
             Continue with Google
           </button>
 
-          <button className="btn-primary" onClick={() => { setMode('signup'); setError('') }} style={{ marginBottom: 8 }}>
-            New here? Create a card →
-          </button>
-
-          <button className="btn-text" onClick={() => nav('/')}>
+          <button className="btn-text" onClick={() => nav('/')} style={{ marginBottom: 8 }}>
             ← Back to home
           </button>
         </div>
@@ -408,6 +436,38 @@ export default function AuthScreen() {
   // Signup mode
   return (
     <div className="auth-wrap fade-in">
+      <div style={{ maxWidth: 420, margin: '0 auto', width: '100%' }}>
+        {/* Prominent "Already have an account" banner */}
+        <div style={{
+          background: 'rgba(41, 121, 255, 0.1)',
+          border: '1px solid rgba(41, 121, 255, 0.3)',
+          borderRadius: 12,
+          padding: '12px 14px',
+          marginBottom: 16,
+          textAlign: 'center',
+        }}>
+          <div style={{ fontSize: 13, color: 'var(--text-soft)', marginBottom: 6 }}>
+            Already have an account?
+          </div>
+          <button
+            onClick={() => { setMode('signin'); setError('') }}
+            style={{
+              background: 'var(--accent)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 8,
+              padding: '8px 14px',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              width: '100%',
+            }}
+          >
+            Sign in here →
+          </button>
+        </div>
+      </div>
+
       <div className="auth-card">
         {step === 1 && (
           <>
