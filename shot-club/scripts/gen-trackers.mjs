@@ -11,10 +11,10 @@ import qrcode from 'qrcode-generator'
 import { CHALLENGE_SPECS, CHALLENGE_ORDER, milestonesFor, boxCount } from '../src/lib/challengeSpecs.js'
 
 const TOK = {
-  bg: '#f5ead8', surface: '#ebddc5', text: '#201e1d', divider: 'rgba(32,30,29,0.16)',
-  accent: '#c67139', accent2: '#7a8a5e',
-  accent2100: '#f0fae1', accent2400: '#aebf92',
-  neutral500: '#a19786',
+  bg: '#ffffff', surface: '#ffffff', text: '#000000', divider: '#000000',
+  accent: '#000000', accent2: '#000000',
+  accent2100: '#f8f8f8', accent2400: '#000000',
+  neutral500: '#000000',
   headingFont: "'Caprasimo', Georgia, serif", bodyFont: "'Figtree', system-ui, sans-serif",
 }
 
@@ -27,14 +27,12 @@ function qrSvg(url) {
 
 // Every tracker sheet is exactly 5 rows regardless of tier, so the printed
 // page height never changes — Rookie's 20 boxes just run 5 rows x 4 cols
-// instead of 5 x 10. Boxes worth more than 50 shots/box get a dashed
-// half-line ("color in half"); the last column of every row is the sage
-// "checkpoint" tint, matching the dashboard's checkpoint column.
+// instead of 5 x 10. The last column of every row is the milestone "checkpoint",
+// with thicker border and star marker for visual emphasis on print.
 function gridRowsHtml(spec) {
   const total = boxCount(spec)
   const rowCount = 5
   const cols = total / rowCount
-  const split = spec.step > 50
   let out = ''
   for (let r = 0; r < rowCount; r++) {
     const target = Math.round((spec.total * (r + 1)) / rowCount)
@@ -43,11 +41,10 @@ function gridRowsHtml(spec) {
       const idx = r * cols + c
       const value = (idx + 1) * spec.step
       const isCheckpoint = c === cols - 1
-      const border = isCheckpoint ? TOK.accent2400 : TOK.divider
-      const bg = isCheckpoint ? TOK.accent2100 : '#fff'
-      cells += `<div class="box" style="border-color:${border};background:${bg};">
-        ${split ? `<div class="box-half" style="border-right-color:${border};"></div><div class="box-half"></div>` : ''}
+      const boxClass = isCheckpoint ? 'box box--milestone' : 'box'
+      cells += `<div class="${boxClass}">
         <span class="box-val">${value.toLocaleString()}</span>
+        ${isCheckpoint ? '<span class="box-star">★</span>' : ''}
       </div>`
     }
     out += `<div class="grid-row"><div class="row-target">${target.toLocaleString()}</div><div class="row-boxes" style="grid-template-columns:repeat(${cols},1fr);">${cells}</div></div>`
@@ -73,19 +70,19 @@ function page(spec) {
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Caprasimo:wght@400&family=Figtree:wght@400;600;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: ${TOK.bodyFont}; background: #ded2ba; color: ${TOK.text}; padding: 16px; }
+  body { font-family: ${TOK.bodyFont}; background: #f5f5f5; color: ${TOK.text}; padding: 16px; }
   h1 { font-family: ${TOK.headingFont}; font-weight: 400; }
-  .sheet { max-width: 780px; margin: 0 auto; background: ${TOK.bg}; border-radius: 20px; overflow: hidden;
-    box-shadow: 0 8px 30px rgba(32,30,29,0.18); padding: 0.42in; }
+  .sheet { max-width: 780px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 0.42in; }
 
-  .banner { background: ${spec.tint}; color: ${TOK.text}; border-radius: 20px; padding: 20px 22px;
+  .banner { background: #ffffff; color: ${TOK.text}; border: 2px solid #000000; border-radius: 12px; padding: 20px 22px;
     display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
-  .banner-kicker { font-family: ${TOK.headingFont}; font-weight: 400; font-size: 14px; letter-spacing: 0.03em; color: ${spec.accentText}; }
+  .banner-kicker { font-family: ${TOK.headingFont}; font-weight: 400; font-size: 14px; letter-spacing: 0.03em; color: #000000; }
   .banner h1 { font-size: 34px; line-height: 1; margin: 6px 0; }
   .banner h1 .sub { font-size: 17px; font-weight: 400; font-family: ${TOK.bodyFont}; }
   .banner-sub { font-size: 12.5px; opacity: .85; max-width: 4.4in; }
-  .badge { text-align: center; flex: none; background: ${spec.badge}; color: ${spec.badgeFg};
-    border-radius: 14px; padding: 10px 16px; white-space: nowrap; }
+  .badge { text-align: center; flex: none; background: #f0f0f0; color: #000000;
+    border: 1.5px solid #000000; border-radius: 8px; padding: 12px 16px; white-space: nowrap; }
   .badge-name { font-family: ${TOK.headingFont}; font-weight: 400; font-size: 14px; }
   .badge-level { font-size: 10px; opacity: .85; }
 
@@ -100,47 +97,71 @@ function page(spec) {
   .grid-row { display: flex; align-items: center; gap: 0.14in; }
   .row-target { width: 0.55in; font-size: 11px; text-align: right; opacity: .7; flex: none; }
   .row-boxes { display: grid; gap: 0.12in; flex: 1; }
-  .box { position: relative; height: 0.56in; border-radius: 8px; border: 2px solid; display: flex; overflow: hidden; }
-  .box-half { flex: 1; border-right: 1.5px dashed; }
-  .box-half + .box-val { }
-  .box-val { position: absolute; bottom: 3px; right: 5px; font-size: 8px; color: ${TOK.neutral500}; }
+  .box { position: relative; height: 0.56in; border-radius: 8px; border: 1.5px solid ${TOK.divider}; display: flex; overflow: hidden; }
+  .box--milestone { border-width: 2.5px !important; }
+  .box-val { position: absolute; bottom: 3px; right: 5px; font-size: 10px; font-weight: 600; color: ${TOK.text}; }
+  .box-star { position: absolute; top: 2px; left: 3px; font-size: 12px; color: ${TOK.text}; }
 
-  .types { display: flex; align-items: center; gap: 0.12in; flex-wrap: wrap; font-size: 11.5px; margin-bottom: 14px; }
+  .types { display: flex; align-items: center; gap: 0.12in; flex-wrap: wrap; font-size: 11.5px; margin-bottom: 20px; }
   .types .lbl { opacity: .65; }
   .pill { border: 1.5px solid ${TOK.divider}; border-radius: 999px; padding: 4px 12px; }
 
-  .qrband { display: flex; align-items: center; gap: 20px; background: #2e2b25; color: ${TOK.bg};
-    border-radius: 20px; padding: 18px 22px; margin-bottom: 12px; }
-  .qrbox { width: 0.95in; height: 0.95in; flex: none; background: ${TOK.bg}; border-radius: 10px; padding: 6px; }
-  .qrbox svg { width: 100%; height: 100%; display: block; }
-  .qrtxt h3 { font-family: ${TOK.bodyFont}; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
-  .benefits { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 0.2in; font-size: 10.5px; opacity: .92; margin-bottom: 6px; }
-  .qrtxt .brand { font-family: ${TOK.headingFont}; font-weight: 400; font-size: 17px; color: #ffc6a5; }
-  .qrtxt .path { font-size: 9.5px; opacity: .6; }
+  .signoff { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.3in; margin-bottom: 20px; }
+  .signoff-fld { }
+  .signoff-label { display: block; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; opacity: .55; margin-bottom: 8px; }
+  .signoff-line { border-bottom: 1px solid ${TOK.divider}; height: 0.2in; }
 
-  .footbar { text-align: center; background: #fff2eb; color: #8c491a; border-radius: 12px;
-    padding: 9px 0; font-size: 12px; font-weight: 700; }
+  .qrband { display: flex; align-items: center; gap: 20px; background: #ffffff; color: #000000;
+    border: 1.5px solid #000000; border-radius: 12px; padding: 18px 22px; margin-bottom: 12px; }
+  .qrbox { width: 0.95in; height: 0.95in; flex: none; background: #ffffff; border: 1px solid #000000; border-radius: 8px; padding: 6px; }
+  .qrbox svg { width: 100%; height: 100%; display: block; }
+  .qrtxt h3 { font-family: ${TOK.bodyFont}; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: #000000; }
+  .benefits { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 0.2in; font-size: 10px; opacity: 1; margin-bottom: 6px; color: #000000; }
+  .qrtxt .brand { font-family: ${TOK.headingFont}; font-weight: 600; font-size: 16px; color: #000000; }
+  .qrtxt .path { font-size: 9px; opacity: 0.8; color: #000000; }
+
+  .footbar { text-align: center; background: #f5f5f5; color: #000000; border: 1px solid #cccccc; border-radius: 8px;
+    padding: 12px 0; font-size: 11px; font-weight: 600; }
 
   .actions { max-width: 780px; margin: 14px auto 30px; display: flex; gap: 10px;
     justify-content: center; flex-wrap: wrap; }
-  .btn { font-family: ${TOK.headingFont}; font-weight: 400; font-size: 14px; border-radius: 12px;
-    padding: 12px 22px; cursor: pointer; text-decoration: none; display: inline-block; border: none; }
-  .btn--print { background: ${TOK.accent}; color: ${TOK.bg}; }
-  .btn--live { background: ${TOK.bg}; color: ${TOK.text}; border: 2px solid ${TOK.divider}; }
+  .btn { font-family: ${TOK.bodyFont}; font-weight: 600; font-size: 14px; border-radius: 8px;
+    padding: 12px 22px; cursor: pointer; text-decoration: none; display: inline-block; border: 1.5px solid #000000; }
+  .btn--print { background: #000000; color: #ffffff; }
+  .btn--live { background: #ffffff; color: #000000; border: 1.5px solid #000000; }
 
   @media print {
-    .actions { display: none; }
-    body { background: #fff; padding: 0; }
-    .sheet { box-shadow: none; border-radius: 0; max-width: 100%; }
+    .actions { display: none !important; }
+    body { background: #ffffff !important; padding: 0 !important; }
+    .sheet { box-shadow: none !important; border-radius: 0 !important; max-width: 100% !important; background: #ffffff !important; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    .box-val { color: #000 !important; }
-    .box { border-color: #333 !important; }
-    .row-target { opacity: 1 !important; color: #000 !important; }
-    .how { opacity: 1 !important; }
-    .banner-sub { opacity: 1 !important; }
-    .who label { opacity: 1 !important; }
-    .types .lbl { opacity: 1 !important; }
-    .qrtxt .path { opacity: 1 !important; }
+    .box { border: 1.5px solid #000000 !important; border-color: #000000 !important; background: #ffffff !important; }
+    .box--milestone { border-width: 2.5px !important; border-color: #000000 !important; }
+    .box-val { color: #000000 !important; font-weight: 700 !important; }
+    .box-star { color: #000000 !important; }
+    .row-target { opacity: 1 !important; color: #000000 !important; font-weight: 600 !important; }
+    .row-boxes { background: #ffffff !important; }
+    .banner { background: #ffffff !important; color: #000000 !important; border: 1.5px solid #000000 !important; }
+    .banner h1 { color: #000000 !important; }
+    .banner-sub { opacity: 1 !important; color: #000000 !important; }
+    .badge { background: #ffffff !important; color: #000000 !important; border: 1.5px solid #000000 !important; }
+    .who { color: #000000 !important; }
+    .who label { opacity: 1 !important; color: #000000 !important; }
+    .who .line { border-color: #000000 !important; }
+    .how { opacity: 1 !important; color: #000000 !important; }
+    .pill { border-color: #000000 !important; color: #000000 !important; }
+    .signoff { color: #000000 !important; }
+    .signoff-label { opacity: 1 !important; color: #000000 !important; }
+    .signoff-line { border-color: #000000 !important; }
+    .types { color: #000000 !important; }
+    .types .lbl { opacity: 1 !important; color: #000000 !important; }
+    .qrband { background: #ffffff !important; border: 1.5px solid #000000 !important; color: #000000 !important; }
+    .qrbox { background: #ffffff !important; border: 1px solid #000000 !important; }
+    .qrtxt h3 { color: #000000 !important; }
+    .benefits { color: #000000 !important; }
+    .qrtxt .brand { color: #000000 !important; }
+    .qrtxt .path { opacity: 1 !important; color: #000000 !important; }
+    .footbar { background: #ffffff !important; color: #000000 !important; border: 1px solid #000000 !important; }
   }
 </style>
 </head>
@@ -150,7 +171,7 @@ function page(spec) {
       <div>
         <div class="banner-kicker">HockeyShotChallenge<span style="opacity:.75">.com</span></div>
         <h1>${totalStr} <span class="sub">Shot Challenge</span></h1>
-        <div class="banner-sub">Color a box every ${unitLabel} shots. Fill the whole sheet to become a ${spec.label}.</div>
+        <div class="banner-sub">Color a box every ${unitLabel} shots. Fill the whole sheet to become ${spec.label.match(/^[aeiou]/i) ? 'an' : 'a'} ${spec.label}.</div>
       </div>
       <div class="badge">
         <div class="badge-name">${spec.label}</div>
@@ -171,6 +192,21 @@ function page(spec) {
     <div class="types">
       <span class="lbl">Mix in all four shot types:</span>
       <span class="pill">Wrist</span><span class="pill">Snap</span><span class="pill">Slap</span><span class="pill">Backhand</span>
+    </div>
+
+    <div class="signoff">
+      <div class="signoff-fld">
+        <span class="signoff-label">Coach/Parent Signature</span>
+        <div class="signoff-line"></div>
+      </div>
+      <div class="signoff-fld">
+        <span class="signoff-label">Date Completed</span>
+        <div class="signoff-line"></div>
+      </div>
+      <div class="signoff-fld">
+        <span class="signoff-label">Notes</span>
+        <div class="signoff-line"></div>
+      </div>
     </div>
 
     <div class="qrband">
