@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import { getClubBySlug, getClubStats, getClubTeams, getClubWeeklyRecap, getClubTeamRankings, getClubWeeklyTopPlayers } from '../lib/clubs'
 import ContactSection from '../components/ContactSection'
+import { CHALLENGE_LIST } from '../lib/challengeSpecs'
 
 export default function ClubScreen() {
   const { slug } = useParams()
@@ -239,6 +240,8 @@ export default function ClubScreen() {
           </div>
         </section>
 
+        <ClubChallenges club={club} slug={slug} />
+
         {/* How it works — 3 steps */}
         <section className="club-section">
           <div className="club-eyebrow-left">HOW IT WORKS</div>
@@ -355,6 +358,8 @@ export default function ClubScreen() {
           </button>
         </div>
       </section>
+
+      <ClubChallenges club={club} slug={slug} />
 
       {/* ── TEAM LEADERBOARD — this week ── */}
       {teamRankings.length > 0 && (
@@ -528,6 +533,40 @@ export default function ClubScreen() {
   )
 }
 
+// Real, club-specific content on every one of the ~3,000 club pages — this is
+// what makes each page unique enough to eventually lift out of noindex (see
+// functions/clubs/[slug].js), not just a templated shell. The printable link
+// goes to a per-club edge function (functions/clubs/[slug]/[challenge]-tracker.js)
+// that swaps the club name and QR code into the same static sheet at request
+// time — no per-club files, scales to any number of clubs with zero rebuild.
+function ClubChallenges({ club, slug }) {
+  return (
+    <section className="club-section club-challenges">
+      <div className="club-eyebrow-left">PICK A CHALLENGE</div>
+      <h2 className="club-h2">{club.name}'s shot challenges</h2>
+      <p className="club-section-text">
+        Print a tracker or go digital — either way, {club.name} players show up together on the leaderboard.
+      </p>
+      <div className="club-challenge-grid">
+        {CHALLENGE_LIST.map((c) => (
+          <div key={c.id} className="club-challenge-card" style={{ borderColor: c.badge }}>
+            <div className="club-challenge-label" style={{ color: c.id === '10k' ? '#d4af6a' : c.badge }}>{c.label}</div>
+            <div className="club-challenge-total">{c.total.toLocaleString()}</div>
+            <div className="club-challenge-actions">
+              <a className="club-challenge-btn" href={`/clubs/${slug}/${c.id}-tracker`} target="_blank" rel="noopener noreferrer">
+                Print for {club.name}
+              </a>
+              <Link className="club-challenge-btn club-challenge-btn--ghost" to={`/start?challenge=${c.id}&club=${slug}&src=clubpage`}>
+                Track it live →
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function GoogleIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flexShrink: 0 }}>
@@ -680,6 +719,22 @@ body:has(.club-screen) { background: var(--bg) !important; }
 }
 .club-step-title { font-family: var(--font-display); font-weight: 800; font-size: 15px; color: white; margin-bottom: 3px; }
 .club-step-text { font-size: 13px; color: var(--text-mute); line-height: 1.4; }
+
+/* Club challenge picker */
+.club-challenge-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (min-width: 600px) { .club-challenge-grid { grid-template-columns: repeat(4, 1fr); } }
+.club-challenge-card {
+  background: var(--surface); border: 1.5px solid var(--border-dim);
+  border-radius: 14px; padding: 16px 12px; text-align: center;
+}
+.club-challenge-label { font-family: var(--font-display); font-weight: 800; font-size: 15px; margin-bottom: 4px; }
+.club-challenge-total { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: white; margin-bottom: 12px; }
+.club-challenge-actions { display: flex; flex-direction: column; gap: 6px; }
+.club-challenge-btn {
+  display: block; font-size: 12px; font-weight: 700; border-radius: 8px; padding: 8px 6px;
+  background: var(--accent); color: white; text-decoration: none; cursor: pointer;
+}
+.club-challenge-btn--ghost { background: transparent; border: 1px solid var(--border-dim); color: var(--text-soft); }
 
 /* Two-path cards */
 .club-paths { display: grid; grid-template-columns: 1fr; gap: 16px; width: 100%; text-align: left; }
