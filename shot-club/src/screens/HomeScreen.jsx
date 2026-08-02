@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useNotifications } from '../hooks/useNotifications'
-import { logShots, getStats, getTodayRival, getPersonalBest } from '../lib/shots'
-import { pickLineStable } from '../lib/coachSam'
+import { logShots, getStats } from '../lib/shots'
 import { getRank } from '../lib/ranks'
 import { claimAchievements, isStreakInRecovery } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
@@ -49,8 +48,6 @@ export default function HomeScreen() {
   const [unlockedCodes, setUnlockedCodes] = useState([])
   const [goalRefreshKey, setGoalRefreshKey] = useState(0)
   const [videos, setVideos] = useState([])
-  const [personalBest, setPersonalBest] = useState(0)
-  const [newPB, setNewPB] = useState(false)
   const [teamChallenge, setTeamChallenge] = useState(null)
   const [teamWeekShots, setTeamWeekShots] = useState(0)
   const [playerChallenge, setPlayerChallenge] = useState(null)
@@ -67,7 +64,6 @@ export default function HomeScreen() {
     if (!player) return
 
     refreshStats()
-    getPersonalBest(player.id).then(setPersonalBest).catch(() => {})
 
     // Load the challenge first — this is the critical path.
     applyPendingChallenge(player.id)
@@ -105,7 +101,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!player) return
-    const t = setInterval(() => { refresh() }, 4000)
+    const t = setInterval(() => { refresh() }, 15000)
     return () => clearInterval(t)
   }, [player, refresh])
 
@@ -134,16 +130,6 @@ export default function HomeScreen() {
   }, [playerChallengeProgress, toast])
 
   const rank = useMemo(() => getRank(player?.lifetime_shots || 0), [player?.lifetime_shots])
-
-  const samLine = useMemo(() => {
-    if (!player) return ''
-    const today = new Date().toISOString().slice(0, 10)
-    const trigger = player.current_streak > 0 ? 'daily_greeting' : 'daily_greeting_no_streak'
-    return pickLineStable(trigger, `${player.id}-${today}`, {
-      name: player.display_name,
-      streak: player.current_streak || 1,
-    })
-  }, [player])
 
   const handleSave = async (type, count) => {
     if (!count || count <= 0) return
@@ -190,16 +176,6 @@ export default function HomeScreen() {
       if (!player.lifetime_shots) {
         if (navigator.vibrate) navigator.vibrate([15, 40, 15])
         showToast("🎉 You're on the board! Keep it going.")
-      }
-
-      // Check for new personal best (shot types only, not stickhandling)
-      const shotTypes = ['Wrist', 'Snap', 'Slap', 'Backhand', 'Saves']
-      if (shotTypes.includes(type)) {
-        if (newTotal > personalBest && personalBest > 0) {
-          setPersonalBest(newTotal)
-          setNewPB(true)
-          setTimeout(() => setNewPB(false), 4000)
-        }
       }
 
       // Claim any newly-earned achievements (idempotent server-side)
@@ -424,17 +400,6 @@ export default function HomeScreen() {
             <span className="undo-detail">+{lastLog.count} {lastLog.type}</span>
           </span>
         </button>
-      )}
-
-      {newPB && (
-        <div className="pb-banner">
-          <span>🏆 New personal best — {stats.todayTotal} shots today!</span>
-          <button className="pb-share" onClick={async () => {
-            const text = `New personal best — ${stats.todayTotal} shots today! 🏒 #HockeyShotChallenge hockeyshotchallenge.com`
-            if (navigator.share) { try { await navigator.share({ text }) } catch (_) {} }
-            else { await navigator.clipboard.writeText(text) }
-          }}>Share</button>
-        </div>
       )}
 
       {entryType && (
@@ -820,27 +785,6 @@ const styles = `
   color: var(--text-mute);
   margin-top: 1px;
 }
-
-.pb-banner {
-  background: linear-gradient(135deg, rgba(41,121,255,0.2), rgba(168,212,245,0.1));
-  border: 0.5px solid var(--ice);
-  border-radius: var(--radius);
-  padding: 12px 16px;
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 700;
-  color: var(--ice);
-  letter-spacing: 0.3px;
-  margin-bottom: 10px;
-  animation: fade-in 0.3s ease-out;
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-}
-.pb-share {
-  font-size: 12px; font-weight: 700;
-  color: var(--ice); border: 1px solid var(--ice);
-  border-radius: 6px; padding: 4px 10px;
-  background: transparent; cursor: pointer; white-space: nowrap; flex-shrink: 0;
-}
-.pb-share:active { opacity: 0.7; }
 
 .stats-row {
   display: grid;
