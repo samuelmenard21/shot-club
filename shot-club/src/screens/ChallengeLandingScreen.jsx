@@ -224,6 +224,66 @@ export default function ChallengeLandingScreen({ challengeId }) {
         </ul>
       </section>
 
+      {/* DOWNLOADABLE PDF */}
+      <section className="tenk-section" style={{ background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <h2>Free Downloadable {spec.label} Tracker PDF</h2>
+        <p style={{ color: 'var(--text-soft)', fontSize: 16, lineHeight: 1.6, maxWidth: 720, margin: '0 auto 24px', textAlign: 'center' }}>
+          Print-ready PDF with pure black/white design that prints perfectly on any printer. Track offline, scan the QR code to go digital anytime.
+        </p>
+        <div style={{ maxWidth: 720, margin: '0 auto', display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
+          <button className="tenk-btn tenk-btn--primary" onClick={goPrint} style={{ gridColumn: '1 / -1' }}>
+            Download PDF Tracker
+          </button>
+          <div style={{ gridColumn: '1 / -1', fontSize: 13, color: 'var(--text-soft)', textAlign: 'center' }}>
+            ✓ Free · ✓ Printable immediately · ✓ QR code to switch to live app anytime
+          </div>
+        </div>
+      </section>
+
+      {/* CHALLENGE COMPARISON */}
+      {CHALLENGE_ORDER.length > 1 && (
+        <section className="tenk-section">
+          <h2>All {CHALLENGE_ORDER.length} Hockey Shot Challenges — Pick Your Level</h2>
+          <p style={{ color: 'var(--text-soft)', fontSize: 16, lineHeight: 1.6, maxWidth: 720, margin: '0 auto 24px', textAlign: 'center' }}>
+            Each challenge is designed to build skills progressively. Start wherever fits your current level — you can always move up.
+          </p>
+          <div style={{ overflowX: 'auto', maxWidth: 900, margin: '0 auto', borderRadius: 12, border: '1px solid var(--border-dim)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600, fontSize: 14 }}>
+              <thead>
+                <tr style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--ice)' }}>
+                  <th style={{ textAlign: 'left', padding: '12px 16px' }}>Challenge</th>
+                  <th style={{ textAlign: 'center', padding: '12px 16px' }}>Total Shots</th>
+                  <th style={{ textAlign: 'center', padding: '12px 16px' }}>Weekly Pace</th>
+                  <th style={{ textAlign: 'center', padding: '12px 16px' }}>Weeks</th>
+                  <th style={{ textAlign: 'center', padding: '12px 16px' }}>Age Guide</th>
+                </tr>
+              </thead>
+              <tbody>
+                {CHALLENGE_ORDER.map((cid) => {
+                  const s = CHALLENGE_SPECS[cid]
+                  const wp = weeklyPace(s)
+                  const ageGuide = cid === '1k' ? 'U7–U11' : cid === '2_5k' ? 'U9–U13' : cid === '5k' ? 'U11–U15' : 'U13–U18'
+                  const isActive = cid === challengeId
+                  return (
+                    <tr key={cid} style={{ borderTop: '1px solid var(--border-dim)', background: isActive ? 'rgba(255,255,255,0.06)' : undefined }}>
+                      <td style={{ padding: '12px 16px', fontWeight: isActive ? 800 : 700, color: isActive ? 'var(--ice)' : '#fff' }}>
+                        <a href={s.landingPath} style={{ textDecoration: 'none', color: 'inherit' }}>
+                          {s.label} · {s.total.toLocaleString()} shots{isActive ? ' ← You are here' : ''}
+                        </a>
+                      </td>
+                      <td style={{ padding: '12px 16px', textAlign: 'center', color: 'var(--text-soft)' }}>{s.total.toLocaleString()}</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'center', color: 'var(--text-soft)' }}>{wp.toLocaleString()}</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'center', color: 'var(--text-soft)' }}>{s.weeks}</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'center', color: 'var(--text-soft)' }}>{ageGuide}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       {/* WHY DIGITAL */}
       <section className="tenk-section">
         <h2>Why Track It Live Instead of Just Paper</h2>
@@ -265,14 +325,44 @@ export default function ChallengeLandingScreen({ challengeId }) {
 
       {/* FAQ */}
       <section className="tenk-section">
-        <h2>FAQ</h2>
+        <h2>FAQ — {spec.total.toLocaleString()} Shot Challenge</h2>
         <div className="tenk-faq">
-          <details className="tenk-faq-item"><summary>Can we really use this for free?</summary><p>Yes. Hockey Shot Challenge is free for players, teams, and associations. Forever. No hidden tiers.</p></details>
-          <details className="tenk-faq-item"><summary>Do kids need an app?</summary><p>No. The printable works with just a pen. The app works in any web browser — no app to download.</p></details>
-          <details className="tenk-faq-item"><summary>What if we prefer paper?</summary><p>Print the free sheet above. Scan the QR code on it anytime you want live leaderboards instead — nothing you've logged is lost.</p></details>
-          <details className="tenk-faq-item"><summary>How long does the {spec.total.toLocaleString()} shot challenge take?</summary><p>Most players finish over {spec.weeks} weeks at about {pace.toLocaleString()} shots a week (~{dailyPace} a day). Shoot more days and you'll finish sooner.</p></details>
-          <details className="tenk-faq-item"><summary>What age is the {spec.total.toLocaleString()} shot challenge for?</summary><p>{copy.ageNote}</p></details>
-          <details className="tenk-faq-item"><summary>Can parents see the leaderboard?</summary><p>Yes. Share the link with anyone. Coaches, parents, players — everyone sees the real-time standings.</p></details>
+          <details className="tenk-faq-item">
+            <summary>How long does the {spec.total.toLocaleString()} shot challenge take?</summary>
+            <p>Most youth hockey players finish the {spec.label} Challenge over approximately {spec.weeks} weeks. The typical pace is {pace.toLocaleString()} shots per week, or about {dailyPace} shots per day across 5–6 practice days. Players who shoot more frequently can finish sooner; those who shoot fewer days will take longer. The timeline is flexible based on your schedule and training intensity.</p>
+          </details>
+          <details className="tenk-faq-item">
+            <summary>What age group is the {spec.total.toLocaleString()} shot challenge designed for?</summary>
+            <p>{copy.ageNote} Each tier builds on the previous challenge — younger players typically start with the Rookie 1,000 Shot Challenge or Pro 2,500 Shot Challenge and progress upward as they build their off-ice training habit and capacity.</p>
+          </details>
+          <details className="tenk-faq-item">
+            <summary>Is Hockey Shot Challenge really free?</summary>
+            <p>Yes, completely free. Hockey Shot Challenge is free for individual players, parents managing multiple kids, coaches building team leaderboards, and entire minor hockey associations. There are no subscription tiers, no hidden costs, and no in-app purchases. Forever free.</p>
+          </details>
+          <details className="tenk-faq-item">
+            <summary>Can I print the {spec.label} tracker sheet for free?</summary>
+            <p>Yes. Download the free PDF printable tracker above — it's optimized for B&W and color printers. The sheet includes a QR code that lets you scan and switch to the live leaderboard app anytime, with all your logged shots preserved.</p>
+          </details>
+          <details className="tenk-faq-item">
+            <summary>What shot types count toward the challenge?</summary>
+            <p>All four shot types count equally: wrist shots, snap shots, slap shots, and backhand shots. The Hockey Shot Challenge encourages mixing all four to develop a complete, versatile shot. Tracking by shot type helps players identify which shots they practice less and where they can improve.</p>
+          </details>
+          <details className="tenk-faq-item">
+            <summary>Do kids need an app to track shots?</summary>
+            <p>No. You can print the free PDF sheet and track manually with a pen or marker — no technology required. Alternatively, the web app works on any device (phone, tablet, laptop) without downloading anything. Print or digital — it's your choice.</p>
+          </details>
+          <details className="tenk-faq-item">
+            <summary>Can parents see their child's progress?</summary>
+            <p>Yes. Parents can create an account, add their children as profiles, and view real-time leaderboards and shot statistics. Coaches and other family members can also view shared leaderboards via link if the parent grants permission.</p>
+          </details>
+          <details className="tenk-faq-item">
+            <summary>Can I switch from paper to the live app without losing progress?</summary>
+            <p>Yes. Every free printable sheet has a QR code that links directly to the digital challenge. Scan the QR code on your paper sheet anytime, sign in, and log your total shots — nothing is lost in the transition.</p>
+          </details>
+          <details className="tenk-faq-item">
+            <summary>Is the {spec.total.toLocaleString()} shot challenge part of Hockey Canada's training framework?</summary>
+            <p>Hockey Shot Challenge aligns with Hockey Canada's Long-Term Player Development (LTPD) model, which emphasizes consistent off-ice skill development for youth players. The shot volume and weekly pacing are designed to build capacity progressively and safely without overuse injury.</p>
+          </details>
         </div>
       </section>
 
