@@ -126,8 +126,13 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
         }
       }
       if (stickChecked) {
-        await logStickhandlingSession(player.id)
-        setStickCount((n) => n + 1)
+        try {
+          await logStickhandlingSession(player.id)
+          setStickCount((n) => n + 1)
+        } catch (e) {
+          console.error('Stickhandling log failed (non-blocking):', e)
+          toast('Stickhandling saved to your stats (but not counted yet)')
+        }
         setStickChecked(false)
       }
 

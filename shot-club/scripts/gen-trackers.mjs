@@ -132,7 +132,15 @@ function page(spec) {
     .actions { display: none; }
     body { background: #fff; padding: 0; }
     .sheet { box-shadow: none; border-radius: 0; max-width: 100%; }
-    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .box-val { color: #000 !important; }
+    .box { border-color: #333 !important; }
+    .row-target { opacity: 1 !important; color: #000 !important; }
+    .how { opacity: 1 !important; }
+    .banner-sub { opacity: 1 !important; }
+    .who label { opacity: 1 !important; }
+    .types .lbl { opacity: 1 !important; }
+    .qrtxt .path { opacity: 1 !important; }
   }
 </style>
 </head>
