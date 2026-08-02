@@ -55,40 +55,82 @@ export default function LandingScreen() {
 
   useEffect(() => {
     setSEO({
-      title: 'Hockey Shot Challenge — Track every shot. Climb the rankings.',
-      description: 'Free off-ice hockey tracker for players ages 6–18. Log shots and stickhandling every day. Compete on leaderboards. Join your team. Track progress in real-time. Completely free.',
+      title: 'Free Hockey Shot Tracker & 10,000 Shot Challenge App | HockeyShotChallenge',
+      description: 'Free off-ice hockey shot tracking app for players, parents, and coaches. Track wrist shots, snap shots, stickhandling, and compete in 1v1 team battles. Start tracking in 20 seconds.',
       url: CANONICAL_URL,
     })
     addStructuredData({
       '@context': 'https://schema.org',
-      '@type': 'WebApplication',
-      name: 'Hockey Shot Challenge',
-      url: CANONICAL_URL,
-      description: 'Off-ice hockey training tracker for youth players. Log shots, track progress, climb leaderboards, compete in 1v1 battles.',
-      applicationCategory: 'SportsApplication',
-      operatingSystem: 'Web',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'CAD',
-        availability: 'https://schema.org/InStock',
-      },
-      audience: {
-        '@type': 'PeopleAudience',
-        suggestedMinAge: '6',
-        suggestedMaxAge: '18',
-      },
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: '4.9',
-        ratingCount: '50',
-        bestRating: '5',
-        worstRating: '1',
-      },
-      creator: {
-        '@type': 'Organization',
-        name: 'Hockey Shot Challenge',
-      },
+      '@graph': [
+        {
+          '@type': 'WebApplication',
+          '@id': `${CANONICAL_URL}#app`,
+          name: 'Hockey Shot Challenge',
+          url: CANONICAL_URL,
+          description: 'Off-ice hockey training tracker for youth players. Log shots, track progress, climb leaderboards, compete in 1v1 battles.',
+          applicationCategory: 'SportsApplication',
+          operatingSystem: 'Web',
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'CAD',
+            availability: 'https://schema.org/InStock',
+          },
+          audience: {
+            '@type': 'PeopleAudience',
+            suggestedMinAge: '6',
+            suggestedMaxAge: '18',
+          },
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: '4.9',
+            ratingCount: '50',
+            bestRating: '5',
+            worstRating: '1',
+          },
+          creator: {
+            '@type': 'Organization',
+            name: 'Hockey Shot Challenge',
+          },
+        },
+        {
+          '@type': 'FAQPage',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'Is Hockey Shot Challenge free for teams and coaches?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Yes, Hockey Shot Challenge is completely free for individual players, parents, coaches, and entire minor hockey clubs with no subscription or app download required.',
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'How do parents manage multiple hockey players on one account?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Parents can sign in with a single Google account, add multiple player profiles, and switch between kids instantly on one centralized family dashboard.',
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'What can hockey players track on the app?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Players can track wrist shots, snap shots, slap shots, backhand shots, stickhandling drills, and goalies can track saves. Each session logs in 5 seconds.',
+              },
+            },
+            {
+              '@type': 'Question',
+              name: 'Is player data private and secure?',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Completely private. Parents control all privacy settings. Hockey Shot Challenge uses Google SSO for secure authentication, does not sell data, and contains no ads.',
+              },
+            },
+          ],
+        },
+      ],
     })
   }, [])
 
@@ -300,6 +342,34 @@ export default function LandingScreen() {
           </p>
         </div>
         <BattleMock />
+      </section>
+
+      {/* ── TRUST & CREDIBILITY ── */}
+      <section className="section" style={{ background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="section-head">
+          <div className="section-eyebrow">🛡️ TRUSTED BY HOCKEY FAMILIES</div>
+          <h2 className="section-title">Youth-Safe. Parent-Controlled. Hockey-Built.</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
+          <div style={{ padding: '24px', background: 'rgba(255,255,255,0.04)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: 20, marginBottom: 8 }}>🔒 Privacy by Design</div>
+            <p style={{ fontSize: 14, color: 'var(--text-soft)', lineHeight: 1.6 }}>
+              No data selling. No ads. No tracking pixels. Google Sign-In only. Parents control all sharing settings. COPPA-compliant for players under 13.
+            </p>
+          </div>
+          <div style={{ padding: '24px', background: 'rgba(255,255,255,0.04)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: 20, marginBottom: 8 }}>🏒 Built by Hockey People</div>
+            <p style={{ fontSize: 14, color: 'var(--text-soft)', lineHeight: 1.6 }}>
+              Designed by a hockey parent for youth hockey development. Aligned with Hockey Canada Long-Term Player Development (LTPD) and USA Hockey guidelines for off-ice training.
+            </p>
+          </div>
+          <div style={{ padding: '24px', background: 'rgba(255,255,255,0.04)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: 20, marginBottom: 8 }}>👧 Ages 6–18 Safe</div>
+            <p style={{ fontSize: 14, color: 'var(--text-soft)', lineHeight: 1.6 }}>
+              Designed for youth hockey players. No messaging, no social feeds, no dark patterns. Parents get full visibility and control over their child's account.
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* ── FAQ ── */}
