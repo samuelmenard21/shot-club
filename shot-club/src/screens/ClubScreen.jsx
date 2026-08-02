@@ -55,21 +55,53 @@ export default function ClubScreen() {
       setLoading(false)
       const cityPart = c.city ? `, ${c.city}` : ''
       setSEO({
-        title: `${c.name}${cityPart} — Off-Ice Training`,
-        description: `Off-ice shot tracking and skill training for ${c.name}${cityPart}. Coaches set up teams in 2 minutes. Players log shots and compete on the leaderboard. Free.`,
+        title: `${c.name}${cityPart} — Free Hockey Shot Challenge Tracker`,
+        description: `Free off-ice hockey shot tracking for ${c.name}${cityPart}. Download printable trackers for Rookie, Pro, Elite, and Hall of Famer challenges. Compete on team leaderboards. No app download.`,
         url: `${CANONICAL_URL}/clubs/${slug}`,
-        // Noindex until clubs have real traction — keeps rendered DOM consistent
-        // with the noindex the Pages Function injects into the raw HTML.
-        noindex: true,
       })
       addStructuredData({
         '@context': 'https://schema.org',
-        '@type': 'SportsOrganization',
-        name: c.name,
-        sport: 'Ice Hockey',
-        url: `${CANONICAL_URL}/clubs/${slug}`,
-        ...(c.city ? { address: { '@type': 'PostalAddress', addressLocality: c.city, addressCountry: 'CA' } } : {}),
-        memberOf: { '@type': 'Organization', name: 'Hockey Shot Challenge', url: CANONICAL_URL },
+        '@graph': [
+          {
+            '@type': 'SportsOrganization',
+            '@id': `${CANONICAL_URL}/clubs/${slug}#org`,
+            name: c.name,
+            sport: 'Ice Hockey',
+            url: `${CANONICAL_URL}/clubs/${slug}`,
+            description: `Off-ice hockey shot tracking and skill training for ${c.name}${cityPart}.`,
+            ...(c.city ? { address: { '@type': 'PostalAddress', addressLocality: c.city, addressCountry: 'CA' } } : {}),
+            memberOf: { '@type': 'Organization', name: 'Hockey Shot Challenge', url: CANONICAL_URL },
+            offers: [
+              { '@type': 'Offer', name: 'Rookie Challenge', description: 'Free 1,000 shot challenge tracker' },
+              { '@type': 'Offer', name: 'Pro Challenge', description: 'Free 2,500 shot challenge tracker' },
+              { '@type': 'Offer', name: 'Elite Challenge', description: 'Free 5,000 shot challenge tracker' },
+              { '@type': 'Offer', name: 'Hall of Famer Challenge', description: 'Free 10,000 shot challenge tracker' },
+            ],
+          },
+          {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Home',
+                item: CANONICAL_URL,
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Associations',
+                item: `${CANONICAL_URL}/associations`,
+              },
+              {
+                '@type': 'ListItem',
+                position: 3,
+                name: c.name,
+                item: `${CANONICAL_URL}/clubs/${slug}`,
+              },
+            ],
+          },
+        ],
       })
     }
     load()

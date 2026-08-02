@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchClubs } from '../lib/clubs'
-import { setSEO, CANONICAL_URL } from '../lib/seo'
+import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 
 export default function ClubsScreen() {
   const nav = useNavigate()
@@ -14,9 +14,27 @@ export default function ClubsScreen() {
 
   useEffect(() => {
     setSEO({
-      title: 'Free off-ice training for your whole association — Hockey Shot Challenge',
-      description: 'Coaches set up their own teams. Players track their own shots. You get the stats. Free for everyone, all season.',
+      title: 'Browse Hockey Associations & Clubs — Free Shot Challenge Tracker',
+      description: 'Find your hockey association or club on Hockey Shot Challenge. Browse printable trackers, join team leaderboards, and track off-ice training with your community. Free for OMHA, GTHL, USA Hockey, and all minor leagues.',
       url: `${CANONICAL_URL}/clubs`,
+    })
+    addStructuredData({
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Hockey Associations & Clubs Directory',
+      description: 'Directory of hockey associations and clubs using Hockey Shot Challenge for off-ice training tracking',
+      url: `${CANONICAL_URL}/clubs`,
+      mainEntity: {
+        '@type': 'SoftwareApplication',
+        name: 'Hockey Shot Challenge',
+        applicationCategory: 'SportsApplication',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'CAD',
+        },
+        description: 'Free hockey shot tracking app for associations, teams, coaches, and players. Supports Rookie (1k), Pro (2.5k), Elite (5k), and Hall of Famer (10k) challenges.',
+      },
     })
   }, [])
 
@@ -250,6 +268,25 @@ export default function ClubsScreen() {
               <div className="cs-rank-title">Your association vs everyone</div>
               <div className="cs-rank-text">Burlington vs Oakville vs Stoney Creek. See where your club stands across Ontario.</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Find your club */}
+      <section className="cs-section" style={{ background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="cs-eyebrow-left">🔍 FIND YOUR ASSOCIATION'S CUSTOM CHALLENGES</div>
+        <h2 className="cs-h2">Every club gets its own branded challenges</h2>
+        <p className="cs-body" style={{ maxWidth: 720, margin: '0 auto 24px' }}>
+          Your association has a dedicated page with customized shot challenge trackers (Rookie, Pro, Elite, Hall of Famer). Search above, or browse to your club's page to download club-branded printables or join the live leaderboard.
+        </p>
+        <div style={{ maxWidth: 720, margin: '0 auto', display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+          <div style={{ padding: 20, background: 'rgba(255,255,255,0.04)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>📋 Printable Trackers</div>
+            <p style={{ fontSize: 14, color: 'var(--text-soft)', lineHeight: 1.6 }}>Download free PDF trackers branded with your club name. Print immediately or track online — QR codes work both ways.</p>
+          </div>
+          <div style={{ padding: 20, background: 'rgba(255,255,255,0.04)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>🏆 Team Leaderboards</div>
+            <p style={{ fontSize: 14, color: 'var(--text-soft)', lineHeight: 1.6 }}>Join your club's live leaderboard, compete with teammates, and see your progress update in real-time as you log shots.</p>
           </div>
         </div>
       </section>
