@@ -17,16 +17,11 @@ export default function LandingScreen() {
   const searchTimer = useRef(null)
   const searchInputRef = useRef(null)
 
-  // Derived from the shared spec so the picker, the printables and the in-app
-  // grid can never disagree about targets or pace.
   const challenges = CHALLENGE_LIST.map((s) => ({
     id: s.id,
     shots: s.total,
-    pace: weeklyPace(s),
+    dailyPace: Math.round(weeklyPace(s) / 5),
     label: s.label,
-    // s.badge is tuned for the light cream cards elsewhere (printables,
-    // dashboard) — '10k' badge is near-black and unreadable on this dark
-    // homepage background, so give it a brighter gold stand-in here only.
     color: s.id === '10k' ? '#d4af6a' : s.badge,
     landingPath: s.landingPath,
   }))
@@ -167,7 +162,7 @@ export default function LandingScreen() {
               >
                 <div style={{ fontSize: 20, fontWeight: 800, color: c.color, marginBottom: 8 }}>{c.label}</div>
                 <div style={{ fontSize: 24, fontWeight: 900, color: 'white', marginBottom: 4 }}>{c.shots.toLocaleString()}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>{c.pace.toLocaleString()} shots/week</div>
+                <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>{c.dailyPace} shots/day</div>
               </button>
             ))}
           </div>

@@ -43,7 +43,6 @@ export default function HomeScreen() {
   const { player, refresh } = useAuth()
   const { toast } = useNotifications()
   const [stats, setStats] = useState({ todayTotal: 0, weekTotal: 0, todayByType: {} })
-  const [rival, setRival] = useState(null)
   const [entryType, setEntryType] = useState(null)
   const [undoStack, setUndoStack] = useState([])
   const [toastMsg, setToast] = useState('')
@@ -54,7 +53,6 @@ export default function HomeScreen() {
   const [newPB, setNewPB] = useState(false)
   const [teamChallenge, setTeamChallenge] = useState(null)
   const [teamWeekShots, setTeamWeekShots] = useState(0)
-  const [squadBattle, setSquadBattle] = useState(null)
   const [playerChallenge, setPlayerChallenge] = useState(null)
   const [playerChallengeProgress, setPlayerChallengeProgress] = useState(null)
   // Distinct from playerChallenge===null: that's ALSO the pre-fetch state, and
@@ -67,15 +65,11 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!player) return
+
     refreshStats()
-    getTodayRival(player.team_id, player.id).then(setRival).catch(() => {})
-    getSkillVideos().then(setVideos).catch(() => {})
     getPersonalBest(player.id).then(setPersonalBest).catch(() => {})
 
-    // Load the challenge. applyPendingChallenge first so a player arriving from
-    // a scanned sheet (or the homepage picker) lands on that challenge already
-    // set up, rather than an empty "pick a challenge" card. It no-ops when
-    // there's nothing stashed or they already have one.
+    // Load the challenge first — this is the critical path.
     applyPendingChallenge(player.id)
       .then(() => getPlayerChallenge(player.id))
       .then((ch) => {
@@ -86,21 +80,21 @@ export default function HomeScreen() {
       .catch(() => {})
       .finally(() => setChallengeChecked(true))
 
-    if (player.team_id) {
-      Promise.all([
-        getTeamChallenge(player.team_id),
-        getTeamWeeklyShots(player.team_id),
-        getMyBattle(player.id, player.team_id, player.club_id),
-      ])
-        .then(([ch, wk, battle]) => {
-          setTeamChallenge(ch)
-          setTeamWeekShots(wk)
-          setSquadBattle(battle)
-        })
-        .catch((err) => {
-          console.error('Battle/challenge load error:', err)
-        })
-    }
+    // Defer non-critical UI: videos and teams load after challenge is ready
+    setTimeout(() => {
+      getSkillVideos().then(setVideos).catch(() => {})
+      if (player.team_id) {
+        Promise.all([
+          getTeamChallenge(player.team_id),
+          getTeamWeeklyShots(player.team_id),
+        ])
+          .then(([ch, wk]) => {
+            setTeamChallenge(ch)
+            setTeamWeekShots(wk)
+          })
+          .catch(() => {})
+      }
+    }, 100)
   }, [player])
 
   const refreshStats = async () => {
@@ -276,38 +270,6 @@ export default function HomeScreen() {
   const lastLog = undoStack[undoStack.length - 1]
   const hasRecentLog = !!lastLog
 
-  // Chasing strip logic
-  let chasingText = null
-  let chasingSub = null
-  let chasingTag = null
-  let chasingTagClass = 'neutral'
-  if (rival) {
-    const rivalToday = rival.today_shots || 0
-    const rivalWeek = rival.week_shots || 0
-    const gapToday = stats.todayTotal - rivalToday
-    const gapWeek = stats.weekTotal - rivalWeek
-    const weekLabel = rivalWeek > 0 ? `${rivalWeek.toLocaleString()} this week` : 'no shots this week'
-    if (rivalToday === 0) {
-      chasingText = `${rival.display_name} — ${weekLabel}`
-      chasingSub = 'Your rival this week'
-      chasingTag = '—'
-    } else if (gapToday > 0) {
-      chasingText = `${rival.display_name} · ${rivalToday} today`
-      chasingSub = gapWeek >= 0 ? `+${gapWeek} on them this week` : `${gapWeek} this week`
-      chasingTag = `+${gapToday}`
-      chasingTagClass = 'lead'
-    } else if (gapToday < 0) {
-      chasingText = `${rival.display_name} · ${rivalToday} today`
-      chasingSub = `${Math.abs(gapToday)} shots to catch up today`
-      chasingTag = `${gapToday}`
-      chasingTagClass = 'chase'
-    } else {
-      chasingText = `${rival.display_name} · ${rivalToday} today`
-      chasingSub = 'Tied today'
-      chasingTag = '='
-    }
-  }
-
   return (
     <div className="home fade-in">
       <header className="topbar">
@@ -326,9 +288,8 @@ export default function HomeScreen() {
         )}
       </header>
 
-      {/* COMPACT PROGRESS + DAILY CHALLENGE */}
-      {player.lifetime_shot_goal && (() => {
-        // Milestone tiers
+      {/* RANK BADGE — COMPACT */}
+      {(() => {
         const tiers = [
           { name: '🥉 Bronze', threshold: 0, nextThreshold: 250 },
           { name: '🥈 Silver', threshold: 250, nextThreshold: 500 },
@@ -336,49 +297,11 @@ export default function HomeScreen() {
           { name: '💎 Platinum', threshold: 1000, nextThreshold: 2500 },
           { name: '👑 LEGEND', threshold: 2500, nextThreshold: 5000 },
         ]
-
-        // Include today's logged shots in the calculation
         const currentLifetimeShots = player.lifetime_shots + stats.todayTotal
         const currentTier = tiers.find(t => currentLifetimeShots >= t.threshold && currentLifetimeShots < t.nextThreshold) || tiers[tiers.length - 1]
-        const shotsToNext = currentTier.nextThreshold - currentLifetimeShots
-        const progressToNext = Math.round(((currentLifetimeShots - currentTier.threshold) / (currentTier.nextThreshold - currentTier.threshold)) * 100)
-
-        const messages = [
-          '🚀 You\'re crushing it!',
-          '💪 Keep pushing!',
-          '🔥 Unstoppable!',
-          '⚡ On fire!',
-          '✨ You\'re amazing!',
-        ]
-        const message = messages[Math.floor(currentLifetimeShots / 100) % messages.length]
-
         return (
-          <div style={{ padding: '16px 14px 8px', marginBottom: 8 }}>
-            {/* Badge + progress to next */}
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <div style={{ fontSize: 16, fontWeight: 700 }}>{currentTier.name}</div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{shotsToNext.toLocaleString()} to {currentTier.nextThreshold}</div>
-              </div>
-              <div style={{
-                width: '100%',
-                height: 8,
-                background: 'rgba(255,255,255,0.1)',
-                borderRadius: 4,
-                overflow: 'hidden',
-                marginBottom: 8,
-              }}>
-                <div style={{
-                  height: '100%',
-                  background: 'linear-gradient(90deg, var(--accent) 0%, #2563eb 100%)',
-                  width: `${Math.min(100, progressToNext)}%`,
-                  transition: 'width 0.5s ease',
-                }} />
-              </div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ice)', fontFamily: 'var(--font-display)' }}>
-                {message}
-              </div>
-            </div>
+          <div style={{ padding: '12px 14px 8px', marginBottom: 4 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>{currentTier.name}</div>
           </div>
         )
       })()}
@@ -462,45 +385,6 @@ export default function HomeScreen() {
         </div>
       )}
 
-      {/* TEAM CHALLENGE TRACKER */}
-      {teamChallenge && (() => {
-        const progress = Math.round((teamWeekShots / teamChallenge.goal_shots) * 100)
-        const remaining = Math.max(0, teamChallenge.goal_shots - teamWeekShots)
-        return (
-          <div style={{ margin: '12px 14px', padding: '16px', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%)', border: '1.5px solid rgba(59, 130, 246, 0.3)', borderRadius: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#60a5fa', marginBottom: 4 }}>👥 TEAM CHALLENGE</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: 'white' }}>{teamChallenge.name}</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#60a5fa' }}>{progress}%</div>
-                <div style={{ fontSize: 11, color: 'var(--text-soft)', marginTop: 2 }}>{remaining.toLocaleString()} left</div>
-              </div>
-            </div>
-
-            <div style={{
-              width: '100%',
-              height: 12,
-              background: 'rgba(0,0,0,0.2)',
-              borderRadius: 6,
-              overflow: 'hidden',
-              marginBottom: 12,
-            }}>
-              <div style={{
-                height: '100%',
-                background: 'linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%)',
-                width: `${Math.min(100, progress)}%`,
-                transition: 'width 0.5s ease',
-              }} />
-            </div>
-
-            <div style={{ fontSize: 13, color: 'var(--ice)', fontWeight: 600 }}>
-              Team: {teamWeekShots.toLocaleString()} / {teamChallenge.goal_shots.toLocaleString()} shots
-            </div>
-          </div>
-        )
-      })()}
 
       {player.lifetime_shots === 0 && (
         <div className="first-time-nudge">
