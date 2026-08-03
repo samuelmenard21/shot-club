@@ -6,7 +6,7 @@ import AuthorBio from '../../components/AuthorBio'
 
 export default function HockeyProgressionPost() {
   const nav = useNavigate()
-  const { trackBlogViewed } = usePostHog()
+  const { trackBlogViewed, trackBlogLinkClicked } = usePostHog()
 
   useEffect(() => {
     trackBlogViewed('5-week-progression', '5-Week Progression: How Skill Actually Develops')
@@ -108,19 +108,19 @@ export default function HockeyProgressionPost() {
           </div>
 
           <h2>What To Do After Week 5?</h2>
-          <p>You have options. Some players stop here — they've built the habit and the skills. Some jump into the <button className="post-inline-link" onClick={() => nav('/blog/pro-challenge')}>Pro Challenge (2,500 shots)</button> and keep going. Both are wins. The real achievement is that you proved you could do hard things for five weeks straight. Everything else is just more of the same.</p>
+          <p>You have options. Some players stop here — they've built the habit and the skills. Some jump into the <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('pro-challenge', 'internal'); nav('/blog/pro-challenge'); }}>Pro Challenge (2,500 shots)</button> and keep going. Both are wins. The real achievement is that you proved you could do hard things for five weeks straight. Everything else is just more of the same.</p>
 
           <h2>Related Reading</h2>
           <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/7-off-ice-drills')}>The drills that actually work →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('7-off-ice-drills', 'related_reading'); nav('/blog/7-off-ice-drills'); }}>The drills that actually work →</button>
             {' '} These 7 drills are what you'll be doing during those 5 weeks.
           </p>
           <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/80-20-finishers')}>Why 20% finish and 80% quit →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('80-20-finishers', 'related_reading'); nav('/blog/80-20-finishers'); }}>Why 20% finish and 80% quit →</button>
             {' '} Want to be in the 20%? Read what separates finishers from quitters.
           </p>
           <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/burnout-prevention')}>How to avoid overtraining →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('burnout-prevention', 'related_reading'); nav('/blog/burnout-prevention'); }}>How to avoid overtraining →</button>
             {' '} Progress doesn't mean pushing harder. It means training smarter.
           </p>
 

@@ -6,7 +6,7 @@ import AuthorBio from '../../components/AuthorBio'
 
 export default function OffIceDrillsAdvancedPost() {
   const nav = useNavigate()
-  const { trackBlogViewed } = usePostHog()
+  const { trackBlogViewed, trackBlogLinkClicked } = usePostHog()
 
   useEffect(() => {
     trackBlogViewed('7-off-ice-drills', '7 Off-Ice Drills That Actually Improve Shot Accuracy')
@@ -142,11 +142,11 @@ export default function OffIceDrillsAdvancedPost() {
 
           <h2>Related Reading</h2>
           <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/5-week-progression')}>How players progress week-by-week →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('5-week-progression', 'related_reading'); nav('/blog/5-week-progression'); }}>How players progress week-by-week →</button>
             {' '} See what happens as you do these drills consistently.
           </p>
           <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/hockey-iq-vs-skill')}>How drills build hockey IQ, not just skill →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('hockey-iq-vs-skill', 'related_reading'); nav('/blog/hockey-iq-vs-skill'); }}>How drills build hockey IQ, not just skill →</button>
             {' '} It's not just about accuracy. It's about thinking faster.
           </p>
 

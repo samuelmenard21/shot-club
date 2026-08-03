@@ -6,7 +6,7 @@ import AuthorBio from '../../components/AuthorBio'
 
 export default function The80Percent20Post() {
   const nav = useNavigate()
-  const { trackBlogViewed } = usePostHog()
+  const { trackBlogViewed, trackBlogLinkClicked } = usePostHog()
 
   useEffect(() => {
     trackBlogViewed('80-20-finishers', 'The 80/20 of Finishers: Why Some Kids Push Through and Others Quit')
@@ -104,19 +104,19 @@ export default function The80Percent20Post() {
 
           <h2>Related Reading</h2>
           <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/5-week-progression')}>The 5-week progression finishers follow →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('5-week-progression', 'related_reading'); nav('/blog/5-week-progression'); }}>The 5-week progression finishers follow →</button>
             {' '} See exactly what you\'re building into.
           </p>
           <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/7-off-ice-drills')}>The drills finishers actually use →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('7-off-ice-drills', 'related_reading'); nav('/blog/7-off-ice-drills'); }}>The drills finishers actually use →</button>
             {' '} This is the training finishers show up for consistently.
           </p>
           <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/burnout-prevention')}>How finishers avoid burnout →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('burnout-prevention', 'related_reading'); nav('/blog/burnout-prevention'); }}>How finishers avoid burnout →</button>
             {' '} The 20% finish because they train smart, not just hard.
           </p>
           <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/rookie-challenge')}>Start with the Rookie Challenge →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('rookie-challenge', 'related_reading'); nav('/blog/rookie-challenge'); }}>Start with the Rookie Challenge →</button>
             {' '} The perfect first challenge for building finisher habits.
           </p>
 

@@ -6,7 +6,7 @@ import AuthorBio from '../../components/AuthorBio'
 
 export default function HockeyIQVsSkillPost() {
   const nav = useNavigate()
-  const { trackBlogViewed } = usePostHog()
+  const { trackBlogViewed, trackBlogLinkClicked } = usePostHog()
 
   useEffect(() => {
     trackBlogViewed('hockey-iq-vs-skill', 'Hockey IQ vs. Skill: Why Training Matters More Than Talent')
@@ -103,15 +103,15 @@ export default function HockeyIQVsSkillPost() {
 
           <h2>Related Reading</h2>
           <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/7-off-ice-drills')}>The 7 drills that build both →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('7-off-ice-drills', 'related_reading'); nav('/blog/7-off-ice-drills'); }}>The 7 drills that build both →</button>
             {' '} Each drill trains a specific mental skill alongside physical skill.
           </p>
           <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/5-week-progression')}>Watch the transformation unfold →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('5-week-progression', 'related_reading'); nav('/blog/5-week-progression'); }}>Watch the transformation unfold →</button>
             {' '} See how hockey IQ develops week by week as you train.
           </p>
           <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/80-20-finishers')}>The habits that create elite players →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('80-20-finishers', 'related_reading'); nav('/blog/80-20-finishers'); }}>The habits that create elite players →</button>
             {' '} Building IQ takes consistency. Here\'s how finishers stay committed.
           </p>
 

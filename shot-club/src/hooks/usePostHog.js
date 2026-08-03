@@ -16,9 +16,16 @@ export function usePostHog() {
   }, [trackEvent])
 
   const trackBlogViewed = useCallback((slug, title) => {
-    trackEvent('blog_article_viewed', {
-      blog_slug: slug,
-      blog_title: title,
+    trackEvent('blog_post_viewed', {
+      slug,
+      title,
+    })
+  }, [trackEvent])
+
+  const trackBlogLinkClicked = useCallback((slug, location = 'internal') => {
+    trackEvent('blog_link_clicked', {
+      slug,
+      location,
     })
   }, [trackEvent])
 
@@ -74,6 +81,7 @@ export function usePostHog() {
     trackEvent,
     trackChallengePicked,
     trackBlogViewed,
+    trackBlogLinkClicked,
     trackTrackerDownloaded,
     trackTrackLiveClicked,
     trackClubSearched,

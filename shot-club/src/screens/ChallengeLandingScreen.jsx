@@ -97,7 +97,7 @@ const WEEK_FOCUS_8 = [
 
 export default function ChallengeLandingScreen({ challengeId }) {
   const nav = useNavigate()
-  const { trackTrackerDownloaded, trackTrackLiveClicked } = usePostHog()
+  const { trackTrackerDownloaded, trackTrackLiveClicked, trackChallengePicked } = usePostHog()
   const spec = getSpec(challengeId)
   const copy = CONTENT[challengeId]
   const pace = weeklyPace(spec)
@@ -108,6 +108,7 @@ export default function ChallengeLandingScreen({ challengeId }) {
   const prevTier = idx > 0 ? CHALLENGE_SPECS[CHALLENGE_ORDER[idx - 1]] : null
 
   useEffect(() => {
+    trackChallengePicked(challengeId, spec.label)
     setSEO({
       title: `${spec.total.toLocaleString()} Shot Challenge — ${spec.label} Tracker, Free Printable & Online`,
       description: `Free ${spec.label} (${spec.total.toLocaleString()} shot) hockey challenge tracker. Print the sheet or track it live with leaderboards. ${copy.sub}`,

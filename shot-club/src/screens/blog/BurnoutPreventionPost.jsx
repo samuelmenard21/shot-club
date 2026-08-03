@@ -6,7 +6,7 @@ import AuthorBio from '../../components/AuthorBio'
 
 export default function BurnoutPreventionPost() {
   const nav = useNavigate()
-  const { trackBlogViewed } = usePostHog()
+  const { trackBlogViewed, trackBlogLinkClicked } = usePostHog()
 
   useEffect(() => {
     trackBlogViewed('burnout-prevention', 'Burnout Prevention: The 4 Warning Signs Every Coach Misses')
@@ -117,15 +117,15 @@ export default function BurnoutPreventionPost() {
 
           <h2>Related Reading</h2>
           <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/hockey-iq-vs-skill')}>Training smart builds both skill and IQ →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('hockey-iq-vs-skill', 'related_reading'); nav('/blog/hockey-iq-vs-skill'); }}>Training smart builds both skill and IQ →</button>
             {' '} Quality matters more than volume. Here\'s why.
           </p>
           <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/5-week-progression')}>How to pace your training →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('5-week-progression', 'related_reading'); nav('/blog/5-week-progression'); }}>How to pace your training →</button>
             {' '} The progression guide shows what sustainable looks like.
           </p>
           <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
-            <button className="post-inline-link" onClick={() => nav('/blog/80-20-finishers')}>How finishers stay healthy and motivated →</button>
+            <button className="post-inline-link" onClick={() => { trackBlogLinkClicked('80-20-finishers', 'related_reading'); nav('/blog/80-20-finishers'); }}>How finishers stay healthy and motivated →</button>
             {' '} The 20% who finish also know how to avoid burnout.
           </p>
 
