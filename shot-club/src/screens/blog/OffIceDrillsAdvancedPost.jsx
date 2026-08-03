@@ -1,12 +1,15 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
+import { usePostHog } from '../../hooks/usePostHog'
 import AuthorBio from '../../components/AuthorBio'
 
 export default function OffIceDrillsAdvancedPost() {
   const nav = useNavigate()
+  const { trackBlogViewed } = usePostHog()
 
   useEffect(() => {
+    trackBlogViewed('7-off-ice-drills', '7 Off-Ice Drills That Actually Improve Shot Accuracy')
     setSEO({
       title: '7 Off-Ice Drills That Actually Improve Shot Accuracy (Tested by Coaches)',
       description: `7 proven off-ice hockey drills coaches recommend. Step-by-step instructions for each. Build accuracy, consistency, and muscle memory at home.`,

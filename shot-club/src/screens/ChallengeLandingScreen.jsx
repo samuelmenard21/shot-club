@@ -4,6 +4,7 @@ import { setSEO, CANONICAL_URL } from '../lib/seo'
 import { getSpec, weeklyPace, printableHref, CHALLENGE_ORDER, CHALLENGE_SPECS } from '../lib/challengeSpecs'
 import { stashPendingChallenge } from '../lib/challenges'
 import { signInWithGooglePlayer } from '../lib/auth'
+import { usePostHog } from '../hooks/usePostHog'
 
 // One template drives all four challenge pages. Copy differs per tier (below)
 // so the pages don't read as duplicate content to Google, but layout, CSS,
@@ -96,6 +97,7 @@ const WEEK_FOCUS_8 = [
 
 export default function ChallengeLandingScreen({ challengeId }) {
   const nav = useNavigate()
+  const { trackTrackerDownloaded, trackTrackLiveClicked } = usePostHog()
   const spec = getSpec(challengeId)
   const copy = CONTENT[challengeId]
   const pace = weeklyPace(spec)
@@ -113,13 +115,20 @@ export default function ChallengeLandingScreen({ challengeId }) {
     })
   }, [challengeId])
 
-  const goPrint = () => window.open(printableHref(challengeId, { autoPrint: true }), '_blank', 'noopener')
-  const goDigital = () => nav(`/start?challenge=${challengeId}&src=${challengeId}landing`)
+  const goPrint = () => {
+    trackTrackerDownloaded(challengeId)
+    window.open(printableHref(challengeId, { autoPrint: true }), '_blank', 'noopener')
+  }
+  const goDigital = () => {
+    trackTrackLiveClicked(challengeId)
+    nav(`/start?challenge=${challengeId}&src=${challengeId}landing`)
+  }
   // Skips the multi-step club/position form entirely — straight to Google,
   // straight back to the dashboard (AuthScreen's quick-setup fallback screen
   // still asks for name/position, but in one step instead of two).
   const goDigitalFast = (e) => {
     e.stopPropagation()
+    trackTrackLiveClicked(challengeId)
     stashPendingChallenge(challengeId)
     signInWithGooglePlayer()
   }

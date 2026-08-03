@@ -1,9 +1,19 @@
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import posthog from 'posthog-js'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { NotificationProvider } from './hooks/useNotifications'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import Toast from './components/Toast'
+
+// Initialize PostHog
+if (typeof window !== 'undefined' && !posthog.has_opted_out_capturing()) {
+  posthog.init('phc_0s8eEfCPEjJEIHZkRGNwXzNNZGI1OWUzYjUzZjE0MzgzMzJhMWQ1YzJjYmU4YWZhOQ', {
+    api_host: 'https://us.posthog.com',
+    person_profiles: 'identified_only',
+    capture_pageview: true,
+  })
+}
 
 // ── EAGER: public content screens that are PRERENDERED at build time.
 // These MUST be statically imported — renderToString can't wait on React.lazy,

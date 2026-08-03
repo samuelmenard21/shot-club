@@ -1,12 +1,15 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
+import { usePostHog } from '../../hooks/usePostHog'
 import AuthorBio from '../../components/AuthorBio'
 
 export default function HockeyProgressionPost() {
   const nav = useNavigate()
+  const { trackBlogViewed } = usePostHog()
 
   useEffect(() => {
+    trackBlogViewed('5-week-progression', '5-Week Progression: How Skill Actually Develops')
     setSEO({
       title: 'The 5-Week Hockey Progression: What Players Learn Each Week (Week by Week)',
       description: `Track your first 1,250 shots week-by-week. What happens week 1 vs week 5. How muscle memory builds. What to expect.`,

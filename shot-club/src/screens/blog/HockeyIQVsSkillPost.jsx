@@ -1,12 +1,15 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
+import { usePostHog } from '../../hooks/usePostHog'
 import AuthorBio from '../../components/AuthorBio'
 
 export default function HockeyIQVsSkillPost() {
   const nav = useNavigate()
+  const { trackBlogViewed } = usePostHog()
 
   useEffect(() => {
+    trackBlogViewed('hockey-iq-vs-skill', 'Hockey IQ vs. Skill: Why Training Matters More Than Talent')
     setSEO({
       title: 'Hockey IQ vs Skill: 6 Ways Off-Ice Training Builds Both',
       description: `Off-ice training does more than build strength. Here are 6 ways it builds hockey IQ, decision-making, and game sense alongside skill.`,

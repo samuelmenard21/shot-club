@@ -1,12 +1,15 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
+import { usePostHog } from '../../hooks/usePostHog'
 import AuthorBio from '../../components/AuthorBio'
 
 export default function The80Percent20Post() {
   const nav = useNavigate()
+  const { trackBlogViewed } = usePostHog()
 
   useEffect(() => {
+    trackBlogViewed('80-20-finishers', 'The 80/20 of Finishers: Why Some Kids Push Through and Others Quit')
     setSEO({
       title: 'The Hockey 80/20: Why 20% of Players Finish Their Challenge (And How to Be One)',
       description: `Most hockey players quit their shot challenge. Here's what separates the 20% who finish from everyone else.`,

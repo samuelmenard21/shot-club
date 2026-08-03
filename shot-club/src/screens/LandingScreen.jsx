@@ -5,11 +5,13 @@ import ContactSection from '../components/ContactSection'
 import { searchClubs } from '../lib/clubs'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { usePostHog } from '../hooks/usePostHog'
 import { CHALLENGE_LIST, weeklyPace } from '../lib/challengeSpecs'
 
 export default function LandingScreen() {
   const nav = useNavigate()
   const { player } = useAuth()
+  const { trackChallengePicked, trackClubSearched, trackClubSelected } = usePostHog()
   const [clubQuery, setClubQuery] = useState('')
   const [clubResults, setClubResults] = useState([])
   const [searchingClubs, setSearchingClubs] = useState(false)
@@ -34,6 +36,7 @@ export default function LandingScreen() {
       return
     }
     setSearchingClubs(true)
+    trackClubSearched(clubQuery)
     searchTimer.current = setTimeout(async () => {
       try {
         const results = await searchClubs(clubQuery, 6)
@@ -45,7 +48,7 @@ export default function LandingScreen() {
       }
     }, 200)
     return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
-  }, [clubQuery])
+  }, [clubQuery, trackClubSearched])
 
   useEffect(() => {
     supabase.rpc('get_total_shots').then(({ data }) => {
@@ -182,7 +185,7 @@ export default function LandingScreen() {
             {challenges.map((c) => (
               <button
                 key={c.id}
-                onClick={() => nav(c.landingPath)}
+                onClick={() => { trackChallengePicked(c.id, c.label); nav(c.landingPath) }}
                 style={{
                   border: '2px solid',
                   borderColor: c.color,
@@ -278,7 +281,7 @@ export default function LandingScreen() {
                   <div key={c.id} className="hero-search-result-wrap">
                     <button
                       className="hero-search-result"
-                      onClick={() => { nav(`/clubs/${c.slug}`); setClubQuery(''); setClubResults([]) }}
+                      onClick={() => { trackClubSelected(c.id, c.name); nav(`/clubs/${c.slug}`); setClubQuery(''); setClubResults([]) }}
                     >
                       <span className="hero-search-result-name">{c.name}</span>
                       <span className="hero-search-result-meta">

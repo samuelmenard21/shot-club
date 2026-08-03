@@ -1,12 +1,15 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
+import { usePostHog } from '../../hooks/usePostHog'
 import AuthorBio from '../../components/AuthorBio'
 
 export default function BurnoutPreventionPost() {
   const nav = useNavigate()
+  const { trackBlogViewed } = usePostHog()
 
   useEffect(() => {
+    trackBlogViewed('burnout-prevention', 'Burnout Prevention: The 4 Warning Signs Every Coach Misses')
     setSEO({
       title: 'Hockey Burnout Prevention: 4 Signs Your Kid Is Overtraining + How to Fix It',
       description: `4 signs of overtraining in hockey: injury frequency, loss of enthusiasm, plateaued progress, reduced game performance. How to prevent burnout.`,
