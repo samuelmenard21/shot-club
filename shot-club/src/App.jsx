@@ -1,6 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import posthog from 'posthog-js'
+import ReactGA from 'react-ga4'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { NotificationProvider } from './hooks/useNotifications'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -12,6 +13,15 @@ if (typeof window !== 'undefined' && !posthog.has_opted_out_capturing()) {
     api_host: 'https://us.posthog.com',
     person_profiles: 'identified_only',
     capture_pageview: true,
+  })
+}
+
+// Initialize GA4
+if (typeof window !== 'undefined') {
+  ReactGA.initialize('G-6NMNS8TQFK', {
+    gaOptions: {
+      anonymizeIp: true,
+    }
   })
 }
 
