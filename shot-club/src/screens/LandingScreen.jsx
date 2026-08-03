@@ -442,23 +442,65 @@ export default function LandingScreen() {
       <ContactSection />
 
       <footer className="land-footer">
-        <button className="foot-brand" onClick={() => nav('/')}>
-          <BrandMark />
-          <span>Hockey Shot Challenge</span>
-        </button>
-        <div className="foot-links">
-          <button className="foot-link" onClick={() => nav('/start')}>Sign in</button>
-          <button className="foot-link" onClick={() => nav('/privacy')}>Privacy</button>
-          <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/for-clubs')}>For clubs</button>
-          <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/coach')}>Coaches</button>
-          <button className="foot-link foot-link--hide-mobile" onClick={() => nav('/blog')}>Guides</button>
-          {challenges.map((c) => (
-            <button key={c.id} className="foot-link foot-link--hide-mobile" onClick={() => nav(c.landingPath)}>{c.label}</button>
-          ))}
-          <a href="https://www.usahockey.com" target="_blank" rel="noopener noreferrer" className="foot-link foot-link--hide-mobile" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>USA Hockey</a>
-          <a href="https://www.hockeycanada.ca" target="_blank" rel="noopener noreferrer" className="foot-link foot-link--hide-mobile" style={{ color: 'var(--text-soft)', textDecoration: 'none' }}>Hockey Canada</a>
+        <div style={{ maxWidth: 1100, margin: '0 auto', width: '100%', padding: '0 20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 40, marginBottom: 40 }}>
+            {/* Brand */}
+            <div>
+              <button className="foot-brand" onClick={() => nav('/')} style={{ marginBottom: 16 }}>
+                <BrandMark />
+                <span>Hockey Shot Challenge</span>
+              </button>
+              <p style={{ fontSize: 13, color: 'var(--text-soft)', lineHeight: 1.6 }}>
+                Free off-ice hockey tracking for players ages 6-18. Print trackers. Track live. Compete with your team.
+              </p>
+            </div>
+
+            {/* Challenges */}
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ice)', letterSpacing: 1, marginBottom: 12 }}>CHALLENGES</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {challenges.map((c) => (
+                  <button key={c.id} className="foot-link" onClick={() => nav(c.landingPath)} style={{ textAlign: 'left' }}>
+                    {c.label} ({c.shots.toLocaleString()} shots)
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Learn */}
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ice)', letterSpacing: 1, marginBottom: 12 }}>LEARN</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <button className="foot-link" onClick={() => nav('/blog/7-off-ice-drills')}>7 Off-Ice Drills</button>
+                <button className="foot-link" onClick={() => nav('/blog/5-week-progression')}>Week-by-Week Progression</button>
+                <button className="foot-link" onClick={() => nav('/blog/80-20-finishers')}>Why 20% Finish</button>
+                <button className="foot-link" onClick={() => nav('/blog/burnout-prevention')}>Avoid Burnout</button>
+                <button className="foot-link" onClick={() => nav('/blog')}>All Guides →</button>
+              </div>
+            </div>
+
+            {/* Navigate */}
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ice)', letterSpacing: 1, marginBottom: 12 }}>NAVIGATE</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <button className="foot-link" onClick={() => nav('/for-clubs')}>For Clubs</button>
+                <button className="foot-link" onClick={() => nav('/coach')}>For Coaches</button>
+                <button className="foot-link" onClick={() => nav('/clubs')}>Find Your Club</button>
+                <button className="foot-link" onClick={() => nav('/privacy')}>Privacy</button>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 20, textAlign: 'center' }}>
+            <div style={{ fontSize: 13, color: 'var(--text-soft)', marginBottom: 8 }}>
+              © {new Date().getFullYear()} Hockey Shot Challenge · Built in Burlington, ON
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-mute)' }}>
+              <a href="https://www.hockeycanada.ca" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', marginRight: 16 }}>Hockey Canada</a>
+              <a href="https://www.usahockey.com" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>USA Hockey</a>
+            </div>
+          </div>
         </div>
-        <div className="foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge · Built in Burlington, ON</div>
       </footer>
 
       <style>{styles}</style>
