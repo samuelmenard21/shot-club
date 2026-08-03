@@ -19,6 +19,10 @@ import SquadBattlesPost from './screens/blog/SquadBattlesPost'
 import OffIceDrillsPost from './screens/blog/OffIceDrillsPost'
 import PracticeRoutinePost from './screens/blog/PracticeRoutinePost'
 import ParentsGuidePost from './screens/blog/ParentsGuidePost'
+import RookieChallengePost from './screens/blog/RookieChallengePost'
+import ProChallengePost from './screens/blog/ProChallengePost'
+import EliteChallengePost from './screens/blog/EliteChallengePost'
+import HallOfFamerChallengePost from './screens/blog/HallOfFamerChallengePost'
 import ChallengeLandingScreen from './screens/ChallengeLandingScreen'
 import AssociationPartnershipScreen from './screens/AssociationPartnershipScreen'
 import ChallengeSelector from './screens/ChallengeSelector'
@@ -183,6 +187,10 @@ function ShellWrapper() {
         <Route path="/privacy" element={<PrivacyScreen />} />
         <Route path="/player" element={<PlayerLandingScreen />} />
         <Route path="/blog" element={<BlogIndex />} />
+        <Route path="/blog/rookie-challenge" element={<RookieChallengePost />} />
+        <Route path="/blog/pro-challenge" element={<ProChallengePost />} />
+        <Route path="/blog/elite-challenge" element={<EliteChallengePost />} />
+        <Route path="/blog/hall-of-famer-challenge" element={<HallOfFamerChallengePost />} />
         <Route path="/blog/getting-started" element={<GettingStartedPost />} />
         <Route path="/blog/how-squad-battles-work" element={<SquadBattlesPost />} />
         <Route path="/blog/off-ice-drills" element={<OffIceDrillsPost />} />

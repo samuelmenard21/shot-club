@@ -366,6 +366,38 @@ export default function ChallengeLandingScreen({ challengeId }) {
         </div>
       </section>
 
+      {/* BLOG POST LINK */}
+      <section className="tenk-section" style={{ background: 'rgba(96,165,250,0.05)', borderTop: '1px solid rgba(96,165,250,0.1)', borderBottom: '1px solid rgba(96,165,250,0.1)' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 16, textAlign: 'center' }}>
+            Want to learn what happens when kids actually commit to {spec.total.toLocaleString()} shots? Read our guide:
+          </p>
+          <button
+            onClick={() => {
+              const blogMap = { '1k': 'rookie-challenge', '2_5k': 'pro-challenge', '5k': 'elite-challenge', '10k': 'hall-of-famer-challenge' }
+              nav(`/blog/${blogMap[challengeId]}`)
+            }}
+            style={{
+              display: 'block',
+              margin: '0 auto',
+              background: 'transparent',
+              border: '1px solid var(--accent)',
+              color: 'var(--accent)',
+              padding: '14px 24px',
+              borderRadius: 10,
+              fontWeight: 700,
+              fontSize: 16,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => { e.target.style.background = 'rgba(96,165,250,0.1)'; e.target.style.color = '#fff'; }}
+            onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = 'var(--accent)'; }}
+          >
+            {"Read: What Actually Happens After " + spec.total.toLocaleString() + " Shots →"}
+          </button>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="tenk-section tenk-section--final">
         <h2>Start Your {spec.label} Challenge Today</h2>

@@ -4,6 +4,30 @@ import { setSEO, CANONICAL_URL } from '../../lib/seo'
 
 const POSTS = [
   {
+    slug: 'rookie-challenge',
+    title: 'The Rookie Challenge (1,000 Shots): Building Unstoppable Hockey Habits',
+    description: 'How 1,000 shots in 5-6 weeks builds real practice habits. What kids actually learn from the Rookie Challenge and when transformation happens.',
+    date: 'August 2026',
+  },
+  {
+    slug: 'pro-challenge',
+    title: 'The Pro Challenge (2,500 Shots): From Practice to Real Training',
+    description: "What happens when a player commits to 2,500 shots. How training transforms from casual to intentional, and what coaches notice.",
+    date: 'August 2026',
+  },
+  {
+    slug: 'elite-challenge',
+    title: 'The Elite Challenge (5,000 Shots): What It Actually Takes to Be Elite',
+    description: 'At 5,000 shots, most quit. The ones who push through build something rare: mental toughness and mastery. Here\'s what happens.',
+    date: 'August 2026',
+  },
+  {
+    slug: 'hall-of-famer-challenge',
+    title: 'The Hall of Famer Challenge (10,000 Shots): Why Elite Athletes Never Stop Training',
+    description: 'At 10,000 shots, mastery begins. Players become mentors. Habits become identity. Here\'s what happens when someone actually commits to elite-level training.',
+    date: 'August 2026',
+  },
+  {
     slug: 'getting-started',
     title: 'How to Get Your Kid Started on Hockey Shot Challenge (It Takes 5 Minutes)',
     description: 'A step-by-step guide for parents. Sign in with Google, set up your player, find their team, and log the first session.',

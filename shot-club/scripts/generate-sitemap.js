@@ -60,6 +60,10 @@ const STATIC_PAGES = [
   { loc: '/blog/off-ice-drills',           priority: '0.6', changefreq: 'monthly' },
   { loc: '/blog/building-practice-routine', priority: '0.6', changefreq: 'monthly' },
   { loc: '/blog/parents-guide-youth-hockey', priority: '0.6', changefreq: 'monthly' },
+  { loc: '/blog/rookie-challenge',         priority: '0.6', changefreq: 'monthly' },
+  { loc: '/blog/pro-challenge',            priority: '0.6', changefreq: 'monthly' },
+  { loc: '/blog/elite-challenge',          priority: '0.6', changefreq: 'monthly' },
+  { loc: '/blog/hall-of-famer-challenge',  priority: '0.6', changefreq: 'monthly' },
 
   // NOTE: /start is deliberately absent. It's a real route but it isn't
   // prerendered, so the SPA fallback serves the homepage's HTML at that URL —
