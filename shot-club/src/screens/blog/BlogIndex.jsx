@@ -4,6 +4,36 @@ import { setSEO, CANONICAL_URL } from '../../lib/seo'
 
 const POSTS = [
   {
+    slug: '7-off-ice-drills',
+    title: '7 Off-Ice Drills That Actually Improve Shot Accuracy (Tested by Coaches)',
+    description: '7 proven off-ice hockey drills coaches recommend. Step-by-step instructions. Build accuracy and muscle memory at home.',
+    date: 'August 2026',
+  },
+  {
+    slug: '5-week-progression',
+    title: 'The 5-Week Hockey Progression: What Players Learn Each Week',
+    description: 'Track your first 1,250 shots week-by-week. What happens week 1 vs week 5. How muscle memory builds.',
+    date: 'August 2026',
+  },
+  {
+    slug: 'hockey-iq-vs-skill',
+    title: 'Hockey IQ vs Skill: 6 Ways Off-Ice Training Builds Both',
+    description: 'Off-ice training does more than build strength. Here are 6 ways it builds hockey IQ and decision-making.',
+    date: 'August 2026',
+  },
+  {
+    slug: 'burnout-prevention',
+    title: 'Hockey Burnout Prevention: 4 Signs Your Kid Is Overtraining',
+    description: '4 signs of overtraining: injury frequency, loss of enthusiasm, plateaued progress, reduced game performance. How to fix it.',
+    date: 'August 2026',
+  },
+  {
+    slug: '80-20-finishers',
+    title: 'The Hockey 80/20: Why 20% of Players Finish Their Challenge',
+    description: 'What separates the 20% who finish from the 80% who quit. Spoiler: it\'s not talent.',
+    date: 'August 2026',
+  },
+  {
     slug: 'rookie-challenge',
     title: 'The Rookie Challenge (1,000 Shots): Building Unstoppable Hockey Habits',
     description: 'How 1,000 shots in 5-6 weeks builds real practice habits. What kids actually learn from the Rookie Challenge and when transformation happens.',

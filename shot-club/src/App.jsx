@@ -23,6 +23,11 @@ import RookieChallengePost from './screens/blog/RookieChallengePost'
 import ProChallengePost from './screens/blog/ProChallengePost'
 import EliteChallengePost from './screens/blog/EliteChallengePost'
 import HallOfFamerChallengePost from './screens/blog/HallOfFamerChallengePost'
+import OffIceDrillsAdvancedPost from './screens/blog/OffIceDrillsAdvancedPost'
+import HockeyProgressionPost from './screens/blog/HockeyProgressionPost'
+import HockeyIQVsSkillPost from './screens/blog/HockeyIQVsSkillPost'
+import BurnoutPreventionPost from './screens/blog/BurnoutPreventionPost'
+import The80Per20Post from './screens/blog/The80Per20Post'
 import ChallengeLandingScreen from './screens/ChallengeLandingScreen'
 import AssociationPartnershipScreen from './screens/AssociationPartnershipScreen'
 import ChallengeSelector from './screens/ChallengeSelector'
@@ -187,6 +192,11 @@ function ShellWrapper() {
         <Route path="/privacy" element={<PrivacyScreen />} />
         <Route path="/player" element={<PlayerLandingScreen />} />
         <Route path="/blog" element={<BlogIndex />} />
+        <Route path="/blog/7-off-ice-drills" element={<OffIceDrillsAdvancedPost />} />
+        <Route path="/blog/5-week-progression" element={<HockeyProgressionPost />} />
+        <Route path="/blog/hockey-iq-vs-skill" element={<HockeyIQVsSkillPost />} />
+        <Route path="/blog/burnout-prevention" element={<BurnoutPreventionPost />} />
+        <Route path="/blog/80-20-finishers" element={<The80Per20Post />} />
         <Route path="/blog/rookie-challenge" element={<RookieChallengePost />} />
         <Route path="/blog/pro-challenge" element={<ProChallengePost />} />
         <Route path="/blog/elite-challenge" element={<EliteChallengePost />} />
