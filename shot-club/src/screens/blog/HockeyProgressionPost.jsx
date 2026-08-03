@@ -107,6 +107,20 @@ export default function HockeyProgressionPost() {
           <h2>What To Do After Week 5?</h2>
           <p>You have options. Some players stop here — they've built the habit and the skills. Some jump into the <button className="post-inline-link" onClick={() => nav('/blog/pro-challenge')}>Pro Challenge (2,500 shots)</button> and keep going. Both are wins. The real achievement is that you proved you could do hard things for five weeks straight. Everything else is just more of the same.</p>
 
+          <h2>Related Reading</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/7-off-ice-drills')}>The drills that actually work →</button>
+            {' '} These 7 drills are what you'll be doing during those 5 weeks.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/80-20-finishers')}>Why 20% finish and 80% quit →</button>
+            {' '} Want to be in the 20%? Read what separates finishers from quitters.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/burnout-prevention')}>How to avoid overtraining →</button>
+            {' '} Progress doesn't mean pushing harder. It means training smarter.
+          </p>
+
           <div className="post-cta-block">
             <p>Ready to start your 5-week progression?</p>
             <button className="post-cta" onClick={() => nav('/challenges/1k')}>Start the Rookie Challenge →</button>

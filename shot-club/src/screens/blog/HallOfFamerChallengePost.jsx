@@ -89,6 +89,20 @@ export default function HallOfFamerChallengePost() {
           <p>The kids who finish this don't just become better hockey players. They become the kind of people who finish things they start.</p>
           <p>That's a quality that carries into school, work, relationships, everything. When you've done something hard for months and months, other things stop seeming impossible.</p>
 
+          <h2>Learn More</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/7-off-ice-drills')}>The drills that build champions →</button>
+            {' '} Master the fundamentals first.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/burnout-prevention')}>Sustainable elite training →</button>
+            {' '} Recovery is part of mastery.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/80-20-finishers')}>The habits of finishers →</button>
+            {' '} This is where you learn to build identity through consistency.
+          </p>
+
           <div className="post-cta-block">
             <p>Ready to start the biggest challenge?</p>
             <button className="post-cta" onClick={() => nav('/challenges/10k')}>Start the Hall of Famer Challenge →</button>

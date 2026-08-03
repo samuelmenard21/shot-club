@@ -85,6 +85,20 @@ export default function EliteChallengePost() {
           <h2>After Elite</h2>
           <p>A small percentage of kids keep going after 5,000 shots. They pursue the <button className="post-inline-link" onClick={() => nav('/blog/hall-of-famer-challenge')}>Hall of Famer Challenge (10,000 shots)</button>. That's the one where mastery actually starts. But whether they stop here or go further, they've built something that's hard to build: genuine resilience and a growth mindset that carries into everything else they do.</p>
 
+          <h2>Learn More</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/5-week-progression')}>The progression framework →</button>
+            {' '} Understand the stages of skill development.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/burnout-prevention')}>Training smart, not just hard →</button>
+            {' '} Mental toughness requires recovery too.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/80-20-finishers')}>Why elite players actually finish →</button>
+            {' '} The systems that sustain long-term commitment.
+          </p>
+
           <div className="post-cta-block">
             <p>Think your kid is ready for elite-level training?</p>
             <button className="post-cta" onClick={() => nav('/challenges/5k')}>Start the Elite Challenge →</button>

@@ -99,6 +99,24 @@ export default function The80Percent20Post() {
           <p>If you're about to start a challenge, you don't need to be special. You just need to be systematic. Pick two of these five and start there. Accountability + Milestones is a great combo. Tracking + Consistency is a great combo. Just pick two and let them carry you through the boring middle.</p>
           <p>Week 1-3 is about motivation. Weeks 4+ is about identity. Get through weeks 1-3 with your system, and weeks 4+ you just be who you've decided you are.</p>
 
+          <h2>Related Reading</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/5-week-progression')}>The 5-week progression finishers follow →</button>
+            {' '} See exactly what you\'re building into.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/7-off-ice-drills')}>The drills finishers actually use →</button>
+            {' '} This is the training finishers show up for consistently.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/burnout-prevention')}>How finishers avoid burnout →</button>
+            {' '} The 20% finish because they train smart, not just hard.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/rookie-challenge')}>Start with the Rookie Challenge →</button>
+            {' '} The perfect first challenge for building finisher habits.
+          </p>
+
           <div className="post-cta-block">
             <p>Ready to be in the 20%?</p>
             <button className="post-cta" onClick={() => nav('/challenges/1k')}>Start a challenge today →</button>

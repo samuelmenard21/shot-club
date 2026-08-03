@@ -80,6 +80,20 @@ export default function RookieChallengePost() {
           <h2>What's Next</h2>
           <p>After the Rookie Challenge, some kids keep going. They jump into the <button className="post-inline-link" onClick={() => nav('/blog/pro-challenge')}>Pro Challenge (2,500 shots)</button> — that's where things get really interesting. But even if they stop here, they've built something that matters: proof that they can set a goal and actually see it through.</p>
 
+          <h2>Learn More</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/7-off-ice-drills')}>The drills to use →</button>
+            {' '} Specific exercises that build the fundamentals.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/5-week-progression')}>What happens each week →</button>
+            {' '} Week-by-week breakdown of the first 1,250 shots.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/80-20-finishers')}>How to be in the 20% who finish →</button>
+            {' '} The habits that separate finishers from quitters.
+          </p>
+
           <div className="post-cta-block">
             <p>Ready to get your kid started?</p>
             <button className="post-cta" onClick={() => nav('/challenges/1k')}>Start the Rookie Challenge →</button>

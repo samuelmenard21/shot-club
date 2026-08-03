@@ -137,6 +137,16 @@ export default function OffIceDrillsAdvancedPost() {
           <h2>How to Track It</h2>
           <p>The best part about drills? You can see progress immediately. Track how many shots you took this week. Do it again next week and beat that number. That's how you know it's working.</p>
 
+          <h2>Related Reading</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/5-week-progression')}>How players progress week-by-week →</button>
+            {' '} See what happens as you do these drills consistently.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/hockey-iq-vs-skill')}>How drills build hockey IQ, not just skill →</button>
+            {' '} It's not just about accuracy. It's about thinking faster.
+          </p>
+
           <div className="post-cta-block">
             <p>Ready to start training seriously?</p>
             <button className="post-cta" onClick={() => nav('/challenges/1k')}>Start tracking your shots →</button>

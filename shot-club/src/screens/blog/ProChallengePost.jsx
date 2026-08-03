@@ -84,6 +84,20 @@ export default function ProChallengePost() {
           <h2>What Comes Next</h2>
           <p>Some kids keep the momentum going and jump into the <button className="post-inline-link" onClick={() => nav('/blog/elite-challenge')}>Elite Challenge (5,000 shots)</button>. That's the one that really separates them from everyone else. But whether they stop here or keep going, they've crossed a threshold: they now know what it means to actually train.</p>
 
+          <h2>Learn More</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/7-off-ice-drills')}>The drills that build consistency →</button>
+            {' '} Master these 7 and you'll finish strong.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/hockey-iq-vs-skill')}>How training builds hockey IQ →</button>
+            {' '} You're not just getting stronger. You're getting smarter.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/80-20-finishers')}>What finishers do differently →</button>
+            {' '} The systems that carry you through weeks 4+.
+          </p>
+
           <div className="post-cta-block">
             <p>Ready for the next level?</p>
             <button className="post-cta" onClick={() => nav('/challenges/2_5k')}>Start the Pro Challenge →</button>

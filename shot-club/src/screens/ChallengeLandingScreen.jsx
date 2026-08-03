@@ -369,32 +369,117 @@ export default function ChallengeLandingScreen({ challengeId }) {
       {/* BLOG POST LINK */}
       <section className="tenk-section" style={{ background: 'rgba(96,165,250,0.05)', borderTop: '1px solid rgba(96,165,250,0.1)', borderBottom: '1px solid rgba(96,165,250,0.1)' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 16, textAlign: 'center' }}>
-            Want to learn what happens when kids actually commit to {spec.total.toLocaleString()} shots? Read our guide:
-          </p>
-          <button
-            onClick={() => {
-              const blogMap = { '1k': 'rookie-challenge', '2_5k': 'pro-challenge', '5k': 'elite-challenge', '10k': 'hall-of-famer-challenge' }
-              nav(`/blog/${blogMap[challengeId]}`)
-            }}
-            style={{
-              display: 'block',
-              margin: '0 auto',
-              background: 'transparent',
-              border: '1px solid var(--accent)',
-              color: 'var(--accent)',
-              padding: '14px 24px',
-              borderRadius: 10,
-              fontWeight: 700,
-              fontSize: 16,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => { e.target.style.background = 'rgba(96,165,250,0.1)'; e.target.style.color = '#fff'; }}
-            onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = 'var(--accent)'; }}
-          >
-            {"Read: What Actually Happens After " + spec.total.toLocaleString() + " Shots →"}
-          </button>
+          <h2 style={{ textAlign: 'center', marginBottom: 20 }}>Training Resources & Guides</h2>
+
+          <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
+            <button
+              onClick={() => {
+                const blogMap = { '1k': 'rookie-challenge', '2_5k': 'pro-challenge', '5k': 'elite-challenge', '10k': 'hall-of-famer-challenge' }
+                nav(`/blog/${blogMap[challengeId]}`)
+              }}
+              style={{
+                display: 'block',
+                background: 'transparent',
+                border: '1px solid var(--accent)',
+                color: 'var(--accent)',
+                padding: '12px 16px',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => { e.target.style.background = 'rgba(96,165,250,0.1)'; e.target.style.color = '#fff'; }}
+              onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = 'var(--accent)'; }}
+            >
+              {"📖 What Happens During the " + spec.label + " Challenge →"}
+            </button>
+
+            <button
+              onClick={() => nav('/blog/7-off-ice-drills')}
+              style={{
+                display: 'block',
+                background: 'transparent',
+                border: '1px solid rgba(96,165,250,0.5)',
+                color: 'var(--text-soft)',
+                padding: '12px 16px',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => { e.target.style.borderColor = 'var(--accent)'; e.target.style.color = 'white'; }}
+              onMouseLeave={(e) => { e.target.style.borderColor = 'rgba(96,165,250,0.5)'; e.target.style.color = 'var(--text-soft)'; }}
+            >
+              {"🎯 7 Off-Ice Drills That Actually Work →"}
+            </button>
+
+            <button
+              onClick={() => nav('/blog/5-week-progression')}
+              style={{
+                display: 'block',
+                background: 'transparent',
+                border: '1px solid rgba(96,165,250,0.5)',
+                color: 'var(--text-soft)',
+                padding: '12px 16px',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => { e.target.style.borderColor = 'var(--accent)'; e.target.style.color = 'white'; }}
+              onMouseLeave={(e) => { e.target.style.borderColor = 'rgba(96,165,250,0.5)'; e.target.style.color = 'var(--text-soft)'; }}
+            >
+              {"📈 The Week-By-Week Progression →"}
+            </button>
+
+            <button
+              onClick={() => nav('/blog/burnout-prevention')}
+              style={{
+                display: 'block',
+                background: 'transparent',
+                border: '1px solid rgba(96,165,250,0.5)',
+                color: 'var(--text-soft)',
+                padding: '12px 16px',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => { e.target.style.borderColor = 'var(--accent)'; e.target.style.color = 'white'; }}
+              onMouseLeave={(e) => { e.target.style.borderColor = 'rgba(96,165,250,0.5)'; e.target.style.color = 'var(--text-soft)'; }}
+            >
+              {"⚠️ How to Avoid Burnout →"}
+            </button>
+
+            <button
+              onClick={() => nav('/blog/80-20-finishers')}
+              style={{
+                display: 'block',
+                background: 'transparent',
+                border: '1px solid rgba(96,165,250,0.5)',
+                color: 'var(--text-soft)',
+                padding: '12px 16px',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => { e.target.style.borderColor = 'var(--accent)'; e.target.style.color = 'white'; }}
+              onMouseLeave={(e) => { e.target.style.borderColor = 'rgba(96,165,250,0.5)'; e.target.style.color = 'var(--text-soft)'; }}
+            >
+              {"🏆 Why 20% Finish (And How to Be One) →"}
+            </button>
+          </div>
         </div>
       </section>
 

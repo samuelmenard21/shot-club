@@ -112,6 +112,20 @@ export default function BurnoutPreventionPost() {
           <p>This is the thing that separates elite training from just grinding. Elite training has phases: build phase (high volume), peak phase (high intensity), taper phase (low volume, high freshness). Most kids just grind at high volume year-round and wonder why they burn out.</p>
           <p>If you see any of these four signs, it's time to pull back. Your kid will actually get better faster by training smarter, not harder.</p>
 
+          <h2>Related Reading</h2>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/hockey-iq-vs-skill')}>Training smart builds both skill and IQ →</button>
+            {' '} Quality matters more than volume. Here\'s why.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)', marginBottom: 20 }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/5-week-progression')}>How to pace your training →</button>
+            {' '} The progression guide shows what sustainable looks like.
+          </p>
+          <p style={{ fontSize: 15, color: 'var(--text-soft)' }}>
+            <button className="post-inline-link" onClick={() => nav('/blog/80-20-finishers')}>How finishers stay healthy and motivated →</button>
+            {' '} The 20% who finish also know how to avoid burnout.
+          </p>
+
           <div className="post-cta-block">
             <p>Want to track training without overtraining?</p>
             <button className="post-cta" onClick={() => nav('/challenges/1k')}>Start a challenge at a smart pace →</button>
