@@ -264,6 +264,47 @@ export default function HomeScreen() {
         )}
       </header>
 
+      {/* MOBILE: Merged challenge card */}
+      {(() => {
+        if (!playerChallenge || !playerChallengeProgress) {
+          return (
+            <div className="challenge-hero-mobile">
+              <div>
+                <div className="chm-label">Pick Your Challenge</div>
+                <div className="chm-sub">Track shots. Climb rankings.</div>
+              </div>
+              <button
+                onClick={() => nav('/challenges')}
+                className="chm-btn"
+              >
+                Choose →
+              </button>
+            </div>
+          )
+        }
+
+        const { current_shots, goal_shots, challenge_type, progress_pct, shots_remaining } = playerChallengeProgress
+        const challengeLabels = { '1k': 'ROOKIE', '2_5k': 'PRO', '5k': 'ELITE', '10k': 'HALL OF FAMER', 'custom': 'CUSTOM' }
+
+        return (
+          <div className="challenge-hero-mobile">
+            <div className="chm-content">
+              <div className="chm-label">{challengeLabels[challenge_type]}</div>
+              <div className="chm-progress">
+                <span className="chm-shots">{current_shots.toLocaleString()}</span>
+                <span className="chm-goal">/ {goal_shots.toLocaleString()}</span>
+              </div>
+              <div className="chm-bar">
+                <div className="chm-bar-fill" style={{ width: `${Math.min(100, progress_pct)}%` }} />
+              </div>
+            </div>
+            <button onClick={() => nav('/challenges')} className="chm-swap">
+              ⊕
+            </button>
+          </div>
+        )
+      })()}
+
 
       {/* PERSONAL CHALLENGE TRACKER */}
       {(() => {
@@ -1207,5 +1248,110 @@ const styles = `
 .video-badge {
   font-size: 10px;
   color: var(--text-mute);
+}
+
+/* Mobile: Merged challenge hero */
+.challenge-hero-mobile {
+  background: linear-gradient(135deg, rgba(61, 214, 140, 0.15) 0%, rgba(41, 121, 255, 0.1) 100%);
+  border: 1.5px solid rgba(61, 214, 140, 0.3);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 12px 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  animation: fade-in 0.3s ease-out;
+}
+
+.chm-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.chm-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.chm-sub {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.chm-progress {
+  font-size: 16px;
+  font-weight: 800;
+  color: white;
+  font-family: var(--font-display);
+  margin: 6px 0;
+  letter-spacing: -0.4px;
+}
+
+.chm-shots {
+  color: var(--ice);
+}
+
+.chm-goal {
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.chm-bar {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.chm-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3dd68c 0%, #2dbd72 100%);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  min-width: 2px;
+}
+
+.chm-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.chm-btn:active {
+  transform: scale(0.98);
+}
+
+.chm-swap {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--ice);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.chm-swap:active {
+  background: rgba(41, 121, 255, 0.1);
+  transform: scale(0.95);
 }
 `
