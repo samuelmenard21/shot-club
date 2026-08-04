@@ -23,8 +23,8 @@ export const CHALLENGE_SPECS = {
     tint: '#f0fae1', badge: '#728157', badgeFg: '#f5ead8', accentText: '#56633f',
     label: 'Rookie',
     shortLabel: 'Rookie · 1,000 shots',
-    weeks: 2,
-    blurb: 'Finish in a couple weeks and get hooked',
+    weeks: 3,
+    blurb: 'Finish in 3 weeks at 50 shots a day and get hooked',
     landingPath: '/1000-shot-rookie-challenge',
   },
   '2_5k': {
@@ -47,8 +47,8 @@ export const CHALLENGE_SPECS = {
     tint: '#ffe1d0', badge: '#643312', badgeFg: '#f5ead8', accentText: '#643312',
     label: 'Elite',
     shortLabel: 'Elite · 5,000 shots',
-    weeks: 8,
-    blurb: 'A full summer of work',
+    weeks: 7,
+    blurb: 'A solid summer of work at 100 shots a day',
     landingPath: '/5000-shot-elite-challenge',
   },
   '10k': {
@@ -59,8 +59,8 @@ export const CHALLENGE_SPECS = {
     tint: '#eee7db', badge: '#2e2b25', badgeFg: '#ffc6a5', accentText: '#474238',
     label: 'Hall of Famer',
     shortLabel: 'Hall of Famer · 10,000 shots',
-    weeks: 8,
-    blurb: 'The classic summer challenge',
+    weeks: 7,
+    blurb: 'The classic summer challenge at 200 shots a day',
     landingPath: '/10000-shot-hall-of-famer-challenge',
   },
 }
