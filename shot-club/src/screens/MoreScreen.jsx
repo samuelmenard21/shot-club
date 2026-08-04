@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { signOut, deleteAccount, getPlayersForAccount } from '../lib/auth'
+import { signOut, deleteAccount, getPlayersForAccount, changePlayerTeam } from '../lib/auth'
 import { setDailyGoal } from '../lib/progress'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
@@ -29,6 +29,8 @@ export default function MoreScreen() {
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
   const [accountPlayers, setAccountPlayers] = useState([])
   const [switching, setSwitching] = useState(null)
+  const [showChangeTeam, setShowChangeTeam] = useState(false)
+  const [changingTeam, setChangingTeam] = useState(false)
 
   useEffect(() => {
     getPlayersForAccount().then(setAccountPlayers).catch(() => {})
@@ -72,6 +74,20 @@ export default function MoreScreen() {
       } catch (err) {
         console.error('Copy failed:', err)
       }
+    }
+  }
+
+  const leaveTeam = async () => {
+    setChangingTeam(true)
+    try {
+      await changePlayerTeam(player.id, null)
+      await refresh()
+      setShowChangeTeam(false)
+    } catch (e) {
+      console.error('Failed to leave team:', e)
+      window.alert('Failed to leave team. Try again.')
+    } finally {
+      setChangingTeam(false)
     }
   }
 
@@ -153,6 +169,9 @@ export default function MoreScreen() {
           </div>
           <button className="invite-btn" onClick={shareTeam}>
             {shared ? '🎉 Sent!' : '↗ Invite teammates'}
+          </button>
+          <button className="change-team-btn" onClick={() => setShowChangeTeam(true)}>
+            ⊕ Change team
           </button>
         </div>
       )}
@@ -253,6 +272,24 @@ export default function MoreScreen() {
         </div>
       )}
 
+      {showChangeTeam && (
+        <div className="delete-overlay" onClick={() => setShowChangeTeam(false)}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-icon">🔄</div>
+            <h2 className="delete-modal-title">Leave {player.team?.name}?</h2>
+            <p className="delete-modal-body">
+              You'll go into solo mode and lose access to this team's rankings. You can join another team anytime.
+            </p>
+            <button className="delete-confirm-btn" onClick={leaveTeam} disabled={changingTeam}>
+              {changingTeam ? 'Leaving…' : 'Yes, leave team'}
+            </button>
+            <button className="delete-cancel-btn" onClick={() => setShowChangeTeam(false)} disabled={changingTeam}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <style>{styles}</style>
     </div>
   )
@@ -305,8 +342,23 @@ const styles = `
   font-weight: 700;
   letter-spacing: 0.4px;
   transition: all 0.15s;
+  margin-bottom: 8px;
 }
 .invite-btn:active { transform: scale(0.98); }
+
+.change-team-btn {
+  width: 100%;
+  background: var(--surface);
+  color: var(--ice);
+  border: 0.5px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.15s;
+}
+.change-team-btn:active { background: var(--surface-raised); }
 
 .solo-card {
   background: var(--surface);

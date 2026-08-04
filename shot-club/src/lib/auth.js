@@ -246,6 +246,15 @@ export async function getPlayersForAccount() {
   return data || []
 }
 
+// Change a player's team
+export async function changePlayerTeam(playerId, teamId) {
+  const { error } = await supabase
+    .from('players')
+    .update({ team_id: teamId })
+    .eq('id', playerId)
+  if (error) throw error
+}
+
 // Sign in with Google — player flow (redirects back to /start?oauth=1)
 export async function signInWithGooglePlayer() {
   const { error } = await supabase.auth.signInWithOAuth({
