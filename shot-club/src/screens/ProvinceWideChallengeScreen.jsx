@@ -2,9 +2,11 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import { searchClubs } from '../lib/clubs'
+import { useAuth } from '../hooks/useAuth'
 
 export default function ProvinceWideChallengeScreen() {
   const nav = useNavigate()
+  const { player } = useAuth()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
@@ -38,19 +40,19 @@ export default function ProvinceWideChallengeScreen() {
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'var(--font-body)' }}>
       {/* NAV */}
-      <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', maxWidth: '1200px', margin: '0 auto' }}>
-        <button
-          style={{ fontSize: 18, fontWeight: 700, background: 'transparent', cursor: 'pointer', color: 'white', border: 'none' }}
-          onClick={() => nav('/')}
-        >
-          🏒 Hockey Shot Challenge
+      <nav className="land-nav">
+        <button className="land-brand" onClick={() => nav('/')}>
+          🏒
+          <span>Hockey Shot Challenge</span>
         </button>
-        <button
-          style={{ background: 'var(--accent)', color: 'white', padding: '10px 20px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', border: 'none' }}
-          onClick={() => nav('/')}
-        >
-          ← Back
-        </button>
+        <div className="land-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <a href="#faq" className="land-nav-link" style={{ color: 'var(--text-soft)', fontSize: '14px', textDecoration: 'none' }}>FAQ</a>
+          <button className="land-nav-link" onClick={() => nav('/challenges')} style={{ color: 'var(--text-soft)', fontSize: '14px', background: 'transparent', cursor: 'pointer', border: 'none' }}>Challenges</button>
+          <button className="land-nav-link" onClick={() => nav('/province-wide-challenge')} style={{ color: 'var(--text-soft)', fontSize: '14px', background: 'transparent', cursor: 'pointer', border: 'none' }}>For Leagues</button>
+          <button className="land-nav-cta" onClick={() => nav(player ? '/home' : '/start?mode=signin')}>
+            {player ? 'My Dashboard →' : 'Get Started →'}
+          </button>
+        </div>
       </nav>
 
       {/* SEARCH HERO */}

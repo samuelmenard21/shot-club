@@ -31,6 +31,7 @@ if (typeof window !== 'undefined') {
 import LandingScreen from './screens/LandingScreen'
 import ForClubsScreen from './screens/ForClubsScreen'
 import PrivacyScreen from './screens/PrivacyScreen'
+import AboutScreen from './screens/AboutScreen'
 import PlayerLandingScreen from './screens/PlayerLandingScreen'
 import CoachLandingScreen from './screens/CoachLandingScreen'
 import BlogIndex from './screens/blog/BlogIndex'
@@ -210,6 +211,7 @@ function ShellWrapper() {
 
         {/* Static */}
         <Route path="/privacy" element={<PrivacyScreen />} />
+        <Route path="/about" element={<AboutScreen />} />
         <Route path="/player" element={<PlayerLandingScreen />} />
         <Route path="/blog" element={<BlogIndex />} />
         <Route path="/blog/7-off-ice-drills" element={<OffIceDrillsAdvancedPost />} />
