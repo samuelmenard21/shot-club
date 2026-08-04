@@ -264,23 +264,6 @@ export default function HomeScreen() {
         )}
       </header>
 
-      {/* RANK BADGE — COMPACT */}
-      {(() => {
-        const tiers = [
-          { name: '🥉 Bronze', threshold: 0, nextThreshold: 250 },
-          { name: '🥈 Silver', threshold: 250, nextThreshold: 500 },
-          { name: '🥇 Gold', threshold: 500, nextThreshold: 1000 },
-          { name: '💎 Platinum', threshold: 1000, nextThreshold: 2500 },
-          { name: '👑 LEGEND', threshold: 2500, nextThreshold: 5000 },
-        ]
-        const currentLifetimeShots = player.lifetime_shots + stats.todayTotal
-        const currentTier = tiers.find(t => currentLifetimeShots >= t.threshold && currentLifetimeShots < t.nextThreshold) || tiers[tiers.length - 1]
-        return (
-          <div style={{ padding: '12px 14px 8px', marginBottom: 4 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>{currentTier.name}</div>
-          </div>
-        )
-      })()}
 
       {/* PERSONAL CHALLENGE TRACKER */}
       {(() => {
@@ -289,8 +272,8 @@ export default function HomeScreen() {
             <div style={{ margin: '16px 14px', padding: '16px', background: 'linear-gradient(135deg, rgba(61, 214, 140, 0.15) 0%, rgba(41, 121, 255, 0.1) 100%)', border: '1.5px solid rgba(61, 214, 140, 0.3)', borderRadius: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 NO PERSONAL CHALLENGE YET</div>
-                  <div style={{ fontSize: 14, color: 'var(--text-soft)' }}>Pick a challenge to get started</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 PICK YOUR CHALLENGE</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-soft)' }}>Track shots. Climb the rankings.</div>
                 </div>
                 <button
                   onClick={() => nav('/challenges')}
@@ -304,13 +287,13 @@ export default function HomeScreen() {
         }
 
         const { current_shots, goal_shots, challenge_type, progress_pct, shots_remaining } = playerChallengeProgress
-        const challengeLabels = { '5k': '5K', '10k': '10K', 'custom': 'CUSTOM' }
+        const challengeLabels = { '1k': 'ROOKIE', '2_5k': 'PRO', '5k': 'ELITE', '10k': 'HALL OF FAMER', 'custom': 'CUSTOM' }
 
         return (
           <div style={{ margin: '16px 14px', padding: '16px', background: 'linear-gradient(135deg, rgba(61, 214, 140, 0.15) 0%, rgba(41, 121, 255, 0.1) 100%)', border: '1.5px solid rgba(61, 214, 140, 0.3)', borderRadius: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 {challengeLabels[challenge_type]} CHALLENGE</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 {challengeLabels[challenge_type]}</div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: 'white' }}>{current_shots.toLocaleString()}<span style={{ fontSize: 14, color: 'var(--text-soft)' }}> / {goal_shots.toLocaleString()}</span></div>
               </div>
               <div style={{ textAlign: 'right' }}>

@@ -1251,13 +1251,18 @@ const styles = `
   color: #3c4043;
   border: 1px solid #dadce0;
   border-radius: var(--radius);
-  padding: 12px 14px;
-  font-size: 14px; font-weight: 500;
+  padding: 14px 16px;
+  font-size: 15px; font-weight: 600;
+  letter-spacing: 0.3px;
   margin-bottom: 8px;
-  transition: background 0.15s;
+  transition: all 0.15s;
   font-family: inherit;
+  cursor: pointer;
+  min-height: 44px;
 }
-.google-btn:hover { background: #f8f9fa; }
+.google-btn:hover:not(:disabled) { background: #f8f9fa; }
+.google-btn:active:not(:disabled) { transform: scale(0.98); }
+.google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .join-club-dropdown {
   position: absolute;

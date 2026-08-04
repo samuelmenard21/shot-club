@@ -130,8 +130,7 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
           await logStickhandlingSession(player.id)
           setStickCount((n) => n + 1)
         } catch (e) {
-          console.error('Stickhandling log failed (non-blocking):', e)
-          toast('Stickhandling saved to your stats (but not counted yet)')
+          console.error('Stickhandling log failed:', e)
         }
         setStickChecked(false)
       }
@@ -226,7 +225,7 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
             <span className="tg-row-count">{session[t.name]}</span>
             <button className="tg-row-btn" onClick={() => bump(t.name, 1)}>+1</button>
             <button className="tg-row-btn" onClick={() => bump(t.name, 5)}>+5</button>
-            <span className="tg-row-lifetime">lifetime {(todayByType[t.name] || 0).toLocaleString()} today</span>
+            <span className="tg-row-today">{(todayByType[t.name] || 0).toLocaleString()} today</span>
           </div>
         ))}
       </div>
@@ -480,10 +479,11 @@ const gridStyles = `
 .tg-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .tg-row-label { width: 100px; flex: none; font-weight: 700; font-size: 13.5px; }
 .tg-row-count { font-family: var(--font-display); font-weight: 700; font-size: 20px; width: 30px; }
-.tg-row-btn { font-family: inherit; font-weight: 700; font-size: 13px; border-radius: 999px; padding: 6px 13px;
-  cursor: pointer; background: transparent; border: 1px solid var(--tg-divider); color: var(--text); }
+.tg-row-btn { font-family: inherit; font-weight: 700; font-size: 13px; border-radius: 999px; padding: 8px 16px;
+  cursor: pointer; background: transparent; border: 1px solid var(--tg-divider); color: var(--text); min-height: 44px; }
+@media (max-width: 430px) { .tg-row-btn { padding: 12px 20px; font-size: 14px; } }
 .tg-row-btn:hover { background: rgba(255,255,255,0.06); }
-.tg-row-lifetime { font-size: 11.5px; color: var(--text-mute); margin-left: auto; }
+.tg-row-today { font-size: 11.5px; color: var(--text-mute); margin-left: auto; }
 
 .tg-session-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   padding: 12px 0; border-top: 1px solid var(--tg-divider); border-bottom: 1px solid var(--tg-divider); margin-bottom: 16px; font-size: 13.5px; }

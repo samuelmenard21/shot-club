@@ -152,7 +152,7 @@ export default function MoreScreen() {
             Share your team name with friends so they can join and compete with you.
           </div>
           <button className="invite-btn" onClick={shareTeam}>
-            {shared ? '✓ Shared' : '↗ Invite teammates'}
+            {shared ? '🎉 Sent!' : '↗ Invite teammates'}
           </button>
         </div>
       )}
@@ -177,118 +177,6 @@ export default function MoreScreen() {
         <div className="drills-link-arrow">→</div>
       </button>
 
-      {/* My Goals */}
-      <div className="section">
-        <div className="label-sm" style={{ marginBottom: 8 }}>My goals 🎯</div>
-        <div className="info-card">
-          <div style={{ marginBottom: 16 }}>
-            <div className="info-label">Total shots to reach 🎯</div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
-              <input
-                type="number"
-                value={lifetimeShotGoal}
-                onChange={(e) => {
-                  const val = e.target.value.trim()
-                  if (val === '') {
-                    setLifetimeShotGoal('')
-                    return
-                  }
-                  const num = parseInt(val)
-                  if (!isNaN(num)) setLifetimeShotGoal(Math.max(1, num))
-                }}
-                disabled={savingLifetimeGoal}
-                style={{
-                  flex: 1,
-                  background: 'var(--bg)',
-                  border: '0.5px solid var(--border-dim)',
-                  borderRadius: 8,
-                  padding: '8px 12px',
-                  color: 'white',
-                  fontSize: 14,
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 600,
-                }}
-              />
-            </div>
-          </div>
-          <div style={{ marginBottom: 16 }}>
-            <div className="info-label">Stick time hours ⏱️</div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
-              <input
-                type="number"
-                step="0.5"
-                value={stickhandlingHourGoal}
-                onChange={(e) => {
-                  const val = e.target.value.trim()
-                  if (val === '') {
-                    setStickhandlingHourGoal('')
-                    return
-                  }
-                  const num = parseFloat(val)
-                  if (!isNaN(num)) setStickhandlingHourGoal(Math.max(0.5, num))
-                }}
-                disabled={savingLifetimeGoal}
-                style={{
-                  flex: 1,
-                  background: 'var(--bg)',
-                  border: '0.5px solid var(--border-dim)',
-                  borderRadius: 8,
-                  padding: '8px 12px',
-                  color: 'white',
-                  fontSize: 14,
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 600,
-                }}
-              />
-            </div>
-          </div>
-          <div>
-            <div className="info-label">Target date 📅</div>
-            <div style={{ fontSize: 12, color: 'var(--text-mute)', marginTop: 4, marginBottom: 8 }}>When do you want to hit 5000 shots?</div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
-              <input
-                type="date"
-                value={targetDate}
-                onChange={(e) => setTargetDate(e.target.value)}
-                disabled={savingLifetimeGoal}
-                style={{
-                  flex: 1,
-                  background: 'var(--bg)',
-                  border: '0.5px solid var(--border-dim)',
-                  borderRadius: 8,
-                  padding: '8px 12px',
-                  color: 'white',
-                  fontSize: 14,
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 600,
-                }}
-              />
-            </div>
-          </div>
-          <button
-            onClick={updateLifetimeGoals}
-            disabled={savingLifetimeGoal}
-            style={{
-              width: '100%',
-              marginTop: 14,
-              background: 'var(--accent)',
-              color: 'white',
-              border: 'none',
-              borderRadius: 8,
-              padding: 10,
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: savingLifetimeGoal ? 'not-allowed' : 'pointer',
-              opacity: savingLifetimeGoal ? 0.6 : 1,
-            }}
-          >
-            {savingLifetimeGoal ? 'Saving…' : 'Save goals'}
-          </button>
-          <div className="info-hint">
-            Set your personal goals. Progress shows on the home screen.
-          </div>
-        </div>
-      </div>
 
       {accountPlayers.length > 0 && (
         <div className="section">
