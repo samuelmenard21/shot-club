@@ -191,6 +191,74 @@ input[type=number] { -moz-appearance: textfield; }
   }
 }
 
+/* Navigation styles */
+.land-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px clamp(16px, 5vw, 40px);
+  max-width: 1100px;
+  margin: 0 auto;
+  position: sticky;
+  top: 0;
+  background: rgba(10, 14, 26, 0.88);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+}
+
+.land-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  background: transparent;
+  color: white;
+  padding: 0;
+  cursor: pointer;
+}
+
+.land-nav-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.land-nav-link {
+  color: var(--ice);
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.land-nav-cta {
+  background: var(--accent);
+  color: white;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: transform 0.1s;
+  border: none;
+  cursor: pointer;
+}
+
+.land-nav-cta:active {
+  transform: scale(0.97);
+}
+
+@media (max-width: 600px) {
+  .land-nav-link {
+    display: none;
+  }
+}
+
 /* Reduce motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
