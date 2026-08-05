@@ -187,9 +187,27 @@ export default function ForClubsScreen() {
       </section>
 
       <footer className="fcl-footer">
-        <button className="fcl-foot-link" onClick={() => nav('/')}>← Home</button>
-        <button className="fcl-foot-link" onClick={() => nav('/blog')}>Parent guides</button>
-        <span className="fcl-foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 24 }}>
+          <div>
+            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 8 }}>Learn</h3>
+            <button onClick={() => nav('/blog')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 13, cursor: 'pointer', textAlign: 'left', marginBottom: 4 }}>Guides</button>
+            <button onClick={() => nav('/challenges')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 13, cursor: 'pointer', textAlign: 'left' }}>Challenges</button>
+          </div>
+          <div>
+            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 8 }}>For Players</h3>
+            <button onClick={() => nav('/player')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 13, cursor: 'pointer', textAlign: 'left', marginBottom: 4 }}>Player Guide</button>
+            <button onClick={() => nav('/start')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 13, cursor: 'pointer', textAlign: 'left' }}>Sign Up</button>
+          </div>
+          <div>
+            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 8 }}>Help</h3>
+            <button onClick={() => nav('/coach')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 13, cursor: 'pointer', textAlign: 'left', marginBottom: 4 }}>For Coaches</button>
+            <button onClick={() => nav('/about')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 13, cursor: 'pointer', textAlign: 'left' }}>About</button>
+          </div>
+        </div>
+        <div style={{ borderTop: '1px solid var(--border-dim)', paddingTop: 16, textAlign: 'center' }}>
+          <button className="fcl-foot-link" onClick={() => nav('/')}>← Home</button>
+          <span className="fcl-foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge</span>
+        </div>
       </footer>
 
       <style>{styles}</style>

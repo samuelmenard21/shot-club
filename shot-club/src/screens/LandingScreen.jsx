@@ -58,8 +58,8 @@ export default function LandingScreen() {
 
   useEffect(() => {
     setSEO({
-      title: 'Free Hockey Shot Tracker & 10,000 Shot Challenge App | HockeyShotChallenge',
-      description: 'Free off-ice hockey shot tracking app for players, parents, and coaches. Track wrist shots, snap shots, stickhandling, and compete in 1v1 team battles. Start tracking in 20 seconds.',
+      title: 'Free Hockey Shot Tracker & Challenge Goals | HockeyShotChallenge',
+      description: 'Free off-ice hockey shot tracker for players ages 6–18. Pick a challenge (1K, 2.5K, 5K, 10K shots), log daily progress, and build better practice habits. No app download needed.',
       url: CANONICAL_URL,
     })
     addStructuredData({
@@ -147,6 +147,7 @@ export default function LandingScreen() {
         </button>
         <div className="land-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <a href="#faq" className="land-nav-link" style={{ color: 'var(--text-soft)', fontSize: '14px', textDecoration: 'none' }}>FAQ</a>
+          <button className="land-nav-link" onClick={() => nav('/blog')} style={{ color: 'var(--text-soft)', fontSize: '14px', background: 'transparent', cursor: 'pointer', border: 'none' }}>Guides</button>
           <button className="land-nav-link" onClick={() => nav('/challenges')} style={{ color: 'var(--text-soft)', fontSize: '14px', background: 'transparent', cursor: 'pointer', border: 'none' }}>Challenges</button>
           <button className="land-nav-link" onClick={() => nav('/province-wide-challenge')} style={{ color: 'var(--text-soft)', fontSize: '14px', background: 'transparent', cursor: 'pointer', border: 'none' }}>For Leagues</button>
           <button className="land-nav-cta" onClick={() => nav(player ? '/home' : '/start?mode=signin')}>
@@ -158,9 +159,9 @@ export default function LandingScreen() {
       {/* ── HERO ── */}
       <section className="hero">
         <div className="hero-eyebrow">FREE · FOR HOCKEY PLAYERS · AGES 6–18</div>
-        <h1 className="hero-title">Shoot more. Track it. Shoot with your teammates.</h1>
+        <h1 className="hero-title">Shoot more. Track it. Build the habit.</h1>
         <p className="hero-sub">
-          Log your shots and stickhandling after every practice. Parents can manage multiple kids. Your teammates, parents, and coach can all see how hard you're working.
+          Pick a challenge and log your shots every day. Track your progress toward 1K, 2.5K, 5K, or 10K. Parents can manage multiple kids and see real-time stats.
         </p>
 
         {totalShots > 0 && (
@@ -217,12 +218,12 @@ export default function LandingScreen() {
         <div className="hero-paths hero-paths--three">
           <button className="hero-path hero-path--player" onClick={() => nav('/start')}>
             <div className="hero-path-eyebrow">FOR PLAYERS</div>
-            <div className="hero-path-title">Go outside. Shoot. Log it. Watch your rank climb.</div>
+            <div className="hero-path-title">Pick a challenge. Log every shot. Build your progress.</div>
             <div className="hero-path-detail">
-              <span>🥅 Shots</span>
-              <span>🏒 Stickhandling</span>
-              <span>🔥 Streaks</span>
-              <span>🏅 Ranks</span>
+              <span>🎯 4 challenge tiers</span>
+              <span>📊 Track progress</span>
+              <span>🔥 Daily streaks</span>
+              <span>📈 See results</span>
             </div>
             <div className="hero-path-btn hero-path-btn--player">Sign in to track shots →</div>
           </button>
@@ -241,11 +242,11 @@ export default function LandingScreen() {
 
           <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
             <div className="hero-path-eyebrow">FOR COACHES</div>
-            <div className="hero-path-title">Know who's been shooting before they walk into practice.</div>
+            <div className="hero-path-title">See who's putting in the work at home.</div>
             <div className="hero-path-detail">
-              <span>📊 Who logged this week</span>
-              <span>📈 Shot counts</span>
-              <span>⚔️ 1v1 battles</span>
+              <span>📊 Weekly activity</span>
+              <span>📈 Progress tracking</span>
+              <span>🔥 Streaks & ranks</span>
             </div>
             <div className="hero-path-btn hero-path-btn--coach">Set up my team →</div>
           </button>

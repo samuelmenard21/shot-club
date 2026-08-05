@@ -226,8 +226,27 @@ export default function AssociationPartnershipScreen() {
 
       {/* FOOTER */}
       <footer className="assoc-footer">
-        <p>Questions? <a href="mailto:samuelmenard@gmail.com" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Email us</a></p>
-        <p style={{ fontSize: '12px', color: 'var(--text-mute)', marginTop: '8px' }}>Hockey Shot Challenge — Free 10K Challenge Platform for Associations</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 20, marginBottom: 32 }}>
+          <div>
+            <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 12 }}>Learn</h3>
+            <button onClick={() => nav('/blog')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 8 }}>Guides & Tips</button>
+            <button onClick={() => nav('/challenges')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left' }}>Challenges</button>
+          </div>
+          <div>
+            <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 12 }}>For Players</h3>
+            <button onClick={() => nav('/player')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 8 }}>Player Guide</button>
+            <button onClick={() => nav('/start')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left' }}>Sign Up</button>
+          </div>
+          <div>
+            <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 12 }}>Organizations</h3>
+            <button onClick={() => nav('/for-clubs')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 8 }}>For Clubs</button>
+            <button onClick={() => nav('/coach')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left' }}>For Coaches</button>
+          </div>
+        </div>
+        <div style={{ borderTop: '1px solid var(--border-dim)', paddingTop: 20 }}>
+          <p>Questions? <a href="mailto:samuelmenard@gmail.com" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Email us</a></p>
+          <p style={{ fontSize: '12px', color: 'var(--text-mute)', marginTop: '8px' }}>Hockey Shot Challenge — Free 10K Challenge Platform for Associations</p>
+        </div>
       </footer>
 
       <style>{styles}</style>

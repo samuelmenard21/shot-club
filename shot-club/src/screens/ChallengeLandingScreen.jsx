@@ -504,8 +504,26 @@ export default function ChallengeLandingScreen({ challengeId }) {
       </section>
 
       <footer className="tenk-footer">
-        <p>Questions? <a href="mailto:samuelmenard@gmail.com" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Email us</a></p>
-        <p style={{ fontSize: '12px', color: 'var(--text-mute)', marginTop: '8px' }}>Hockey Shot Challenge — free {spec.total.toLocaleString()} shot challenge tracker for players and associations</p>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: 32, borderBottom: '1px solid var(--border-dim)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 20, marginBottom: 32 }}>
+            <div>
+              <h4 style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 12 }}>Learn</h4>
+              <button onClick={() => nav('/blog')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 8 }}>Guides & Tips</button>
+              <button onClick={() => nav('/challenges')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left' }}>All Challenges</button>
+            </div>
+            <div>
+              <h4 style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 12 }}>For Players</h4>
+              <button onClick={() => nav('/player')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 8 }}>Player Guide</button>
+              <button onClick={() => nav('/start')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left' }}>Get Started</button>
+            </div>
+            <div>
+              <h4 style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 12 }}>Help</h4>
+              <button onClick={() => nav('/about')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 8 }}>About</button>
+              <a href="mailto:samuelmenard@gmail.com" style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', textDecoration: 'none' }}>Contact</a>
+            </div>
+          </div>
+        </div>
+        <p style={{ fontSize: '12px', color: 'var(--text-mute)', marginTop: '24px' }}>Hockey Shot Challenge — free {spec.total.toLocaleString()} shot challenge tracker for players and associations</p>
       </footer>
 
       <style>{styles}</style>
