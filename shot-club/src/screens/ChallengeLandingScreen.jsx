@@ -327,7 +327,7 @@ export default function ChallengeLandingScreen({ challengeId }) {
           </p>
           <div className="tenk-assoc-offer">
             <h3>Free Association Leaderboards</h3>
-            <p>We set up a branded leaderboard for your association. Your families sign up, log shots, compete. No cost. No ads. You manage everything.</p>
+            <p>We set up a branded leaderboard for your association. Your families sign up, track shots, compete. No cost. No ads. You manage everything.</p>
             <button className="tenk-btn tenk-btn--secondary" onClick={() => nav('/association-partnership')}>Learn About Association Partnerships →</button>
           </div>
         </div>
@@ -367,7 +367,7 @@ export default function ChallengeLandingScreen({ challengeId }) {
           </details>
           <details className="tenk-faq-item">
             <summary>Can I switch from paper to the live app without losing progress?</summary>
-            <p>Yes. Every free printable sheet has a QR code that links directly to the digital challenge. Scan the QR code on your paper sheet anytime, sign in, and log your total shots — nothing is lost in the transition.</p>
+            <p>Yes. Every free printable sheet has a QR code that links directly to the digital challenge. Scan the QR code on your paper sheet anytime, sign in, and track your total shots — nothing is lost in the transition.</p>
           </details>
           <details className="tenk-faq-item">
             <summary>Is the {spec.total.toLocaleString()} shot challenge part of Hockey Canada's training framework?</summary>

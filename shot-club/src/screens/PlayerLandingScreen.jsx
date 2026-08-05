@@ -92,9 +92,9 @@ export default function PlayerLandingScreen() {
 
       <section className="pl-hero">
         <div className="pl-eyebrow">FREE · SIGN IN WITH GOOGLE · AGES 6–18</div>
-        <h1 className="pl-title">Log your shots.<br/>Beat your teammates.</h1>
+        <h1 className="pl-title">Track your shots.<br/>Beat your teammates.</h1>
         <p className="pl-sub">
-          Every day, log how many shots and stickhandling reps you did at home. Watch your rank climb. Compete against other teams every week.
+          Every day, track how many shots and stickhandling reps you did at home. Watch your rank climb. Compete against other teams every week.
         </p>
         <div className="pl-club-search">
           <div className="pl-club-search-label">Find your club first (optional)</div>

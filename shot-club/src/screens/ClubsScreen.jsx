@@ -221,7 +221,7 @@ export default function ClubsScreen() {
       <section className="cs-section">
         <div className="cs-eyebrow-left">WHAT PLAYERS GET</div>
         <h2 className="cs-h2">Kids actually want to use it.</h2>
-        <p className="cs-body" style={{ marginBottom: 20 }}>It's not homework. It's a game. Players log shots, follow skill videos, and compete against teammates and rival clubs every day.</p>
+        <p className="cs-body" style={{ marginBottom: 20 }}>It's not homework. It's a game. Players track shots, follow skill videos, and compete against teammates and rival clubs every day.</p>
         <div className="cs-cards">
           <div className="cs-card">
             <div className="cs-card-icon">📺</div>

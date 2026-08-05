@@ -59,7 +59,7 @@ export default function LandingScreen() {
   useEffect(() => {
     setSEO({
       title: 'Free Hockey Shot Tracker & Challenge Goals | HockeyShotChallenge',
-      description: 'Free off-ice hockey shot tracker for players ages 6–18. Pick a challenge (1K, 2.5K, 5K, 10K shots), log daily progress, and build better practice habits. No app download needed.',
+      description: 'Free off-ice hockey shot tracker for players ages 6–18. Pick a challenge (1K, 2.5K, 5K, 10K shots), track daily progress, and build better practice habits. No app download needed.',
       url: CANONICAL_URL,
     })
     addStructuredData({
@@ -70,7 +70,7 @@ export default function LandingScreen() {
           '@id': `${CANONICAL_URL}#app`,
           name: 'Hockey Shot Challenge',
           url: CANONICAL_URL,
-          description: 'Off-ice hockey training tracker for youth players. Log shots, track progress, climb leaderboards, compete in 1v1 battles.',
+          description: 'Off-ice hockey training tracker for youth players. Track shots, build progress, climb leaderboards, compete in 1v1 battles.',
           applicationCategory: 'SportsApplication',
           operatingSystem: 'Web',
           offers: {
@@ -161,12 +161,12 @@ export default function LandingScreen() {
         <div className="hero-eyebrow">FREE · FOR HOCKEY PLAYERS · AGES 6–18</div>
         <h1 className="hero-title">Shoot more. Track it. Build the habit.</h1>
         <p className="hero-sub">
-          Pick a challenge and log your shots every day. Track your progress toward 1K, 2.5K, 5K, or 10K. Parents can manage multiple kids and see real-time stats.
+          Pick a challenge and track your shots every day. Watch your progress toward 1K, 2.5K, 5K, or 10K. Parents can manage multiple kids and see real-time stats.
         </p>
 
         {totalShots > 0 && (
           <div className="hero-stat">
-            🏒 <strong>{totalShots.toLocaleString()}</strong> shots logged by real players
+            🏒 <strong>{totalShots.toLocaleString()}</strong> shots tracked by real players
           </div>
         )}
 
@@ -342,7 +342,7 @@ export default function LandingScreen() {
           <div className="section-eyebrow">⚔️ 1V1 BATTLES</div>
           <h2 className="section-title">You vs one rival. All week.</h2>
           <p className="section-sub">
-            Every Monday you get matched against one player from another team. Every shot you log counts. Most shots by Sunday wins. Then it resets and you get a new rival.
+            Every Monday you get matched against one player from another team. Every shot you track counts. Most shots by Sunday wins. Then it resets and you get a new rival.
           </p>
         </div>
         <BattleMock />
@@ -393,7 +393,7 @@ export default function LandingScreen() {
           </details>
           <details className="faq-item">
             <summary>What can players track?</summary>
-            <p>Shots (wrist, snap, slap, backhand), saves for goalies, and stickhandling drills. Takes 5 seconds to log a session.</p>
+            <p>Shots (wrist, snap, slap, backhand), saves for goalies, and stickhandling drills. Takes 5 seconds to track a session.</p>
           </details>
           <details className="faq-item">
             <summary>How do coaches get their team on it?</summary>

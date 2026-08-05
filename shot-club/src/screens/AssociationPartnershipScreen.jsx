@@ -79,14 +79,14 @@ export default function AssociationPartnershipScreen() {
         <div className="assoc-solution">
           <div className="assoc-solution-icon">✅</div>
           <h3>We Handle Everything</h3>
-          <p>We set up your branded leaderboard. You send families one link. They sign up and log shots. Done.</p>
+          <p>We set up your branded leaderboard. You send families one link. They sign up and track shots. Done.</p>
         </div>
 
         <div className="assoc-features">
           <div className="assoc-feature">
             <div className="assoc-feature-emoji">⚡</div>
             <h3>Instant Updates</h3>
-            <p>Kids log shots in 5 seconds. Leaderboard updates live. No manual entry.</p>
+            <p>Kids track shots in 5 seconds. Leaderboard updates live. No manual entry.</p>
           </div>
           <div className="assoc-feature">
             <div className="assoc-feature-emoji">📊</div>
@@ -96,7 +96,7 @@ export default function AssociationPartnershipScreen() {
           <div className="assoc-feature">
             <div className="assoc-feature-emoji">✔️</div>
             <h3>Built-in Verification</h3>
-            <p>Kids log their own shots. Timestamps prove authenticity. No disputes.</p>
+            <p>Kids track their own shots. Timestamps prove authenticity. No disputes.</p>
           </div>
           <div className="assoc-feature">
             <div className="assoc-feature-emoji">📱</div>
@@ -138,7 +138,7 @@ export default function AssociationPartnershipScreen() {
           <div className="assoc-step">
             <div className="assoc-step-num">4</div>
             <h3>Watch It Happen</h3>
-            <p>Families compete all summer. Kids log shots. Leaderboard updates live. You're done.</p>
+            <p>Families compete all summer. Kids track shots. Leaderboard updates live. You're done.</p>
           </div>
         </div>
       </section>

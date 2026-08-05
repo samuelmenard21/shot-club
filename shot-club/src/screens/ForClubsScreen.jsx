@@ -24,7 +24,7 @@ export default function ForClubsScreen() {
         {
           '@type': 'Question',
           name: 'What do players do on Hockey Shot Challenge?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Players log shots and stickhandling reps at home — driveway, basement, wherever. It takes 5 seconds. The more they log, the higher they climb on the team leaderboard.' },
+          acceptedAnswer: { '@type': 'Answer', text: 'Players track shots and stickhandling reps at home — driveway, basement, wherever. It takes 5 seconds. The more they track, the higher they climb on the team leaderboard.' },
         },
         {
           '@type': 'Question',

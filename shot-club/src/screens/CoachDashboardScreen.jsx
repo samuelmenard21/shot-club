@@ -190,7 +190,7 @@ export default function CoachDashboardScreen() {
 
   const teamName = activeTeam ? `${activeTeam.club?.name || coach.club.name} ${activeTeam.age_division || ''} ${activeTeam.tier || ''}`.trim() : coach.club.name
   const teamInviteMessage = activeTeam && teamJoinUrl
-    ? `Hey ${teamName} parents! 🏒\n\nWe're using Hockey Shot Challenge this season. Players log shots and stickhandling reps at home, earn ranks, and compete in 4-player squad battles against rival teams all week.\n\nSign up here (30 sec, free, no email needed):\n${teamJoinUrl}`
+    ? `Hey ${teamName} parents! 🏒\n\nWe're using Hockey Shot Challenge this season. Players track shots and stickhandling reps at home, earn ranks, and compete in 4-player squad battles against rival teams all week.\n\nSign up here (30 sec, free, no email needed):\n${teamJoinUrl}`
     : ''
 
   const sharePage = async (url, title, text) => {
@@ -671,7 +671,7 @@ export default function CoachDashboardScreen() {
             {drillStats.length === 0 ? (
               <div className="dash-empty">
                 <div className="dash-empty-title">No drills logged yet</div>
-                <div className="dash-empty-sub">Players will appear here once they log stickhandling reps on the home screen.</div>
+                <div className="dash-empty-sub">Players will appear here once they track stickhandling reps on the home screen.</div>
               </div>
             ) : (
               <div className="dash-roster">

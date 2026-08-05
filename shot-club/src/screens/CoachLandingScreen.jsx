@@ -36,7 +36,7 @@ export default function CoachLandingScreen() {
         <div className="cl-eyebrow">FREE FOR COACHES · SIGN IN WITH GOOGLE</div>
         <h1 className="cl-title">See which players are putting in the work.</h1>
         <p className="cl-sub">
-          Your players log shots and stickhandling reps every day. You see who's showing up. Free for your whole team — no app store, no subscriptions.
+          Your players track shots and stickhandling reps every day. You see who's showing up. Free for your whole team — no app store, no subscriptions.
         </p>
         <button className="cl-cta" onClick={() => nav('/coach/start')}>
           Set up my team — it's free →
@@ -125,7 +125,7 @@ export default function CoachLandingScreen() {
           <div className="cl-eyebrow">SKILL VIDEOS</div>
           <h2 className="cl-section-title">Drills your players can watch and do.</h2>
           <p className="cl-section-sub">
-            Every shot type and stickhandling skill has curated YouTube drills built right in. Players pick a drill, watch it, then log their reps. You see everything.
+            Every shot type and stickhandling skill has curated YouTube drills built right in. Players pick a drill, watch it, then track their reps. You see everything.
           </p>
           <div className="cl-video-tags">
             {['Wrist shots', 'Snap shots', 'Slap shots', 'Backhand shots', 'Toe drags', 'Figure eights', 'Lateral moves', 'One-hand drills'].map((v) => (

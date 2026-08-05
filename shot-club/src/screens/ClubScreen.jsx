@@ -209,7 +209,7 @@ export default function ClubScreen() {
   const emailBody = [
     `Hey coaches,`,
     ``,
-    `We're setting up Hockey Shot Challenge for ${club.name} this season. It's a free off-ice training tool for your players — they log shots at home (driveway, basement, wherever), follow skill videos, and compete on a team leaderboard. You can see who's putting in work between practices.`,
+    `We're setting up Hockey Shot Challenge for ${club.name} this season. It's a free off-ice training tool for your players — they track shots at home (driveway, basement, wherever), follow skill videos, and compete on a team leaderboard. You can see who's putting in work between practices.`,
     ``,
     `To get your team on the platform:`,
     `1. Go to ${clubUrl}`,
