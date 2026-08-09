@@ -218,159 +218,49 @@ export default function LandingScreen() {
         <div className="hero-paths hero-paths--three">
           <button className="hero-path hero-path--player" onClick={() => nav('/start')}>
             <div className="hero-path-eyebrow">FOR PLAYERS</div>
-            <div className="hero-path-title">Pick a challenge. Log every shot. Build your progress.</div>
-            <div className="hero-path-detail">
-              <span>🎯 4 challenge tiers</span>
-              <span>📊 Track progress</span>
-              <span>🔥 Daily streaks</span>
-              <span>📈 See results</span>
-            </div>
-            <div className="hero-path-btn hero-path-btn--player">Sign in to track shots →</div>
+            <div className="hero-path-title">Pick a challenge. Track your shots. Build your habit.</div>
+            <div className="hero-path-btn hero-path-btn--player">Sign up to track →</div>
           </button>
 
           <button className="hero-path hero-path--parent" onClick={() => nav('/start')}>
             <div className="hero-path-eyebrow">FOR PARENTS</div>
-            <div className="hero-path-title">Manage multiple kids. Watch them grow.</div>
-            <div className="hero-path-detail">
-              <span>👧 Multiple kids</span>
-              <span>📊 Real-time stats</span>
-              <span>📤 Share progress</span>
-              <span>🔒 Private &amp; safe</span>
-            </div>
+            <div className="hero-path-title">Manage multiple kids in one account.</div>
             <div className="hero-path-btn hero-path-btn--parent">Start free →</div>
           </button>
 
           <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
             <div className="hero-path-eyebrow">FOR COACHES</div>
-            <div className="hero-path-title">See who's putting in the work at home.</div>
-            <div className="hero-path-detail">
-              <span>📊 Weekly activity</span>
-              <span>📈 Progress tracking</span>
-              <span>🔥 Streaks & ranks</span>
-            </div>
-            <div className="hero-path-btn hero-path-btn--coach">Set up my team →</div>
+            <div className="hero-path-title">See who's training at home.</div>
+            <div className="hero-path-btn hero-path-btn--coach">Set up team →</div>
           </button>
         </div>
 
-        {/* Club search */}
-        <div className="hero-club-search hero-club-search--hide-mobile">
-          <div className="hero-club-search-label">Is your team already on here?</div>
-          <div style={{ position: 'relative', maxWidth: 420, margin: '0 auto' }}>
-            <input
-              ref={searchInputRef}
-              type="text"
-              className="hero-search-input"
-              placeholder="Burlington Eagles, Mississauga…"
-              value={clubQuery}
-              onChange={(e) => setClubQuery(e.target.value)}
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck="false"
-            />
-            {clubQuery.trim().length >= 2 && (
-              <div className="hero-search-dropdown">
-                {searchingClubs && clubResults.length === 0 && (
-                  <div className="hero-search-status">Searching…</div>
-                )}
-                {!searchingClubs && clubResults.length === 0 && (
-                  <div className="hero-search-status">
-                    No clubs found. <button className="hero-search-add" onClick={() => nav('/coach')}>Add yours →</button>
-                  </div>
-                )}
-                {clubResults.map((c) => (
-                  <div key={c.id} className="hero-search-result-wrap">
-                    <button
-                      className="hero-search-result"
-                      onClick={() => { trackClubSelected(c.id, c.name); nav(`/clubs/${c.slug}`); setClubQuery(''); setClubResults([]) }}
-                    >
-                      <span className="hero-search-result-name">{c.name}</span>
-                      <span className="hero-search-result-meta">
-                        {[c.city, c.governing_body].filter(Boolean).join(' · ')}
-                      </span>
-                    </button>
-                    <button
-                      className="hero-search-join"
-                      onClick={() => { nav(`/start?club=${c.slug}`); setClubQuery(''); setClubResults([]) }}
-                    >
-                      Sign up →
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
       </section>
 
-      {/* ── FAMILY ACCOUNTS ── */}
-      <section className="section section--family">
-        <div className="section-head">
-          <div className="section-eyebrow">👨‍👩‍👧‍👦 FAMILY ACCOUNTS</div>
-          <h2 className="section-title">One parent account. Multiple kids.</h2>
-          <p className="section-sub">
-            Parents sign in once. Add all your kids. Switch between them instantly. See all their stats in real-time from your dashboard.
-          </p>
-        </div>
-        <div className="family-features">
-          <div className="family-feature">
-            <div className="family-icon">👧</div>
-            <div className="family-feature-title">Manage Multiple Players</div>
-            <div className="family-feature-text">Coach all your kids from one account. Track their progress side-by-side.</div>
-          </div>
-          <div className="family-feature">
-            <div className="family-icon">📊</div>
-            <div className="family-feature-title">See Real-Time Progress</div>
-            <div className="family-feature-text">Watch shot counts, streaks, and rankings update instantly after each practice.</div>
-          </div>
-          <div className="family-feature">
-            <div className="family-icon">📤</div>
-            <div className="family-feature-title">Share Achievements</div>
-            <div className="family-feature-text">Share 1v1 battles, rank ups, and milestones with grandparents, relatives, and friends.</div>
-          </div>
-          <div className="family-feature">
-            <div className="family-icon">🔒</div>
-            <div className="family-feature-title">Private & Secure</div>
-            <div className="family-feature-text">You control who sees what. No ads. No data selling. Just hockey.</div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 1V1 BATTLES ── */}
-      <section className="section section--compete">
-        <div className="section-head">
-          <div className="section-eyebrow">⚔️ 1V1 BATTLES</div>
-          <h2 className="section-title">You vs one rival. All week.</h2>
-          <p className="section-sub">
-            Every Monday you get matched against one player from another team. Every shot you track counts. Most shots by Sunday wins. Then it resets and you get a new rival.
-          </p>
-        </div>
-        <BattleMock />
-      </section>
 
       {/* ── TRUST & CREDIBILITY ── */}
       <section className="section" style={{ background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="section-head">
-          <div className="section-eyebrow">🛡️ TRUSTED BY HOCKEY FAMILIES</div>
-          <h2 className="section-title">Youth-Safe. Parent-Controlled. Hockey-Built.</h2>
+          <div className="section-eyebrow">🛡️ YOUTH-SAFE & PARENT-CONTROLLED</div>
+          <h2 className="section-title">Free. Private. No ads. No data selling.</h2>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
           <div style={{ padding: '24px', background: 'rgba(255,255,255,0.04)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ fontSize: 20, marginBottom: 8 }}>🔒 Privacy by Design</div>
+            <div style={{ fontSize: 18, marginBottom: 8 }}>🔒 Privacy First</div>
             <p style={{ fontSize: 14, color: 'var(--text-soft)', lineHeight: 1.6 }}>
-              No data selling. No ads. No tracking pixels. Google Sign-In only. Parents control all sharing settings. COPPA-compliant for players under 13.
+              No tracking, no ads, no data selling. Parents control sharing. COPPA-compliant for kids under 13.
             </p>
           </div>
           <div style={{ padding: '24px', background: 'rgba(255,255,255,0.04)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ fontSize: 20, marginBottom: 8 }}>🏒 Built by Hockey People</div>
+            <div style={{ fontSize: 18, marginBottom: 8 }}>🏒 Built for Hockey</div>
             <p style={{ fontSize: 14, color: 'var(--text-soft)', lineHeight: 1.6 }}>
-              Designed by a hockey parent for youth hockey development. Aligned with Hockey Canada Long-Term Player Development (LTPD) and USA Hockey guidelines for off-ice training.
+              Designed by hockey parents. Aligned with Hockey Canada and USA Hockey development guidelines.
             </p>
           </div>
           <div style={{ padding: '24px', background: 'rgba(255,255,255,0.04)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ fontSize: 20, marginBottom: 8 }}>👧 Ages 6–18 Safe</div>
+            <div style={{ fontSize: 18, marginBottom: 8 }}>📱 Quick Setup</div>
             <p style={{ fontSize: 14, color: 'var(--text-soft)', lineHeight: 1.6 }}>
-              Designed for youth hockey players. No messaging, no social feeds, no dark patterns. Parents get full visibility and control over their child's account.
+              Sign in with Google. No passwords. 2 minutes to start. Web-based—no app to download.
             </p>
           </div>
         </div>
@@ -389,58 +279,35 @@ export default function LandingScreen() {
           </details>
           <details className="faq-item">
             <summary>Do kids need an email or password?</summary>
-            <p>No. Sign in with a Google account — the player's own or a parent's. No passwords, no screen names — just tap to log. That's it.</p>
+            <p>No. Sign in with Google—the player's own account or a parent's. No passwords needed.</p>
           </details>
           <details className="faq-item">
             <summary>What can players track?</summary>
-            <p>Shots (wrist, snap, slap, backhand), saves for goalies, and stickhandling drills. Takes 5 seconds to track a session.</p>
+            <p>Shots (wrist, snap, slap, backhand), saves for goalies, and stickhandling drills. Takes 5 seconds per session.</p>
           </details>
           <details className="faq-item">
-            <summary>How do coaches get their team on it?</summary>
-            <p>Sign in with Google, set up your team, and you get one invite link. Send it to parents — they tap it, sign up, and their kid appears on your team leaderboard.</p>
-          </details>
-          <details className="faq-item faq-item--hide-mobile">
             <summary>Can parents manage multiple kids?</summary>
-            <p>Yes. Sign in once with your Google account, add all your kids, and switch between them instantly. You'll see all their stats on one dashboard.</p>
+            <p>Yes. Sign in once, add all your kids, and switch between them instantly. See all their stats in one place.</p>
           </details>
-          <details className="faq-item faq-item--hide-mobile">
-            <summary>Can kids share their progress?</summary>
-            <p>Yes. Share 1v1 battles, rank-ups, and milestones with anyone. Send a link to grandparents, relatives, coaches—whoever you want to show.</p>
+          <details className="faq-item">
+            <summary>Is player data private?</summary>
+            <p>Completely. Parents control sharing settings. No ads, no data selling, no tracking. Just hockey.</p>
           </details>
-          <details className="faq-item faq-item--hide-mobile">
-            <summary>Is my data private?</summary>
-            <p>Completely. You control what's public and what's private. We don't sell data or show ads. It's just hockey.</p>
-          </details>
-          <div style={{ textAlign: 'center', marginTop: 20 }}>
-            <button
-              className="faq-view-all"
-              onClick={() => {
-                const hiddenItems = document.querySelectorAll('.faq-item--hide-mobile')
-                hiddenItems.forEach(item => item.classList.toggle('faq-item--show-mobile'))
-                event.target.textContent = event.target.textContent === 'View all FAQ' ? 'Show less' : 'View all FAQ'
-              }}
-            >
-              View all FAQ →
-            </button>
-          </div>
         </div>
       </section>
 
       {/* ── FINAL CTA ── */}
       <section className="final-cta">
-        <h2 className="final-cta-title">Go shoot some pucks.<br />Then log it.</h2>
+        <h2 className="final-cta-title">Ready to shoot?</h2>
         <div className="final-cta-paths">
-          <button className="final-cta-btn final-cta-btn--player" onClick={() => nav('/player')}>
-            I'm a player or parent →
+          <button className="final-cta-btn final-cta-btn--player" onClick={() => nav('/start')}>
+            Pick a challenge →
           </button>
           <button className="final-cta-btn final-cta-btn--coach" onClick={() => nav('/coach')}>
-            I'm a coach →
+            Set up your team →
           </button>
         </div>
-        <div className="final-cta-sub">Free. No app to download. Takes 2 minutes to sign up.</div>
-        <button className="final-cta-guide" onClick={() => nav('/blog/getting-started')}>
-          New to this? Read the parent guide →
-        </button>
+        <div className="final-cta-sub">Free. Web-based. Takes 2 minutes.</div>
       </section>
 
       <ContactSection />
