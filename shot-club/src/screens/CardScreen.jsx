@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useNotifications } from '../hooks/useNotifications'
 import { getRank, RANKS } from '../lib/ranks'
 import { getLifetimeBreakdown } from '../lib/shots'
 import SevenDayChart from '../components/SevenDayChart'
@@ -7,8 +8,11 @@ import AchievementBadgeRow from '../components/AchievementBadgeRow'
 
 export default function CardScreen() {
   const { player } = useAuth()
+  const { toast } = useNotifications()
   const [breakdown, setBreakdown] = useState(null)
   const [shareState, setShareState] = useState('')
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [showInviteModal, setShowInviteModal] = useState(false)
   const cardRef = useRef(null)
 
   useEffect(() => {
@@ -46,24 +50,29 @@ export default function CardScreen() {
     else specialty = `${top.name} focused`
   }
 
-  const handleShare = async () => {
-    setShareState('copying')
+  const handleShareClick = () => {
+    setShowShareModal(true)
+  }
+
+  const handleCopyShareLink = async () => {
     try {
       const shareUrl = `${window.location.origin}/card/${player.username}`
-      if (navigator.share) {
-        await navigator.share({
-          title: `${player.display_name} on Hockey Shot Challenge`,
-          text: `${rank.fullName} · ${player.lifetime_shots.toLocaleString()} shots`,
-          url: shareUrl,
-        })
-        setShareState('')
-      } else {
-        await navigator.clipboard.writeText(shareUrl)
-        setShareState('copied')
-        setTimeout(() => setShareState(''), 2000)
-      }
+      await navigator.clipboard.writeText(shareUrl)
+      toast('✓ Link copied to clipboard', 'success')
+      setShowShareModal(false)
     } catch (e) {
-      setShareState('')
+      toast('Failed to copy link', 'error')
+    }
+  }
+
+  const handleCopyParentLink = async () => {
+    try {
+      const parentUrl = `${window.location.origin}/card/${player.id}/parent`
+      await navigator.clipboard.writeText(parentUrl)
+      toast('✓ Parent link copied', 'success')
+      setShowInviteModal(false)
+    } catch (e) {
+      toast('Failed to copy link', 'error')
     }
   }
 
@@ -71,9 +80,14 @@ export default function CardScreen() {
     <div className="card-screen fade-in">
       <header className="card-header">
         <h1 className="card-title">My card</h1>
-        <button className="share-link" onClick={handleShare}>
-          {shareState === 'copied' ? '✓ Link copied' : 'Share ↗'}
-        </button>
+        <div className="card-header-buttons">
+          <button className="card-header-btn" onClick={() => setShowInviteModal(true)}>
+            👨‍👩‍👧 Invite Parent
+          </button>
+          <button className="share-link" onClick={handleShareClick}>
+            Share ↗
+          </button>
+        </div>
       </header>
 
       <div ref={cardRef} className="player-card">
@@ -219,6 +233,67 @@ export default function CardScreen() {
         </div>
       </div>
 
+      {showShareModal && (
+        <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-icon">🔗</div>
+            <h2 className="modal-title">Share Your Card</h2>
+
+            <div className="modal-section">
+              <div className="modal-label">Direct Link</div>
+              <div className="modal-input-group">
+                <input
+                  type="text"
+                  className="modal-input"
+                  value={`${window.location.origin}/card/${player.username}`}
+                  readOnly
+                />
+                <button className="modal-copy-btn" onClick={handleCopyShareLink}>Copy</button>
+              </div>
+            </div>
+
+            <div className="modal-section">
+              <div className="modal-label">QR Code</div>
+              <img
+                className="modal-qr"
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(`${window.location.origin}/card/${player.username}`)}`}
+                alt="QR Code"
+              />
+            </div>
+
+            <button className="modal-close-btn" onClick={() => setShowShareModal(false)}>Done</button>
+          </div>
+        </div>
+      )}
+
+      {showInviteModal && (
+        <div className="modal-overlay" onClick={() => setShowInviteModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-icon">👨‍👩‍👧</div>
+            <h2 className="modal-title">Invite a Parent</h2>
+
+            <div className="modal-description">
+              Share this link with a parent or guardian. They can view your progress without needing an account.
+            </div>
+
+            <div className="modal-section">
+              <div className="modal-label">Parent View Link</div>
+              <div className="modal-input-group">
+                <input
+                  type="text"
+                  className="modal-input"
+                  value={`${window.location.origin}/card/${player.id}/parent`}
+                  readOnly
+                />
+                <button className="modal-copy-btn" onClick={handleCopyParentLink}>Copy</button>
+              </div>
+            </div>
+
+            <button className="modal-close-btn" onClick={() => setShowInviteModal(false)}>Done</button>
+          </div>
+        </div>
+      )}
+
       <style>{styles}</style>
     </div>
   )
@@ -273,6 +348,22 @@ const styles = `
   font-size: 24px; font-weight: 700;
   letter-spacing: 0.5px;
 }
+.card-header-buttons {
+  display: flex; gap: 8px; align-items: center;
+}
+.card-header-btn {
+  background: transparent;
+  color: var(--ice);
+  font-size: 12px; font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 0.5px solid var(--border-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.card-header-btn:active {
+  background: rgba(41, 121, 255, 0.1);
+}
 .share-link {
   background: transparent;
   color: var(--ice);
@@ -280,7 +371,108 @@ const styles = `
   padding: 6px 12px;
   border-radius: 999px;
   border: 0.5px solid var(--border-dim);
+  cursor: pointer;
+  transition: all 0.15s;
 }
+.share-link:active {
+  background: rgba(41, 121, 255, 0.1);
+}
+
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+.modal-content {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 20px;
+  padding: 24px 20px 20px;
+  width: 100%; max-width: 380px;
+  text-align: center;
+}
+.modal-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 800;
+  color: white; margin-bottom: 8px;
+}
+.modal-description {
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.modal-section {
+  margin-bottom: 16px;
+  text-align: left;
+}
+.modal-label {
+  font-size: 10px;
+  color: var(--text-mute);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.modal-input-group {
+  display: flex; gap: 8px;
+}
+.modal-input {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 12px;
+  border: 0.5px solid var(--border-dim);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-mute);
+  font-family: monospace;
+  word-break: break-all;
+}
+.modal-copy-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.modal-copy-btn:active {
+  transform: scale(0.98);
+}
+.modal-qr {
+  width: 160px;
+  height: 160px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  display: block;
+  margin: 0 auto;
+}
+.modal-close-btn {
+  width: 100%;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 14px;
+  margin-top: 12px;
+}
+.modal-close-btn:active {
+  transform: scale(0.98);
+}`
 
 .player-card {
   position: relative;

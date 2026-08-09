@@ -45,7 +45,6 @@ export default function HomeScreen() {
   const [stickCount, setStickCount] = useState(0)
   const [entryType, setEntryType] = useState(null)
   const [undoStack, setUndoStack] = useState([])
-  const [toastMsg, setToast] = useState('')
   const [unlockedCodes, setUnlockedCodes] = useState([])
   const [goalRefreshKey, setGoalRefreshKey] = useState(0)
   const [videos, setVideos] = useState([])
@@ -216,8 +215,6 @@ export default function HomeScreen() {
   }
 
   const showToast = (msg) => {
-    setToast(msg)
-    setTimeout(() => setToast(''), 2000)
     toast(msg, 'info', 2000)
   }
 
@@ -401,8 +398,6 @@ export default function HomeScreen() {
           onSave={(count) => handleSave(entryType, count)}
         />
       )}
-
-      {toast && <div className="toast">{toast}</div>}
 
       {unlockedCodes.length > 0 && (
         <AchievementUnlockModal
@@ -1095,21 +1090,6 @@ const styles = `
 }
 .pad-save:disabled {
   opacity: 0.35;
-}
-
-.toast {
-  position: fixed;
-  bottom: 90px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--surface);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 10px 16px;
-  color: var(--text);
-  font-size: 13px;
-  z-index: 200;
-  animation: fade-in 0.2s ease-out;
 }
 
 /* Drill of the Day */

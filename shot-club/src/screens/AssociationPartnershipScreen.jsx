@@ -162,21 +162,19 @@ export default function AssociationPartnershipScreen() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
+      {/* WHY THIS BEATS A SPREADSHEET */}
       <section className="assoc-section">
-        <h2>What Associations Say</h2>
+        <h2>Why Parents Actually Use It</h2>
         <div className="assoc-testimonials">
           <div className="assoc-testimonial">
             <p className="assoc-quote">
-              "We used to spend hours manually updating a spreadsheet. This is so much better — families are more engaged and kids love seeing the live leaderboard."
+              No more emailing counts to the coach or updating a spreadsheet by hand. Kids log their own shots in seconds, and the numbers are just there.
             </p>
-            <p className="assoc-author">— Hockey Coach, U14 AA</p>
           </div>
           <div className="assoc-testimonial">
             <p className="assoc-quote">
-              "The kids are actually pushing harder because they can see where they rank in real-time. The engagement is night and day compared to last year's PDF sheet."
+              A live leaderboard gives kids a reason to keep going — they can see exactly where they rank against teammates, not just a final tally at the end of summer.
             </p>
-            <p className="assoc-author">— Association Director</p>
           </div>
         </div>
       </section>

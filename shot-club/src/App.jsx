@@ -75,6 +75,8 @@ const RankScreen = lazy(() => import('./screens/RankScreen'))
 const MoreScreen = lazy(() => import('./screens/MoreScreen'))
 const AccountScreen = lazy(() => import('./screens/AccountScreen'))
 const NotificationsScreen = lazy(() => import('./screens/NotificationsScreen'))
+const ParentCardViewScreen = lazy(() => import('./screens/ParentCardViewScreen'))
+const ParentDashboardScreen = lazy(() => import('./screens/ParentDashboardScreen'))
 const AddPlayerScreen = lazy(() => import('./screens/AddPlayerScreen'))
 const CustomChallengeScreen = lazy(() => import('./screens/CustomChallengeScreen'))
 
@@ -204,6 +206,9 @@ function ShellWrapper() {
         <Route path="/coach/challenge" element={<Protected><CoachChallengeScreen /></Protected>} />
         <Route path="/association" element={<Protected><AssociationDashboardScreen /></Protected>} />
 
+        {/* Public parent/guardian view (no auth required) */}
+        <Route path="/card/:playerId/parent" element={<ParentCardViewScreen />} />
+
         {/* Authenticated player */}
         <Route path="/home" element={<Protected><HomeScreen /></Protected>} />
         <Route path="/videos" element={<Protected><VideosScreen /></Protected>} />
@@ -213,6 +218,7 @@ function ShellWrapper() {
         <Route path="/more" element={<Protected><MoreScreen /></Protected>} />
         <Route path="/account" element={<Protected><AccountScreen /></Protected>} />
         <Route path="/notifications" element={<Protected><NotificationsScreen /></Protected>} />
+        <Route path="/parent-dashboard" element={<Protected><ParentDashboardScreen /></Protected>} />
         <Route path="/add-player" element={<Protected><AddPlayerScreen /></Protected>} />
 
         {/* Static */}
