@@ -409,24 +409,24 @@ export default function AuthScreen() {
               Create a card →
             </button>
           </div>
-        </div>
 
-        <div className="auth-card">
-          <div className="brand">
-            <BrandLogo />
-            <div className="brand-name">Hockey Shot<br/>Challenge</div>
+          <div className="auth-card">
+            <div className="brand">
+              <BrandLogo />
+              <div className="brand-name">Hockey Shot<br/>Challenge</div>
+            </div>
+            <h2 className="auth-title">Welcome back.</h2>
+            <p className="auth-sub">Sign in with your Google account to get back to your dashboard.</p>
+
+            <button className="google-btn" onClick={() => signInWithGooglePlayer()} style={{ marginBottom: 24 }}>
+              <GoogleIcon />
+              Continue with Google
+            </button>
+
+            <button className="btn-text" onClick={() => nav('/')} style={{ marginBottom: 8 }}>
+              ← Back to home
+            </button>
           </div>
-          <h2 className="auth-title">Welcome back.</h2>
-          <p className="auth-sub">Sign in with your Google account to get back to your dashboard.</p>
-
-          <button className="google-btn" onClick={() => signInWithGooglePlayer()} style={{ marginBottom: 24 }}>
-            <GoogleIcon />
-            Continue with Google
-          </button>
-
-          <button className="btn-text" onClick={() => nav('/')} style={{ marginBottom: 8 }}>
-            ← Back to home
-          </button>
         </div>
         <style>{styles}</style>
       </div>

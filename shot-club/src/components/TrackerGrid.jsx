@@ -35,7 +35,7 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
   const [paperInput, setPaperInput] = useState('')
   const [settingPaper, setSettingPaper] = useState(false)
   const [stickCount, setStickCount] = useState(0)
-  const [stickChecked, setStickChecked] = useState(false)
+  const [loggingStick, setLoggingStick] = useState(false)
 
   const spec = getSpec(playerChallenge?.challenge_type)
 
@@ -112,6 +112,22 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
     }
   }
 
+  const handleLogStick = async () => {
+    if (loggingStick) return
+    setLoggingStick(true)
+    try {
+      await logStickhandlingSession(player.id)
+      setStickCount((n) => n + 1)
+      toast('Stickhandling session logged 🏒')
+      if (navigator.vibrate) navigator.vibrate(12)
+    } catch (e) {
+      console.error('Stickhandling log failed:', e)
+      toast('Could not save that session — try again')
+    } finally {
+      setLoggingStick(false)
+    }
+  }
+
   const handleLogSession = async () => {
     if (sessionTotal <= 0 || saving) return
     setSaving(true)
@@ -124,15 +140,6 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
         if (session[t.name] > 0) {
           await logShots({ playerId: player.id, shotType: t.name, count: session[t.name] })
         }
-      }
-      if (stickChecked) {
-        try {
-          await logStickhandlingSession(player.id)
-          setStickCount((n) => n + 1)
-        } catch (e) {
-          console.error('Stickhandling log failed:', e)
-        }
-        setStickChecked(false)
       }
 
       if (crossed) {
@@ -230,27 +237,28 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
         ))}
       </div>
 
-      {/* Simple bonus: no minutes to enter, just a checkbox per session.
-          Cycles every 10 — filling the dot strip is its own small win, then
-          starts again, rather than counting up forever. */}
+      <div className="tg-session-bar">
+        <span>Session total: <strong>{sessionTotal}</strong> shots</span>
+        <button className="tg-log" disabled={sessionTotal === 0 || saving} onClick={handleLogSession}>
+          Log session
+        </button>
+      </div>
+
+      {/* Separate from shot tracking — stickhandling doesn't count toward
+          the challenge total, so it gets its own log button rather than
+          riding along with (and silently failing without) a shot session. */}
       <div className="tg-stick">
-        <span className="tg-stick-label">Stickhandling bonus — do 10</span>
+        <div className="tg-stick-top">
+          <span className="tg-stick-label">🏒 Stickhandling — do 10</span>
+          <span className="tg-stick-count">{stickDots} of 10 done</span>
+        </div>
         <div className="tg-stick-dots">
           {Array.from({ length: 10 }, (_, i) => (
             <span key={i} className={`tg-dot${i < stickDots ? ' tg-dot--on' : ''}`} />
           ))}
         </div>
-        <span className="tg-stick-count">{stickDots} of 10 done</span>
-        <label className="tg-stick-check">
-          <input type="checkbox" checked={stickChecked} onChange={(e) => setStickChecked(e.target.checked)} />
-          Did 15 min today
-        </label>
-      </div>
-
-      <div className="tg-session-bar">
-        <span>Session total: <strong>{sessionTotal}</strong> shots</span>
-        <button className="tg-log" disabled={sessionTotal === 0 || saving} onClick={handleLogSession}>
-          Log session
+        <button className="tg-stick-btn" disabled={loggingStick} onClick={handleLogStick}>
+          {loggingStick ? 'Saving…' : '+ Log 15 min session'}
         </button>
       </div>
 
@@ -468,14 +476,16 @@ const gridStyles = `
 
 .tg-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
 
-.tg-stick { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--tg-accent2-100);
-  border-radius: 12px; padding: 9px 13px; margin-bottom: 14px; font-size: 13px; }
-.tg-stick-label { font-weight: 700; color: var(--ice); }
-.tg-stick-dots { display: flex; gap: 4px; }
+.tg-stick { background: var(--tg-accent2-100); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.tg-stick-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.tg-stick-label { font-weight: 700; font-size: 13px; color: var(--ice); }
+.tg-stick-dots { display: flex; gap: 4px; margin-bottom: 10px; }
 .tg-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--tg-accent2-400); }
 .tg-dot--on { background: var(--accent); }
 .tg-stick-count { font-size: 12px; color: var(--text-soft); }
-.tg-stick-check { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-left: auto; cursor: pointer; color: var(--text-soft); }
+.tg-stick-btn { width: 100%; font-family: inherit; font-weight: 700; font-size: 13px; border-radius: 999px;
+  padding: 10px; cursor: pointer; background: var(--accent); color: white; border: none; min-height: 40px; }
+.tg-stick-btn:disabled { opacity: .5; cursor: default; }
 .tg-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .tg-row-label { width: 100px; flex: none; font-weight: 700; font-size: 13.5px; }
 .tg-row-count { font-family: var(--font-display); font-weight: 700; font-size: 20px; width: 30px; }

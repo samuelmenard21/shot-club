@@ -386,34 +386,38 @@ export default function HomeScreen() {
       )}
 
 
-      {player.lifetime_shots === 0 && (
-        <div className="first-time-nudge">
-          <div className="ftn-title">Log your first shots 🏒</div>
-          <div className="ftn-body">Tap any shot type below to get on the board. Every rep counts toward your rank.</div>
-        </div>
+      {/* Goalies only — TrackerGrid above covers Wrist/Snap/Slap/Backhand
+          for shooters, so this tap-to-log grid would just duplicate it.
+          Saves has no home in TrackerGrid, so goalies still need this. */}
+      {player.position === 'G' && (
+        <>
+          {player.lifetime_shots === 0 && (
+            <div className="first-time-nudge">
+              <div className="ftn-title">Log your first saves 🧤</div>
+              <div className="ftn-body">Tap below to get on the board. Every rep counts toward your rank.</div>
+            </div>
+          )}
+
+          <div style={{ margin: '0 14px 12px', textAlign: 'center' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-mute)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              TAP TO LOG SAVES
+            </div>
+          </div>
+
+          <div className="shots-grid">
+            {shotTypes.map((t) => {
+              const todayCount = stats.todayByType[t] || 0
+              return (
+                <button key={t} className="shot-card" onClick={() => setEntryType(t)}>
+                  <div className="shot-name">{SHOT_EMOJIS[t]} {t}</div>
+                  <div className="shot-value tnum">{todayCount}</div>
+                  <div className="shot-hint">today</div>
+                </button>
+              )
+            })}
+          </div>
+        </>
       )}
-
-      <div style={{ margin: '0 14px 12px', textAlign: 'center' }}>
-        <div style={{ fontSize: 12, color: 'var(--text-mute)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-          TAP A SHOT TYPE TO LOG IT
-        </div>
-      </div>
-
-      <div className="shots-grid">
-        {shotTypes.map((t) => {
-          const todayCount = stats.todayByType[t] || 0
-          return (
-            <button key={t} className="shot-card" onClick={() => setEntryType(t)}>
-              <div className="shot-name">{SHOT_EMOJIS[t]} {t}</div>
-              <div className="shot-value tnum">{todayCount}</div>
-              <div className="shot-hint">today</div>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Stickhandling is now the simple "did 10 sessions" bonus in the
-          tracker card below (TrackerGrid) — no more minutes entry here. */}
 
 
       {hasRecentLog && (
