@@ -5,6 +5,7 @@ import { getSpec, weeklyPace, printableHref, CHALLENGE_ORDER, CHALLENGE_SPECS } 
 import { stashPendingChallenge } from '../lib/challenges'
 import { signInWithGooglePlayer } from '../lib/auth'
 import { usePostHog } from '../hooks/usePostHog'
+import { useAuth } from '../hooks/useAuth'
 
 // One template drives all four challenge pages. Copy differs per tier (below)
 // so the pages don't read as duplicate content to Google, but layout, CSS,
@@ -97,6 +98,12 @@ const WEEK_FOCUS_8 = [
 
 export default function ChallengeLandingScreen({ challengeId }) {
   const nav = useNavigate()
+  const { player } = useAuth()
+  // A signed-out visitor who's played before still has activePlayerId in
+  // localStorage (set on first sign-in, cleared on sign-out) — that's enough
+  // to route them to "Sign in" instead of the full signup flow, without
+  // waiting on a network round-trip to know they're a returning player.
+  const isReturning = typeof localStorage !== 'undefined' && !!localStorage.getItem('activePlayerId')
   const { trackTrackerDownloaded, trackTrackLiveClicked, trackChallengePicked } = usePostHog()
   const spec = getSpec(challengeId)
   const copy = CONTENT[challengeId]
@@ -122,6 +129,8 @@ export default function ChallengeLandingScreen({ challengeId }) {
   }
   const goDigital = () => {
     trackTrackLiveClicked(challengeId)
+    if (player) { nav('/home'); return }
+    if (isReturning) { stashPendingChallenge(challengeId); nav('/start?mode=signin'); return }
     nav(`/start?challenge=${challengeId}&src=${challengeId}landing`)
   }
   // Skips the multi-step club/position form entirely — straight to Google,
@@ -130,6 +139,7 @@ export default function ChallengeLandingScreen({ challengeId }) {
   const goDigitalFast = (e) => {
     e.stopPropagation()
     trackTrackLiveClicked(challengeId)
+    if (player) { nav('/home'); return }
     stashPendingChallenge(challengeId)
     signInWithGooglePlayer()
   }
@@ -138,7 +148,16 @@ export default function ChallengeLandingScreen({ challengeId }) {
     <div className="tenk-wrap">
       <nav className="tenk-nav">
         <button className="tenk-logo" onClick={() => nav('/')}>🏒 Hockey Shot Challenge</button>
-        <button className="tenk-start" onClick={() => nav('/start')}>Start tracking →</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button className="tenk-nav-link" onClick={() => nav('/find-club')}>Find your club</button>
+          {player ? (
+            <button className="tenk-start" onClick={() => nav('/home')}>My Dashboard →</button>
+          ) : isReturning ? (
+            <button className="tenk-start" onClick={() => { stashPendingChallenge(challengeId); nav('/start?mode=signin') }}>Sign in →</button>
+          ) : (
+            <button className="tenk-start" onClick={() => nav(`/start?challenge=${challengeId}&src=${challengeId}landing`)}>Start tracking →</button>
+          )}
+        </div>
       </nav>
 
       {/* HERO — paper and digital are equal, side by side, right up top */}
@@ -514,6 +533,7 @@ export default function ChallengeLandingScreen({ challengeId }) {
             <div>
               <h4 style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 12 }}>For Players</h4>
               <button onClick={() => nav('/player')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 8 }}>Player Guide</button>
+              <button onClick={() => nav('/find-club')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 8 }}>Find Your Club</button>
               <button onClick={() => nav('/start')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left' }}>Get Started</button>
             </div>
             <div>
@@ -548,6 +568,9 @@ body:has(.tenk-wrap) { background: var(--bg) !important; }
 
 .tenk-nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
 .tenk-logo { font-size: 18px; font-weight: 700; background: transparent; cursor: pointer; color: white; }
+.tenk-nav-link { background: transparent; color: var(--text-soft); font-size: 14px; cursor: pointer; border: none; }
+.tenk-nav-link:hover { color: var(--ice); }
+@media (max-width: 560px) { .tenk-nav-link { display: none; } }
 .tenk-start { background: var(--accent); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
 .tenk-hero { max-width: 1000px; margin: 0 auto; padding: 60px 20px 40px; text-align: center; }

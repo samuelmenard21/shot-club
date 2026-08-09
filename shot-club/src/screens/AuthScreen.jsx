@@ -11,6 +11,7 @@ import {
 } from '../lib/clubs'
 import { setSEO } from '../lib/seo'
 import { applyPendingChallenge, stashPendingChallenge } from '../lib/challenges'
+import { getSpec, CHALLENGE_ORDER, CHALLENGE_SPECS } from '../lib/challengeSpecs'
 
 const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
 
@@ -60,6 +61,17 @@ export default function AuthScreen() {
 
   // OAuth return: redirect if already has a profile, else show setup
   const isOAuthReturn = searchParams.get('oauth') === '1'
+
+  // Surfaces which challenge (and what's next after it) a player arrived
+  // to sign up for — previously this was stashed silently and only visible
+  // once they reached the dashboard, so signup felt disconnected from the
+  // challenge page they just came from.
+  const pickedChallengeId = searchParams.get('challenge')
+  const pickedSpec = pickedChallengeId ? getSpec(pickedChallengeId) : null
+  const pickedIdx = pickedChallengeId ? CHALLENGE_ORDER.indexOf(pickedChallengeId) : -1
+  const nextSpec = pickedIdx >= 0 && pickedIdx < CHALLENGE_ORDER.length - 1
+    ? CHALLENGE_SPECS[CHALLENGE_ORDER[pickedIdx + 1]]
+    : null
 
   // A ?challenge=<id> arrives from the printable's QR code and from the
   // homepage picker. Google sends us back to /start?oauth=1, which drops the
@@ -575,6 +587,17 @@ export default function AuthScreen() {
               </>
             ) : (
               <>
+                {pickedSpec && (
+                  <div className="challenge-banner">
+                    <div className="challenge-banner-label">YOUR CHALLENGE</div>
+                    <div className="challenge-banner-name">{pickedSpec.total.toLocaleString()} Shot {pickedSpec.label} Challenge</div>
+                    {nextSpec && (
+                      <div className="challenge-banner-next">
+                        Next up after this: <strong>{nextSpec.total.toLocaleString()} Shot {nextSpec.label}</strong>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <h2 className="auth-title">Let's get you set up.</h2>
                 <p className="auth-sub" style={{ marginBottom: 14 }}>Takes 2 minutes. You'll sign in with Google at the end.</p>
 
@@ -950,6 +973,33 @@ const styles = `
   font-size: 12px; color: var(--text-mute);
   margin-top: 4px;
 }
+
+.challenge-banner {
+  background: var(--surface-raised);
+  border: 0.5px solid rgba(61, 214, 140, 0.4);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 18px;
+  text-align: center;
+}
+.challenge-banner-label {
+  font-size: 12px; color: var(--text-mute);
+  letter-spacing: 2px; text-transform: uppercase;
+  font-weight: 500;
+}
+.challenge-banner-name {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 800;
+  color: var(--success);
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+.challenge-banner-next {
+  font-size: 12px; color: var(--text-soft);
+  margin-top: 6px;
+}
+.challenge-banner-next strong { color: var(--ice); }
 
 .picker-label {
   font-size: 13px; color: #8899b4;
