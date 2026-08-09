@@ -34,6 +34,7 @@ import PrivacyScreen from './screens/PrivacyScreen'
 import AboutScreen from './screens/AboutScreen'
 import PlayerLandingScreen from './screens/PlayerLandingScreen'
 import CoachLandingScreen from './screens/CoachLandingScreen'
+import FindClubScreen from './screens/FindClubScreen'
 import BlogIndex from './screens/blog/BlogIndex'
 import GettingStartedPost from './screens/blog/GettingStartedPost'
 import SquadBattlesPost from './screens/blog/SquadBattlesPost'
@@ -183,9 +184,10 @@ function ShellWrapper() {
         {/* Public */}
         <Route path="/" element={<RootRoute />} />
         <Route path="/for-clubs" element={<ForClubsScreen />} />
-<Route path="/clubs" element={<ClubsScreen />} />
+        <Route path="/clubs" element={<ClubsScreen />} />
         <Route path="/clubs/:slug" element={<ClubScreen />} />
         <Route path="/start" element={<AuthScreen />} />
+        <Route path="/find-club" element={<FindClubScreen />} />
         <Route path="/join/:slug" element={<ClubJoinScreen />} />
         <Route path="/card/:username" element={<CardPublicScreen />} />
         <Route path="/rankings" element={<RankingsScreen />} />

@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO } from '../lib/seo'
-import { useAuth } from '../hooks/useAuth'
-import { setPlayerChallenge } from '../lib/challenges'
 import { CHALLENGE_LIST, weeklyPace } from '../lib/challengeSpecs'
 
 // #rrggbb -> rgba(), so one accent per challenge drives every tint on the card.
@@ -14,74 +12,35 @@ function rgba(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
+const CHALLENGE_PATHS = {
+  '1k': '/1000-shot-rookie-challenge',
+  '2_5k': '/2500-shot-pro-challenge',
+  '5k': '/5000-shot-elite-challenge',
+  '10k': '/10000-shot-hall-of-famer-challenge',
+}
+
 export default function ChallengeSelector() {
   const nav = useNavigate()
-  const { player, loading: authLoading } = useAuth()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   useEffect(() => {
     setSEO({
-      title: 'Choose Your Hockey Challenge — 1K, 2.5K, 5K, 10K, or Custom',
-      description: 'Pick your hockey challenge: 1000 shot challenge for rookies, 2500 shot challenge, 5000 shot challenge, 10000 shot challenge, or create a custom goal. Free tracking with live leaderboards.',
+      title: 'Hockey Shot Challenges — Track Your Progress',
+      description: 'Rookie, Pro, Elite, or Hall of Famer — pick your hockey shot challenge, track your progress, and join the leaderboard.',
       url: 'https://hockeyshotchallenge.com/challenges',
     })
   }, [])
 
-  const handleChallengeSelect = async (challengeType, goalShots) => {
-    if (!player) {
-      console.log('No player found, redirecting to sign-in')
-      nav('/start')
-      return
-    }
-    setLoading(true)
-    setError('')
-    try {
-      console.log('Setting challenge:', { playerId: player.id, challengeType, goalShots })
-      const result = await setPlayerChallenge(player.id, challengeType, goalShots)
-      console.log('Challenge set successfully:', result)
-      if (!result) {
-        setError('Failed to save challenge. Please try again.')
-        setLoading(false)
-        return
-      }
-      nav('/')
-    } catch (err) {
-      console.error('Error selecting challenge:', err.message, err)
-      setError(`Error: ${err.message || 'Failed to save challenge. Please try again.'}`)
-      setLoading(false)
-    }
-  }
-
-  // Cards are derived from the shared spec so this screen, the homepage picker,
-  // the printables and the in-app grid can never disagree about targets or pace.
-  const challenges = [
-    ...CHALLENGE_LIST.map((s) => ({
-      id: s.id,
-      title: `${s.total.toLocaleString()} Shot Challenge`,
-      subtitle: s.label,
-      shots: s.total,
-      weeks: s.weeks,
-      description: s.blurb,
-      pace: `${weeklyPace(s).toLocaleString()}/wk`,
-      accent: s.badge,
-      onClick: () => handleChallengeSelect(s.id, s.total),
-    })),
-    {
-      id: 'custom',
-      title: 'Custom Challenge',
-      subtitle: 'Your Goal',
-      shots: '?',
-      weeks: '?',
-      description: 'Set your own goal and track progress in real-time',
-      pace: 'Yours',
-      accent: '#9333ea',
-      onClick: () => {
-        if (player) nav('/challenges/custom')
-        else nav('/start')
-      },
-    },
-  ]
+  const challenges = CHALLENGE_LIST.map((s) => ({
+    id: s.id,
+    title: `${s.total.toLocaleString()} Shot Challenge`,
+    subtitle: s.label,
+    shots: s.total,
+    weeks: s.weeks,
+    description: s.blurb,
+    pace: `${weeklyPace(s).toLocaleString()}/wk`,
+    accent: s.badge,
+    path: CHALLENGE_PATHS[s.id],
+  }))
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'var(--font-body)' }}>
@@ -110,42 +69,29 @@ export default function ChallengeSelector() {
           Choose Your Shot Challenge
         </h1>
         <p style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--text-soft)', marginBottom: 0, maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' }}>
-          Start with the 1K and work your way up to Hall of Famer. Every shot counts
-          toward live leaderboards, streaks and milestone medals.
+          Pick a challenge level, track your progress, and join the leaderboard.
         </p>
       </section>
 
-      {error && (
-        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '12px 20px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, color: '#fca5a5', fontSize: 14, marginBottom: 24 }}>
-          {error}
-        </div>
-      )}
-
       {/* CHALLENGE CARDS */}
-      {/* min() lets the track collapse to a single full-width column on a phone
-          instead of holding a 300px floor and overflowing the viewport. */}
       <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 16px 48px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 16 }}>
         {challenges.map((c) => (
           <button
             key={c.id}
-            onClick={c.onClick}
-            disabled={loading || authLoading}
+            onClick={() => nav(c.path)}
             style={{
               background: `linear-gradient(135deg, ${rgba(c.accent, 0.1)} 0%, ${rgba(c.accent, 0.05)} 100%)`,
               border: `1.5px solid ${rgba(c.accent, 0.3)}`,
               borderRadius: 16,
               padding: 'clamp(18px, 5vw, 28px)',
-              cursor: loading || authLoading ? 'not-allowed' : 'pointer',
+              cursor: 'pointer',
               transition: 'all 0.3s ease',
               textAlign: 'left',
               color: 'white',
-              opacity: loading || authLoading ? 0.6 : 1,
             }}
             onMouseEnter={(e) => {
-              if (!loading && !authLoading) {
-                e.currentTarget.style.transform = 'translateY(-4px)'
-                e.currentTarget.style.borderColor = `${rgba(c.accent, 0.6)}`
-              }
+              e.currentTarget.style.transform = 'translateY(-4px)'
+              e.currentTarget.style.borderColor = `${rgba(c.accent, 0.6)}`
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
@@ -184,7 +130,7 @@ export default function ChallengeSelector() {
                 textAlign: 'center',
               }}
             >
-              {loading ? 'Saving…' : `Start This Challenge →`}
+              Learn More →
             </div>
           </button>
         ))}

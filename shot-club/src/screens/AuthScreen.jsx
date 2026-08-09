@@ -437,6 +437,36 @@ export default function AuthScreen() {
   return (
     <div className="auth-wrap fade-in">
       <div style={{ maxWidth: 420, margin: '0 auto', width: '100%' }}>
+        {/* Find Your Club banner */}
+        <div style={{
+          background: 'rgba(61, 214, 140, 0.1)',
+          border: '1px solid rgba(61, 214, 140, 0.3)',
+          borderRadius: 12,
+          padding: '12px 14px',
+          marginBottom: 16,
+          textAlign: 'center',
+        }}>
+          <div style={{ fontSize: 13, color: 'var(--text-soft)', marginBottom: 6 }}>
+            Looking for your club?
+          </div>
+          <button
+            onClick={() => nav('/find-club')}
+            style={{
+              background: 'rgba(61, 214, 140, 0.2)',
+              color: '#4ade80',
+              border: '1.5px solid rgba(61, 214, 140, 0.4)',
+              borderRadius: 8,
+              padding: '8px 14px',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              width: '100%',
+            }}
+          >
+            Find Your Association →
+          </button>
+        </div>
+
         {/* Prominent "Already have an account" banner */}
         <div style={{
           background: 'rgba(41, 121, 255, 0.1)',
