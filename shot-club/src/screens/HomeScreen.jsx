@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useNotifications } from '../hooks/useNotifications'
-import { logShots, getStats } from '../lib/shots'
+import { logShots, getStats, getStickhandlingCount } from '../lib/shots'
 import { getRank } from '../lib/ranks'
 import { claimAchievements, isStreakInRecovery } from '../lib/progress'
 import { attachPlayerToTeam } from '../lib/teams'
@@ -42,6 +42,7 @@ export default function HomeScreen() {
   const { player, refresh } = useAuth()
   const { toast } = useNotifications()
   const [stats, setStats] = useState({ todayTotal: 0, weekTotal: 0, todayByType: {} })
+  const [stickCount, setStickCount] = useState(0)
   const [entryType, setEntryType] = useState(null)
   const [undoStack, setUndoStack] = useState([])
   const [toastMsg, setToast] = useState('')
@@ -97,6 +98,7 @@ export default function HomeScreen() {
     if (!player) return
     const s = await getStats(player.id)
     setStats(s)
+    getStickhandlingCount(player.id).then(setStickCount).catch(() => {})
   }
 
   useEffect(() => {
@@ -286,6 +288,8 @@ export default function HomeScreen() {
         const { current_shots, goal_shots, challenge_type, progress_pct, shots_remaining } = playerChallengeProgress
         const challengeLabels = { '1k': 'ROOKIE', '2_5k': 'PRO', '5k': 'ELITE', '10k': 'HALL OF FAMER', 'custom': 'CUSTOM' }
 
+        const stickDots = stickCount > 0 && stickCount % 10 === 0 ? 10 : stickCount % 10
+
         return (
           <div className="challenge-hero-mobile">
             <div className="chm-content">
@@ -297,6 +301,17 @@ export default function HomeScreen() {
               <div className="chm-bar">
                 <div className="chm-bar-fill" style={{ width: `${Math.min(100, progress_pct)}%` }} />
               </div>
+              {/* Stickhandling doesn't count toward the challenge above, so
+                  it lives here as its own line rather than being folded
+                  into these numbers — but this is the only spot on the page
+                  visible without scrolling, so it's the one place a player
+                  can see today's stickhandling status at a glance instead
+                  of only finding it buried in the tracker below. */}
+              {player.position !== 'G' && (
+                <div className="chm-stick">
+                  🏒 Stickhandling <strong>{stickDots}/10</strong>
+                </div>
+              )}
             </div>
             <button onClick={() => nav('/challenges')} className="chm-swap">
               ⊕
@@ -306,70 +321,11 @@ export default function HomeScreen() {
       })()}
 
 
-      {/* PERSONAL CHALLENGE TRACKER */}
-      {(() => {
-        if (!playerChallenge || !playerChallengeProgress) {
-          return (
-            <div style={{ margin: '16px 14px', padding: '16px', background: 'linear-gradient(135deg, rgba(61, 214, 140, 0.15) 0%, rgba(41, 121, 255, 0.1) 100%)', border: '1.5px solid rgba(61, 214, 140, 0.3)', borderRadius: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 PICK YOUR CHALLENGE</div>
-                  <div style={{ fontSize: 14, color: 'var(--text-soft)' }}>Track shots. Climb the rankings.</div>
-                </div>
-                <button
-                  onClick={() => nav('/challenges')}
-                  style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: 8, padding: '8px 14px', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}
-                >
-                  Choose →
-                </button>
-              </div>
-            </div>
-          )
-        }
-
-        const { current_shots, goal_shots, challenge_type, progress_pct, shots_remaining } = playerChallengeProgress
-        const challengeLabels = { '1k': 'ROOKIE', '2_5k': 'PRO', '5k': 'ELITE', '10k': 'HALL OF FAMER', 'custom': 'CUSTOM' }
-
-        return (
-          <div style={{ margin: '16px 14px', padding: '16px', background: 'linear-gradient(135deg, rgba(61, 214, 140, 0.15) 0%, rgba(41, 121, 255, 0.1) 100%)', border: '1.5px solid rgba(61, 214, 140, 0.3)', borderRadius: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🏒 {challengeLabels[challenge_type]}</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: 'white' }}>{current_shots.toLocaleString()}<span style={{ fontSize: 14, color: 'var(--text-soft)' }}> / {goal_shots.toLocaleString()}</span></div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent)' }}>{progress_pct}%</div>
-                <div style={{ fontSize: 11, color: 'var(--text-soft)', marginTop: 2 }}>{shots_remaining.toLocaleString()} left</div>
-              </div>
-            </div>
-
-            <div style={{
-              width: '100%',
-              height: 12,
-              background: 'rgba(0,0,0,0.2)',
-              borderRadius: 6,
-              overflow: 'hidden',
-              marginBottom: 12,
-            }}>
-              <div style={{
-                height: '100%',
-                background: 'linear-gradient(90deg, #3dd68c 0%, #2dbd72 100%)',
-                width: `${Math.min(100, progress_pct)}%`,
-                transition: 'width 0.5s ease',
-              }} />
-            </div>
-
-            <div style={{ fontSize: 13, color: 'var(--ice)', fontWeight: 600 }}>
-              {current_shots >= goal_shots
-                ? `🎉 Challenge complete! Pick a new one`
-                : `${Math.ceil(shots_remaining / 7)} shots/week to finish`
-              }
-            </div>
-          </div>
-        )
-      })()}
-
-      {/* INTERACTIVE TRACKER GRID */}
+      {/* INTERACTIVE TRACKER GRID — the mobile hero card above already gives
+          the at-a-glance summary, and TrackerGrid below has its own full
+          progress display (bar, "X of Y shots", "X left to finish"), so a
+          third card repeating the exact same numbers used to sit right
+          here — removed rather than kept in sync in three places. */}
       {playerChallenge && playerChallengeProgress && (
         <div style={{ marginTop: 20 }}>
           <TrackerGrid
@@ -1319,6 +1275,15 @@ const styles = `
   border-radius: 3px;
   transition: width 0.5s ease;
   min-width: 2px;
+}
+
+.chm-stick {
+  font-size: 11.5px;
+  color: var(--text-soft);
+  margin-top: 8px;
+}
+.chm-stick strong {
+  color: var(--ice);
 }
 
 .chm-btn {

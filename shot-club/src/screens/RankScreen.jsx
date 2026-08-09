@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { getLeaderboardLifetime, getLeaderboardWeekly, getTeamSize, getClubSize } from '../lib/shots'
 import { getRank } from '../lib/ranks'
+import ConnectClubPrompt from '../components/ConnectClubPrompt'
 
 export default function RankScreen() {
-  const { player } = useAuth()
+  const { player, refresh } = useAuth()
   const [scope, setScope] = useState(null) // 'team' | 'club' | 'global'
   const [period, setPeriod] = useState('week')
   const [rows, setRows] = useState([])
@@ -96,6 +97,16 @@ export default function RankScreen() {
           Global
         </button>
       </div>
+
+      {/* Team/Club tabs above are silently disabled with no explanation for
+          a player who skipped club at signup — give them the same connect
+          flow the dashboard offers instead of a dead end here. */}
+      {!player.team_id && !player.club_name && (
+        <div className="no-club-hint">
+          <div className="no-club-hint-text">Team and club leaderboards need a club on file.</div>
+          <ConnectClubPrompt playerId={player.id} onConnected={refresh} />
+        </div>
+      )}
 
       {/* Period toggle */}
       <div className="period-row">
@@ -267,6 +278,19 @@ const styles = `
 .seg-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+.no-club-hint {
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+.no-club-hint-text {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  margin-bottom: 8px;
 }
 
 .period-row {

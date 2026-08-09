@@ -4,6 +4,7 @@ import { signOut, deleteAccount, getPlayersForAccount, changePlayerTeam } from '
 import { setDailyGoal } from '../lib/progress'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
+import ConnectClubPrompt from '../components/ConnectClubPrompt'
 
 const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
 const GOAL_OPTIONS = [25, 50, 100, 200]
@@ -181,8 +182,9 @@ export default function MoreScreen() {
           <div className="label-sm">Solo mode</div>
           <div className="solo-card-title">You're flying solo</div>
           <div className="solo-card-hint">
-            Start or join a team to compete on the rankings with teammates. Sign out and sign back in to change this.
+            Connect a club to compete on team and club rankings with teammates.
           </div>
+          <ConnectClubPrompt playerId={player.id} onConnected={refresh} />
         </div>
       )}
 
@@ -374,7 +376,7 @@ const styles = `
 }
 .solo-card-hint {
   font-size: 12px; color: var(--text-mute);
-  margin-top: 4px; line-height: 1.4;
+  margin-top: 4px; margin-bottom: 10px; line-height: 1.4;
 }
 
 /* Drills shortcut */
