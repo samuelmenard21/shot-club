@@ -55,7 +55,7 @@ export default function NumberPad({ type, onClose, onSave }) {
         <div className="numberpad-actions">
           <button className="numberpad-cancel" onClick={onClose}>Cancel</button>
           <button className="numberpad-save" onClick={handleSave} disabled={count <= 0}>
-            {count > 0 ? `Log ${count} ${unit}` : 'Log'}
+            {count > 0 ? `Track ${count} ${unit}` : 'Track'}
           </button>
         </div>
 

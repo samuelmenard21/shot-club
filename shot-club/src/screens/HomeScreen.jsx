@@ -321,6 +321,14 @@ export default function HomeScreen() {
       })()}
 
 
+      {/* Empty state for shooters with no shots logged */}
+      {player.position !== 'G' && player.lifetime_shots === 0 && (
+        <div className="first-time-nudge">
+          <div className="ftn-title">Start your streak 🎯</div>
+          <div className="ftn-body">Tap the tracker below to log your first shot. Every rep counts toward your rank.</div>
+        </div>
+      )}
+
       {/* INTERACTIVE TRACKER GRID — the mobile hero card above already gives
           the at-a-glance summary, and TrackerGrid below has its own full
           progress display (bar, "X of Y shots", "X left to finish"), so a

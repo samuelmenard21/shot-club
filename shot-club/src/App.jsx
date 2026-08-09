@@ -73,6 +73,8 @@ const VideosScreen = lazy(() => import('./screens/VideosScreen'))
 const CardScreen = lazy(() => import('./screens/CardScreen'))
 const RankScreen = lazy(() => import('./screens/RankScreen'))
 const MoreScreen = lazy(() => import('./screens/MoreScreen'))
+const AccountScreen = lazy(() => import('./screens/AccountScreen'))
+const NotificationsScreen = lazy(() => import('./screens/NotificationsScreen'))
 const AddPlayerScreen = lazy(() => import('./screens/AddPlayerScreen'))
 const CustomChallengeScreen = lazy(() => import('./screens/CustomChallengeScreen'))
 
@@ -209,6 +211,8 @@ function ShellWrapper() {
         <Route path="/rank" element={<Protected><RankScreen /></Protected>} />
         <Route path="/teams" element={<Navigate to="/rank" replace />} />
         <Route path="/more" element={<Protected><MoreScreen /></Protected>} />
+        <Route path="/account" element={<Protected><AccountScreen /></Protected>} />
+        <Route path="/notifications" element={<Protected><NotificationsScreen /></Protected>} />
         <Route path="/add-player" element={<Protected><AddPlayerScreen /></Protected>} />
 
         {/* Static */}

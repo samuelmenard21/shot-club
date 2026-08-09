@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { signIn, signInWithGooglePlayer, createPlayerWithGoogleAuth } from '../lib/auth'
+import { signInWithGooglePlayer, createPlayerWithGoogleAuth } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
 import {
   getClubBySlug,
@@ -36,7 +36,6 @@ export default function AuthScreen() {
   const [displayName, setDisplayName] = useState('')
   const [position, setPosition] = useState(null)
   const [ageBracket, setAgeBracket] = useState(null)
-  const [username, setUsername] = useState('')
   const [generatedUsername, setGeneratedUsername] = useState('')
   const [generatedTeamName, setGeneratedTeamName] = useState('')
   const [generatedClubName, setGeneratedClubName] = useState('')
@@ -55,6 +54,7 @@ export default function AuthScreen() {
   const [stickhandlingHourGoal, setStickhandlingHourGoal] = useState(5)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [errorField, setErrorField] = useState(null)
   const nav = useNavigate()
   const [searchParams] = useSearchParams()
   const { player, loading: authLoading, refresh } = useAuth()
@@ -163,22 +163,26 @@ export default function AuthScreen() {
     if (path === 'club' && preClub) {
       if (!ageDivision) {
         setError('Pick your age division.')
+        setErrorField('ageDivision')
         return
       }
       if (!tier) {
         setError('Pick your tier.')
+        setErrorField('tier')
         return
       }
       setError('')
+      setErrorField(null)
       setStep(2)
       return
     }
 
     // Join/solo path with a club selected — need age + tier
     if ((path === 'join' || path === 'solo') && joinClub) {
-      if (!ageDivision) { setError('Pick your age division.'); return }
-      if (!tier) { setError('Pick your tier.'); return }
+      if (!ageDivision) { setError('Pick your age division.'); setErrorField('ageDivision'); return }
+      if (!tier) { setError('Pick your tier.'); setErrorField('tier'); return }
       setError('')
+      setErrorField(null)
       setStep(2)
       return
     }
@@ -186,22 +190,25 @@ export default function AuthScreen() {
     // Join path free-text fallback
     if (path === 'join' && !joinClub && !teamName.trim()) {
       setError('Search for your club or enter a team name.')
+      setErrorField('teamName')
       return
     }
 
     setError('')
+    setErrorField(null)
     setStep(2)
   }
 
   const saveAndGoogleAuth = async () => {
-    if (!firstName.trim()) { setError('Add your first name so your coach knows who you are.'); return }
-    if (!position) { setError('Pick your position.'); return }
+    if (!firstName.trim()) { setError('Add your first name so your coach knows who you are.'); setErrorField('firstName'); return }
+    if (!position) { setError('Pick your position.'); setErrorField('position'); return }
     // Leaderboard name is optional at signup — default it to the first name so
     // kids get straight in. They can set a nickname later once they're hooked.
     const leaderboardName = displayName.trim() || firstName.trim()
     const activeClub = (path === 'club' && preClub) ? preClub : joinClub
-    if (activeClub && (!ageDivision || !tier)) { setError('Pick your age division and tier.'); return }
+    if (activeClub && (!ageDivision || !tier)) { setError('Pick your age division and tier.'); setErrorField('ageDivision'); return }
     setError('')
+    setErrorField(null)
 
     // Save everything to localStorage — picked up after OAuth redirect
     const pending = {
@@ -220,20 +227,6 @@ export default function AuthScreen() {
     }
     localStorage.setItem('pendingProfile', JSON.stringify(pending))
     await signInWithGooglePlayer()
-  }
-
-  const doSignIn = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      await signIn({ username })
-      await refresh()
-      nav('/home')
-    } catch (e) {
-      setError('Username not found. Check the spelling.')
-    } finally {
-      setLoading(false)
-    }
   }
 
   const copyText = async (text, which) => {
@@ -393,31 +386,9 @@ export default function AuthScreen() {
       <div className="auth-wrap fade-in">
         <div style={{ maxWidth: 420, margin: '0 auto', width: '100%' }}>
           {/* Prominent "New here?" banner */}
-          <div style={{
-            background: 'rgba(45, 180, 100, 0.1)',
-            border: '1px solid rgba(45, 180, 100, 0.3)',
-            borderRadius: 12,
-            padding: '12px 14px',
-            marginBottom: 16,
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 13, color: 'var(--text-soft)', marginBottom: 6 }}>
-              New to Hockey Shot Challenge?
-            </div>
-            <button
-              onClick={() => { setMode('signup'); setError('') }}
-              style={{
-                background: 'rgba(45, 180, 100, 0.2)',
-                color: '#4ade80',
-                border: '1.5px solid rgba(45, 180, 100, 0.4)',
-                borderRadius: 8,
-                padding: '8px 14px',
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: 'pointer',
-                width: '100%',
-              }}
-            >
+          <div className="auth-banner auth-banner--green">
+            <div className="auth-banner-label">New to Hockey Shot Challenge?</div>
+            <button className="auth-banner-btn auth-banner-btn--green" onClick={() => { setMode('signup'); setError(''); setErrorField(null) }}>
               Create a card →
             </button>
           </div>
@@ -450,61 +421,17 @@ export default function AuthScreen() {
     <div className="auth-wrap fade-in">
       <div style={{ maxWidth: 420, margin: '0 auto', width: '100%' }}>
         {/* Find Your Club banner */}
-        <div style={{
-          background: 'rgba(61, 214, 140, 0.1)',
-          border: '1px solid rgba(61, 214, 140, 0.3)',
-          borderRadius: 12,
-          padding: '12px 14px',
-          marginBottom: 16,
-          textAlign: 'center',
-        }}>
-          <div style={{ fontSize: 13, color: 'var(--text-soft)', marginBottom: 6 }}>
-            Looking for your club?
-          </div>
-          <button
-            onClick={() => nav('/find-club')}
-            style={{
-              background: 'rgba(61, 214, 140, 0.2)',
-              color: '#4ade80',
-              border: '1.5px solid rgba(61, 214, 140, 0.4)',
-              borderRadius: 8,
-              padding: '8px 14px',
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: 'pointer',
-              width: '100%',
-            }}
-          >
+        <div className="auth-banner auth-banner--green">
+          <div className="auth-banner-label">Looking for your club?</div>
+          <button className="auth-banner-btn auth-banner-btn--green" onClick={() => nav('/find-club')}>
             Find Your Association →
           </button>
         </div>
 
         {/* Prominent "Already have an account" banner */}
-        <div style={{
-          background: 'rgba(41, 121, 255, 0.1)',
-          border: '1px solid rgba(41, 121, 255, 0.3)',
-          borderRadius: 12,
-          padding: '12px 14px',
-          marginBottom: 16,
-          textAlign: 'center',
-        }}>
-          <div style={{ fontSize: 13, color: 'var(--text-soft)', marginBottom: 6 }}>
-            Already have an account?
-          </div>
-          <button
-            onClick={() => { setMode('signin'); setError('') }}
-            style={{
-              background: 'var(--accent)',
-              color: 'white',
-              border: 'none',
-              borderRadius: 8,
-              padding: '8px 14px',
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: 'pointer',
-              width: '100%',
-            }}
-          >
+        <div className="auth-banner auth-banner--blue">
+          <div className="auth-banner-label">Already have an account?</div>
+          <button className="auth-banner-btn auth-banner-btn--blue" onClick={() => { setMode('signin'); setError(''); setErrorField(null) }}>
             Sign in here →
           </button>
         </div>
@@ -532,8 +459,8 @@ export default function AuthScreen() {
                   <span>Age division</span>
                   <select
                     value={ageDivision}
-                    onChange={(e) => setAgeDivision(e.target.value)}
-                    className="input-field"
+                    onChange={(e) => { setAgeDivision(e.target.value); if (errorField === 'ageDivision') { setError(''); setErrorField(null) } }}
+                    className={`input-field ${errorField === 'ageDivision' ? 'input-field--error' : ''}`}
                     autoFocus
                   >
                     <option value="">Pick one</option>
@@ -541,27 +468,29 @@ export default function AuthScreen() {
                       <option key={a} value={a}>{a}</option>
                     ))}
                   </select>
+                  {errorField === 'ageDivision' && <div className="field-error">{error}</div>}
                 </label>
 
                 <label className="input-label" style={{ marginTop: 12 }}>
                   <span>Tier</span>
                   <select
                     value={tier}
-                    onChange={(e) => setTier(e.target.value)}
-                    className="input-field"
+                    onChange={(e) => { setTier(e.target.value); if (errorField === 'tier') { setError(''); setErrorField(null) } }}
+                    className={`input-field ${errorField === 'tier' ? 'input-field--error' : ''}`}
                   >
                     <option value="">Pick one</option>
                     {TIERS.map((t) => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>
+                  {errorField === 'tier' && <div className="field-error">{error}</div>}
                 </label>
 
                 <div className="path-hint" style={{ marginTop: 10 }}>
                   Not sure? Ask your coach or pick the closest match.
                 </div>
 
-                {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
+                {error && !errorField && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
 
                 <button
                   className="btn-primary"
@@ -606,13 +535,13 @@ export default function AuthScreen() {
                   <div className="for-options">
                     <button
                       className={`for-btn ${signingUpFor === 'self' ? 'for-btn--active' : ''}`}
-                      onClick={() => { setSigningUpFor('self'); setError('') }}
+                      onClick={() => { setSigningUpFor('self'); setError(''); setErrorField(null) }}
                     >
                       Myself
                     </button>
                     <button
                       className={`for-btn ${signingUpFor === 'player' ? 'for-btn--active' : ''}`}
-                      onClick={() => { setSigningUpFor('player'); setError('') }}
+                      onClick={() => { setSigningUpFor('player'); setError(''); setErrorField(null) }}
                     >
                       My kid
                     </button>
@@ -681,13 +610,14 @@ export default function AuthScreen() {
                               <input
                                 type="text"
                                 value={teamName}
-                                onChange={(e) => { setTeamName(e.target.value.toUpperCase()); setPath('join') }}
+                                onChange={(e) => { setTeamName(e.target.value.toUpperCase()); setPath('join'); if (errorField === 'teamName') { setError(''); setErrorField(null) } }}
                                 placeholder="e.g. NORTHSTARS"
                                 autoCapitalize="characters"
                                 autoCorrect="off"
                                 spellCheck="false"
-                                className="input-field input-field--code"
+                                className={`input-field input-field--code ${errorField === 'teamName' ? 'input-field--error' : ''}`}
                               />
+                              {errorField === 'teamName' && <div className="field-error">{error}</div>}
                             </label>
                             <div className="path-hint">Same name as your teammates = same leaderboard.</div>
                           </>
@@ -711,17 +641,27 @@ export default function AuthScreen() {
                         </div>
                         <label className="input-label" style={{ marginTop: 12 }}>
                           <span>Age division</span>
-                          <select value={ageDivision} onChange={(e) => setAgeDivision(e.target.value)} className="input-field">
+                          <select
+                            value={ageDivision}
+                            onChange={(e) => { setAgeDivision(e.target.value); if (errorField === 'ageDivision') { setError(''); setErrorField(null) } }}
+                            className={`input-field ${errorField === 'ageDivision' ? 'input-field--error' : ''}`}
+                          >
                             <option value="">Pick one</option>
                             {AGE_DIVISIONS.map((a) => <option key={a} value={a}>{a}</option>)}
                           </select>
+                          {errorField === 'ageDivision' && <div className="field-error">{error}</div>}
                         </label>
                         <label className="input-label" style={{ marginTop: 10 }}>
                           <span>Tier</span>
-                          <select value={tier} onChange={(e) => setTier(e.target.value)} className="input-field">
+                          <select
+                            value={tier}
+                            onChange={(e) => { setTier(e.target.value); if (errorField === 'tier') { setError(''); setErrorField(null) } }}
+                            className={`input-field ${errorField === 'tier' ? 'input-field--error' : ''}`}
+                          >
                             <option value="">Pick one</option>
                             {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
                           </select>
+                          {errorField === 'tier' && <div className="field-error">{error}</div>}
                         </label>
                         <div className="path-hint" style={{ marginTop: 6 }}>Not sure? Ask your coach.</div>
                       </>
@@ -729,13 +669,13 @@ export default function AuthScreen() {
                   </div>
                 </div>
 
-                {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
+                {error && !errorField && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
 
                 <button className="btn-primary" onClick={continueFromStep1} disabled={!path} style={{ marginTop: 16 }}>
                   Continue →
                 </button>
 
-                <button className="btn-text" onClick={() => { setMode('signin'); setError('') }}>
+                <button className="btn-text" onClick={() => { setMode('signin'); setError(''); setErrorField(null) }}>
                   Already playing? Sign in
                 </button>
                 <button className="btn-text" onClick={() => nav('/')}>
@@ -761,11 +701,12 @@ export default function AuthScreen() {
               <input
                 type="text"
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                onChange={(e) => { setFirstName(e.target.value); if (errorField === 'firstName') { setError(''); setErrorField(null) } }}
                 placeholder={signingUpFor === 'player' ? "Their real first name" : "Your real first name"}
-                className="input-field"
+                className={`input-field ${errorField === 'firstName' ? 'input-field--error' : ''}`}
                 autoFocus
               />
+              {errorField === 'firstName' && <div className="field-error">{error}</div>}
             </label>
 
             <label className="input-label" style={{ marginTop: 12 }}>
@@ -780,20 +721,21 @@ export default function AuthScreen() {
             </label>
 
             <div className="label-sm">{signingUpFor === 'player' ? "Their position" : 'Position'}</div>
-            <div className="chip-row chip-row--3">
+            <div className={`chip-row chip-row--3 ${errorField === 'position' ? 'chip-row--error' : ''}`}>
               {['F', 'D', 'G'].map((p) => (
                 <button
                   key={p}
                   className={`chip chip--big ${position === p ? 'chip--active' : ''}`}
-                  onClick={() => setPosition(p)}
+                  onClick={() => { setPosition(p); if (errorField === 'position') { setError(''); setErrorField(null) } }}
                 >
                   <div className="chip-letter">{p}</div>
                   <div className="chip-sub">{p === 'F' ? 'Forward' : p === 'D' ? 'Defense' : 'Goalie'}</div>
                 </button>
               ))}
             </div>
+            {errorField === 'position' && <div className="field-error" style={{ marginTop: -10, marginBottom: 12 }}>{error}</div>}
 
-            {error && <div className="error">{error}</div>}
+            {error && !errorField && <div className="error">{error}</div>}
 
             <button
               className="google-btn"
@@ -1168,6 +1110,54 @@ const styles = `
   padding: 10px 12px;
   font-size: 13px;
   margin-bottom: 12px;
+}
+.field-error {
+  color: var(--danger);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.auth-banner {
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.auth-banner--green {
+  background: rgba(61, 214, 140, 0.1);
+  border: 1px solid rgba(61, 214, 140, 0.3);
+}
+.auth-banner--blue {
+  background: rgba(41, 121, 255, 0.1);
+  border: 1px solid rgba(41, 121, 255, 0.3);
+}
+.auth-banner-label {
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-bottom: 6px;
+}
+.auth-banner-btn {
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+}
+.auth-banner-btn--green {
+  background: rgba(61, 214, 140, 0.2);
+  color: #4ade80;
+  border: 1.5px solid rgba(61, 214, 140, 0.4);
+}
+.auth-banner-btn--blue {
+  background: var(--accent);
+  color: white;
+  border: none;
+}
+.input-field--error {
+  border-color: var(--danger) !important;
+}
+.chip-row--error .chip {
+  border-color: var(--danger);
 }
 
 .celebration { text-align: center; margin: 4px 0 18px; }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useNotifications } from '../hooks/useNotifications'
 import { signOut, deleteAccount, getPlayersForAccount, changePlayerTeam } from '../lib/auth'
 import { setDailyGoal } from '../lib/progress'
 import { supabase } from '../lib/supabase'
@@ -11,6 +12,7 @@ const GOAL_OPTIONS = [25, 50, 100, 200]
 
 export default function MoreScreen() {
   const { player, refresh } = useAuth()
+  const { toast } = useNotifications()
   const nav = useNavigate()
   const [shared, setShared] = useState(false)
   const [goal, setGoal] = useState(player?.daily_goal || 50)
@@ -45,6 +47,7 @@ export default function MoreScreen() {
     localStorage.setItem('activePlayerId', p.id)
     await refresh()
     setSwitching(null)
+    toast(`✓ Switched to ${p.display_name}`, 'success')
   }
 
   const shareTeam = async () => {
@@ -58,11 +61,13 @@ export default function MoreScreen() {
           text,
         })
         setShared(true)
+        toast('✓ Sent invite!', 'success')
         setTimeout(() => setShared(false), 2000)
       } else {
         // Fallback to copy on web
         await navigator.clipboard.writeText(text)
         setShared(true)
+        toast('✓ Copied to clipboard!', 'success')
         setTimeout(() => setShared(false), 2000)
       }
     } catch (e) {
@@ -71,6 +76,7 @@ export default function MoreScreen() {
       try {
         await navigator.clipboard.writeText(teamName)
         setShared(true)
+        toast('✓ Team name copied!', 'success')
         setTimeout(() => setShared(false), 2000)
       } catch (err) {
         console.error('Copy failed:', err)
@@ -84,9 +90,10 @@ export default function MoreScreen() {
       await changePlayerTeam(player.id, null)
       await refresh()
       setShowChangeTeam(false)
+      toast('✓ Left team. You\'re in solo mode.', 'success')
     } catch (e) {
       console.error('Failed to leave team:', e)
-      window.alert('Failed to leave team. Try again.')
+      toast('Could not leave team. Try again.', 'error')
     } finally {
       setChangingTeam(false)
     }
@@ -98,9 +105,11 @@ export default function MoreScreen() {
     try {
       await setDailyGoal(player.id, newGoal)
       await refresh()
+      toast(`✓ Daily goal set to ${newGoal} shots`, 'success')
     } catch (e) {
       // revert
       setGoal(player.daily_goal || 50)
+      toast('Could not update goal. Try again.', 'error')
     } finally {
       setSavingGoal(false)
     }
@@ -119,11 +128,13 @@ export default function MoreScreen() {
         .eq('id', player.id)
       if (error) throw error
       await refresh()
+      toast('✓ Goals updated', 'success')
     } catch (e) {
       console.error('Failed to save goals:', e)
       setLifetimeShotGoal(player.lifetime_shot_goal || 5000)
       setStickhandlingHourGoal(player.stickhandling_hour_goal || 5)
       setTargetDate(player?.lifetime_shot_goal_date || getDefaultTargetDate())
+      toast('Could not save goals. Try again.', 'error')
     } finally {
       setSavingLifetimeGoal(false)
     }
@@ -154,6 +165,16 @@ export default function MoreScreen() {
       <header className="more-header">
         <h1 className="more-title">Settings</h1>
       </header>
+
+      {/* Account Section */}
+      <button className="settings-section-btn" onClick={() => nav('/account')}>
+        <div className="settings-section-content">
+          <div className="label-sm">Account</div>
+          <div className="settings-section-title">Your profile</div>
+          <div className="settings-section-sub">Name, username, position</div>
+        </div>
+        <div className="settings-section-arrow">→</div>
+      </button>
 
       {/* Invite teammates */}
       {player.team?.name && (
@@ -188,7 +209,7 @@ export default function MoreScreen() {
         </div>
       )}
 
-      {/* Drills shortcut - NEW */}
+      {/* Drills shortcut */}
       <button className="drills-link" onClick={() => nav('/videos')}>
         <div className="drills-link-icon">🎬</div>
         <div className="drills-link-text">
@@ -198,6 +219,64 @@ export default function MoreScreen() {
         <div className="drills-link-arrow">→</div>
       </button>
 
+      {/* Goals Section */}
+      <div className="goals-section">
+        <div className="label-sm">Daily Goal</div>
+        <div className="goal-options">
+          {GOAL_OPTIONS.map((g) => (
+            <button
+              key={g}
+              className={`goal-chip ${g === goal ? 'goal-chip--active' : ''}`}
+              onClick={() => updateGoal(g)}
+              disabled={savingGoal}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Lifetime Goals Section */}
+      <div className="lifetime-goals-section">
+        <div className="label-sm">Lifetime Goals</div>
+        <div className="goal-input-row">
+          <label>
+            <div className="goal-input-label">Shots Goal</div>
+            <input
+              type="number"
+              className="goal-input"
+              value={lifetimeShotGoal}
+              onChange={(e) => setLifetimeShotGoal(Math.max(1, parseInt(e.target.value) || 0))}
+              min="1"
+              max="50000"
+            />
+          </label>
+          <label>
+            <div className="goal-input-label">Stickhandling (hrs)</div>
+            <input
+              type="number"
+              className="goal-input"
+              value={stickhandlingHourGoal}
+              onChange={(e) => setStickhandlingHourGoal(Math.max(0.5, parseFloat(e.target.value) || 0))}
+              min="0.5"
+              max="500"
+              step="0.5"
+            />
+          </label>
+        </div>
+        <label>
+          <div className="goal-input-label">Target Date</div>
+          <input
+            type="date"
+            className="goal-input goal-input--date"
+            value={targetDate}
+            onChange={(e) => setTargetDate(e.target.value)}
+          />
+        </label>
+        <button className="goal-save-btn" onClick={updateLifetimeGoals} disabled={savingLifetimeGoal}>
+          {savingLifetimeGoal ? 'Saving…' : 'Update Goals'}
+        </button>
+      </div>
 
       {accountPlayers.length > 0 && (
         <div className="section">
@@ -304,6 +383,44 @@ const styles = `
   font-family: var(--font-display);
   font-size: 24px; font-weight: 700;
   letter-spacing: 0.5px;
+}
+
+/* Account section button */
+.settings-section-btn {
+  width: 100%;
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 16px;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  transition: all 0.15s;
+}
+.settings-section-btn:active {
+  background: var(--surface-raised);
+  border-color: var(--accent);
+}
+.settings-section-content { flex: 1; }
+.settings-section-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  margin-top: 2px;
+  letter-spacing: 0.2px;
+}
+.settings-section-sub {
+  font-size: 11px;
+  color: var(--text-mute);
+  margin-top: 2px;
+}
+.settings-section-arrow {
+  font-size: 16px;
+  color: var(--text-mute);
+  flex-shrink: 0;
 }
 
 .invite-card {
@@ -463,6 +580,16 @@ const styles = `
 }
 
 /* Daily goal selection */
+.goals-section {
+  margin-bottom: 20px;
+}
+.lifetime-goals-section {
+  background: var(--surface);
+  border: 0.5px solid var(--border-dim);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 16px;
+}
 .goal-current-row {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 12px;
@@ -492,6 +619,53 @@ const styles = `
   border-color: var(--accent);
 }
 .goal-chip:disabled { opacity: 0.5; }
+.goal-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.goal-input-label {
+  font-size: 10px;
+  color: var(--text-mute);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: block;
+}
+.goal-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 0.5px solid var(--border-dim);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  margin-bottom: 12px;
+}
+.goal-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.goal-input--date {
+  grid-column: 1 / -1;
+}
+.goal-save-btn {
+  width: 100%;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.goal-save-btn:active:not(:disabled) { transform: scale(0.98); }
+.goal-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .kv-row {
   display: flex; justify-content: space-between; align-items: center;
