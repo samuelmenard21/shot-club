@@ -6,7 +6,11 @@ import SEOFooter from '../components/SEOFooter'
 export default function PrivacyScreen() {
   const nav = useNavigate()
   useEffect(() => {
-    setSEO({ title: 'Privacy Policy', url: `${CANONICAL_URL}/privacy` })
+    setSEO({
+      title: 'Privacy Policy — Hockey Shot Challenge',
+      description: 'Our privacy policy explains how Hockey Shot Challenge collects, uses, and protects player data. We respect your privacy and never sell data to third parties.',
+      url: `${CANONICAL_URL}/privacy`,
+    })
   }, [])
 
   return (

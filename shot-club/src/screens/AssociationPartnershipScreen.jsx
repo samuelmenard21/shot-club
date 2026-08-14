@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
+import SEOFooter from '../components/SEOFooter'
 
 export default function AssociationPartnershipScreen() {
   const nav = useNavigate()
@@ -246,6 +247,8 @@ export default function AssociationPartnershipScreen() {
           <p style={{ fontSize: '12px', color: 'var(--text-mute)', marginTop: '8px' }}>Hockey Shot Challenge — Free 10K Challenge Platform for Associations</p>
         </div>
       </footer>
+
+      <SEOFooter />
 
       <style>{styles}</style>
     </div>

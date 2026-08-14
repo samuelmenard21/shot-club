@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import { searchClubs } from '../lib/clubs'
 import { useAuth } from '../hooks/useAuth'
+import SEOFooter from '../components/SEOFooter'
 
 export default function ProvinceWideChallengeScreen() {
   const nav = useNavigate()
@@ -157,6 +158,8 @@ export default function ProvinceWideChallengeScreen() {
           </div>
         </div>
       </section>
+
+      <SEOFooter />
     </div>
   )
 }

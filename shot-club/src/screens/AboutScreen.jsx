@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
 import { useAuth } from '../hooks/useAuth'
+import SEOFooter from '../components/SEOFooter'
 
 export default function AboutScreen() {
   const nav = useNavigate()
@@ -184,6 +185,8 @@ export default function AboutScreen() {
           </div>
         </div>
       </article>
+
+      <SEOFooter />
     </div>
   )
 }
