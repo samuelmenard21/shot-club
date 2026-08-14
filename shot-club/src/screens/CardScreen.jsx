@@ -472,7 +472,7 @@ const styles = `
 }
 .modal-close-btn:active {
   transform: scale(0.98);
-}`
+}
 
 .player-card {
   position: relative;

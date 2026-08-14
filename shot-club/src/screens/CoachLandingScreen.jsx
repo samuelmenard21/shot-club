@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import { AppMockupSection, RoutineSection } from '../components/LandingSharedSections'
+import SEOFooter from '../components/SEOFooter'
 
 export default function CoachLandingScreen() {
   const nav = useNavigate()
@@ -187,6 +188,8 @@ export default function CoachLandingScreen() {
         }
         .cl-assoc-link:hover { color: white; }
       `}</style>
+
+      <SEOFooter />
     </div>
   )
 }

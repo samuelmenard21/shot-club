@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchClubs, getClubStats } from '../lib/clubs'
 import { setSEO } from '../lib/seo'
+import SEOFooter from '../components/SEOFooter'
 
 export default function FindClubScreen() {
   const nav = useNavigate()
@@ -217,6 +218,8 @@ export default function FindClubScreen() {
           </div>
         </div>
       </section>
+
+      <SEOFooter />
     </div>
   )
 }

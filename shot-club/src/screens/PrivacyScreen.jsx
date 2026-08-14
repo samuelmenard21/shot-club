@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { setSEO, CANONICAL_URL } from '../lib/seo'
 import { useEffect } from 'react'
+import SEOFooter from '../components/SEOFooter'
 
 export default function PrivacyScreen() {
   const nav = useNavigate()
@@ -56,6 +57,8 @@ export default function PrivacyScreen() {
         <h2>Contact</h2>
         <p>Questions or requests? Email us at <a href="mailto:hello@hockeyshotchallenge.com">hello@hockeyshotchallenge.com</a>.</p>
       </div>
+
+      <SEOFooter />
 
       <style>{styles}</style>
     </div>

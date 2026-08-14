@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import { AppMockupSection, RoutineSection } from '../components/LandingSharedSections'
 import { searchClubs } from '../lib/clubs'
+import SEOFooter from '../components/SEOFooter'
 
 export default function PlayerLandingScreen() {
   const nav = useNavigate()
@@ -245,6 +246,8 @@ export default function PlayerLandingScreen() {
         }
         .pl-inline-link:hover { color: white; }
       `}</style>
+
+      <SEOFooter />
 
       <style>{styles}</style>
     </div>

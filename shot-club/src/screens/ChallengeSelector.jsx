@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO } from '../lib/seo'
 import { CHALLENGE_LIST, weeklyPace } from '../lib/challengeSpecs'
+import SEOFooter from '../components/SEOFooter'
 
 // #rrggbb -> rgba(), so one accent per challenge drives every tint on the card.
 function rgba(hex, alpha) {
@@ -192,6 +193,8 @@ export default function ChallengeSelector() {
           </div>
         </div>
       </section>
+
+      <SEOFooter />
     </div>
   )
 }
