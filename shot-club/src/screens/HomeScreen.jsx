@@ -263,6 +263,19 @@ export default function HomeScreen() {
         )}
       </header>
 
+      {/* Profile completion reminder */}
+      {player.display_name === 'Player' && (
+        <div className="profile-reminder">
+          <div className="pr-content">
+            <div className="pr-label">Complete your profile</div>
+            <div className="pr-sub">Add your name so your coach knows who you are.</div>
+          </div>
+          <button onClick={() => nav('/account')} className="pr-btn">
+            Edit →
+          </button>
+        </div>
+      )}
+
       {/* MOBILE: Merged challenge card */}
       {(() => {
         if (!playerChallenge || !playerChallengeProgress) {
@@ -605,6 +618,50 @@ const styles = `
   background: var(--surface);
   padding: 6px 11px; border-radius: 999px;
   font-size: 13px; color: var(--warn-soft); font-weight: 600;
+}
+
+.profile-reminder {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 149, 0, 0.1) 100%);
+  border: 0.5px solid rgba(255, 149, 0, 0.3);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.pr-content {
+  flex: 1;
+}
+.pr-label {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.2px;
+  margin-bottom: 2px;
+}
+.pr-sub {
+  font-size: 12px;
+  color: var(--text-soft);
+  line-height: 1.3;
+}
+.pr-btn {
+  background: #2979ff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.pr-btn:active {
+  transform: scale(0.95);
 }
 
 .sam {
