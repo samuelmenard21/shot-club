@@ -177,7 +177,7 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
             ? <div className="tg-team">{teamLine}</div>
             : <ConnectClubPrompt playerId={player.id} onConnected={onClubConnected} />}
           <div className="tg-progress-note">
-            {Math.max(0, total - currentShots).toLocaleString()} shots left to finish the {spec.label} Challenge.
+            {Math.max(0, total - currentShots).toLocaleString()} shots left to finish.
           </div>
           <div className="tg-seg">
             {CHALLENGE_LIST.map((s) => (
@@ -192,10 +192,6 @@ export default function TrackerGrid({ player, playerChallenge, playerChallengePr
               </button>
             ))}
           </div>
-        </div>
-        <div className="tg-badge">
-          <div className="tg-badge-name">{spec.label}</div>
-          <div className="tg-badge-level">Level {CHALLENGE_LIST.findIndex((s) => s.id === spec.id) + 1} of 4</div>
         </div>
       </div>
 

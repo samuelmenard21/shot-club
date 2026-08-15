@@ -1,83 +1,23 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { signInWithGooglePlayer, createPlayerWithGoogleAuth } from '../lib/auth'
+import { createPlayerWithGoogleAuth, signInWithGooglePlayer } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
-import {
-  getClubBySlug,
-  findOrCreateTeamForPlayer,
-  searchClubs,
-  AGE_DIVISIONS,
-  TIERS,
-} from '../lib/clubs'
 import { setSEO } from '../lib/seo'
 import { applyPendingChallenge, stashPendingChallenge } from '../lib/challenges'
 import { getSpec, CHALLENGE_ORDER, CHALLENGE_SPECS } from '../lib/challengeSpecs'
 
-const APP_URL = typeof window !== 'undefined' ? window.location.origin : ''
-
 export default function AuthScreen() {
   const [mode, setMode] = useState('signup')
-  const [step, setStep] = useState(1)
-  const [signingUpFor, setSigningUpFor] = useState(null) // 'self' | 'player'
-  // No default: club/age/tier matters for leaderboard grouping, so the club
-  // search is the page's default posture — 'solo' now only sets when the
-  // player consciously clicks "I don't have a club yet". A dashboard prompt
-  // (TrackerGrid's ConnectClubPrompt) gives a second, lower-friction chance
-  // to fill this in later for anyone who skips it here.
-  const [path, setPath] = useState(null) // 'club' | 'join' | 'solo'
-  const [teamName, setTeamName] = useState('')
-  const [clubName, setClubName] = useState('')
-  const [preClub, setPreClub] = useState(null) // when arriving from /join/<slug>
-
-  // NEW: pre-keyed team picker state
-  const [ageDivision, setAgeDivision] = useState('')
-  const [tier, setTier] = useState('')
-
-  const [displayName, setDisplayName] = useState('')
-  const [position, setPosition] = useState(null)
-  const [ageBracket, setAgeBracket] = useState(null)
-  const [generatedUsername, setGeneratedUsername] = useState('')
-  const [generatedTeamName, setGeneratedTeamName] = useState('')
-  const [generatedClubName, setGeneratedClubName] = useState('')
-  const [copiedWhat, setCopiedWhat] = useState('')
-  const [shared, setShared] = useState(false)
-  // Join-path club search
-  const [joinClub, setJoinClub] = useState(null)
-  const [joinClubQuery, setJoinClubQuery] = useState('')
-  const [joinClubResults, setJoinClubResults] = useState([])
-  const [joinSearching, setJoinSearching] = useState(false)
-  const [showFreeText, setShowFreeText] = useState(false)
-  const joinClubTimer = useRef(null)
-
-  const [firstName, setFirstName] = useState('')
-  const [lifetimeShotGoal, setLifetimeShotGoal] = useState(5000)
-  const [stickhandlingHourGoal, setStickhandlingHourGoal] = useState(5)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [errorField, setErrorField] = useState(null)
   const nav = useNavigate()
   const [searchParams] = useSearchParams()
   const { player, loading: authLoading, refresh } = useAuth()
 
-  // OAuth return: redirect if already has a profile, else show setup
   const isOAuthReturn = searchParams.get('oauth') === '1'
-
-  // Surfaces which challenge (and what's next after it) a player arrived
-  // to sign up for — previously this was stashed silently and only visible
-  // once they reached the dashboard, so signup felt disconnected from the
-  // challenge page they just came from.
   const pickedChallengeId = searchParams.get('challenge')
   const pickedSpec = pickedChallengeId ? getSpec(pickedChallengeId) : null
-  const pickedIdx = pickedChallengeId ? CHALLENGE_ORDER.indexOf(pickedChallengeId) : -1
-  const nextSpec = pickedIdx >= 0 && pickedIdx < CHALLENGE_ORDER.length - 1
-    ? CHALLENGE_SPECS[CHALLENGE_ORDER[pickedIdx + 1]]
-    : null
 
-  // A ?challenge=<id> arrives from the printable's QR code and from the
-  // homepage picker. Google sends us back to /start?oauth=1, which drops the
-  // original query string — so stash it the moment we see it and consume it
-  // once the profile exists. This is what makes scanning a sheet set up THAT
-  // challenge instead of dumping the kid on a generic signup.
   useEffect(() => {
     stashPendingChallenge(searchParams.get('challenge'))
   }, [searchParams])
@@ -85,46 +25,21 @@ export default function AuthScreen() {
   useEffect(() => {
     if (isOAuthReturn && !authLoading) {
       if (player) {
-        // Player already exists, go to home
         applyPendingChallenge(player.id).finally(() => nav('/home', { replace: true }))
       } else {
-        // Player doesn't exist yet, show profile form on any path
-        setMode('create')
+        // Do nothing - let OAuth flow create minimal profile
       }
     }
   }, [isOAuthReturn, authLoading, player])
 
   useEffect(() => {
     setSEO({
-      title: mode === 'signin' ? 'Sign in' : 'Create your card',
+      title: mode === 'signin' ? 'Sign in' : 'Start tracking',
       description: 'Sign up for Hockey Shot Challenge. Free. 30 seconds. No email needed.',
       noindex: true,
     })
   }, [mode])
 
-  // Debounced search for join-path club picker
-  useEffect(() => {
-    if (joinClubTimer.current) clearTimeout(joinClubTimer.current)
-    if (!joinClubQuery.trim() || joinClubQuery.trim().length < 2) {
-      setJoinClubResults([])
-      setJoinSearching(false)
-      return
-    }
-    setJoinSearching(true)
-    joinClubTimer.current = setTimeout(async () => {
-      try {
-        const results = await searchClubs(joinClubQuery, 6)
-        setJoinClubResults(results || [])
-      } catch (e) {
-        setJoinClubResults([])
-      } finally {
-        setJoinSearching(false)
-      }
-    }, 200)
-    return () => { if (joinClubTimer.current) clearTimeout(joinClubTimer.current) }
-  }, [joinClubQuery])
-
-  // Check for mode query param (signin vs signup)
   useEffect(() => {
     const modeParam = searchParams.get('mode')
     if (modeParam === 'signin') {
@@ -132,164 +47,16 @@ export default function AuthScreen() {
     }
   }, [searchParams])
 
-  // Check for pre-selected club via URL (from /join/:slug redirect)
-  useEffect(() => {
-    const clubSlug = searchParams.get('club')
-    if (!clubSlug) return
-    ;(async () => {
-      const c = await getClubBySlug(clubSlug)
-      if (c) {
-        setPreClub(c)
-        setPath('club')
-        setClubName(c.name)
-      }
-    })()
-  }, [searchParams])
-
-  // Derive age bracket from division so we don't need to ask separately
-  function ageBracketFromDivision(div) {
-    const n = parseInt((div || '').replace('U', ''), 10)
-    if (!n) return null
-    if (n <= 10) return '6-10'
-    if (n <= 14) return '11-14'
-    if (n <= 18) return '15-18'
-    return '18+'
-  }
-
-  const continueFromStep1 = () => {
-    if (!signingUpFor) setSigningUpFor('self')
-
-    // Pre-keyed flow: validate the two-dropdown picker
-    if (path === 'club' && preClub) {
-      if (!ageDivision) {
-        setError('Pick your age division.')
-        setErrorField('ageDivision')
-        return
-      }
-      if (!tier) {
-        setError('Pick your tier.')
-        setErrorField('tier')
-        return
-      }
-      setError('')
-      setErrorField(null)
-      setStep(2)
-      return
-    }
-
-    // Join/solo path with a club selected — need age + tier
-    if ((path === 'join' || path === 'solo') && joinClub) {
-      if (!ageDivision) { setError('Pick your age division.'); setErrorField('ageDivision'); return }
-      if (!tier) { setError('Pick your tier.'); setErrorField('tier'); return }
-      setError('')
-      setErrorField(null)
-      setStep(2)
-      return
-    }
-
-    // Join path free-text fallback
-    if (path === 'join' && !joinClub && !teamName.trim()) {
-      setError('Search for your club or enter a team name.')
-      setErrorField('teamName')
-      return
-    }
-
-    setError('')
-    setErrorField(null)
-    setStep(2)
-  }
-
-  const saveAndGoogleAuth = async () => {
-    if (!firstName.trim()) { setError('Add your first name so your coach knows who you are.'); setErrorField('firstName'); return }
-    if (!position) { setError('Pick your position.'); setErrorField('position'); return }
-    // Leaderboard name is optional at signup — default it to the first name so
-    // kids get straight in. They can set a nickname later once they're hooked.
-    const leaderboardName = displayName.trim() || firstName.trim()
-    const activeClub = (path === 'club' && preClub) ? preClub : joinClub
-    if (activeClub && (!ageDivision || !tier)) { setError('Pick your age division and tier.'); setErrorField('ageDivision'); return }
-    setError('')
-    setErrorField(null)
-
-    // Save everything to localStorage — picked up after OAuth redirect
-    const pending = {
-      path: path || 'solo',
-      signingUpFor: signingUpFor || 'self',
-      clubId: activeClub?.id || null,
-      clubName: activeClub?.name || null,
-      ageDivision: ageDivision || null,
-      tier: tier || null,
-      firstName: firstName.trim(),
-      displayName: leaderboardName,
-      position,
-      ageBracket: ageBracketFromDivision(ageDivision),
-      lifetimeShotGoal: Math.max(100, Math.min(50000, lifetimeShotGoal || 5000)),
-      stickhandlingHourGoal: Math.max(1, Math.min(100, stickhandlingHourGoal || 5)),
-    }
-    localStorage.setItem('pendingProfile', JSON.stringify(pending))
-    await signInWithGooglePlayer()
-  }
-
-  const copyText = async (text, which) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      setCopiedWhat(which)
-      setTimeout(() => setCopiedWhat(''), 2000)
-    } catch (e) {}
-  }
-
-  const shareTeam = async () => {
-    const text = `Join my team on Hockey Shot Challenge! Team name: ${generatedTeamName}\n${APP_URL}`
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Join my team on Hockey Shot Challenge',
-          text,
-        })
-        setShared(true)
-        setTimeout(() => setShared(false), 2000)
-      } else {
-        await navigator.clipboard.writeText(text)
-        setCopiedWhat('share')
-        setTimeout(() => setCopiedWhat(''), 2000)
-      }
-    } catch (e) {}
-  }
-
-  // Google OAuth return — auto-create profile from saved localStorage data
+  // Google OAuth return - auto-create minimal profile
   if (isOAuthReturn && !authLoading && !player) {
-    const pending = (() => {
-      try { return JSON.parse(localStorage.getItem('pendingProfile') || '{}') } catch { return {} }
-    })()
-
     const autoCreate = async () => {
-      if (!pending.firstName || !pending.displayName || !pending.position) {
-        setError('Something went wrong. Please start over.')
-        return
-      }
       setLoading(true)
-      setError('')
       try {
-        let teamIdToUse = null
-        if (pending.clubId && pending.ageDivision && pending.tier) {
-          const teamResult = await findOrCreateTeamForPlayer({
-            clubId: pending.clubId,
-            ageDivision: pending.ageDivision,
-            tier: pending.tier,
-          })
-          teamIdToUse = teamResult.teamId
-        }
         const { playerId } = await createPlayerWithGoogleAuth({
-          firstName: pending.firstName,
-          displayName: pending.displayName,
-          position: pending.position,
-          ageBracket: pending.ageBracket,
-          teamId: teamIdToUse,
-          clubId: pending.clubId,
-          clubName: pending.clubName,
-          lifetimeShotGoal: pending.lifetimeShotGoal,
-          stickhandlingHourGoal: pending.stickhandlingHourGoal,
+          firstName: 'Player',
+          displayName: 'Player',
+          position: 'F',
         })
-        // Sheet → scan → sign in → the challenge from the sheet is already set.
         await applyPendingChallenge(playerId)
         localStorage.removeItem('pendingProfile')
         await refresh()
@@ -300,80 +67,16 @@ export default function AuthScreen() {
       }
     }
 
-    // If we have pending profile data, auto-create and redirect
-    if (pending.firstName && pending.displayName && pending.position && !loading && !error) {
+    if (!loading && !error) {
       autoCreate()
-      return (
-        <div className="auth-wrap">
-          <div className="auth-card" style={{ textAlign: 'center', padding: 40 }}>
-            <div style={{ fontFamily: 'var(--font-display)', color: 'var(--text-mute)', letterSpacing: 2, fontSize: 12 }}>
-              SETTING UP YOUR CARD…
-            </div>
-          </div>
-          <style>{styles}</style>
-        </div>
-      )
-    }
-
-    // Fallback: no pending data (e.g. they hit Google sign-in without going through the form)
-    // Show a minimal setup form
-    const finishGoogleSetup = async () => {
-      if (!firstName.trim()) { setError('Add your first name.'); return }
-      if (!displayName.trim() || !position) { setError('Fill in your name and position.'); return }
-      setLoading(true)
-      setError('')
-      try {
-        const { playerId } = await createPlayerWithGoogleAuth({
-          firstName: firstName.trim(),
-          displayName: displayName.trim(),
-          position,
-          ageBracket: ageBracketFromDivision(ageDivision) || null,
-          clubId: joinClub?.id || null,
-          clubName: joinClub?.name || null,
-        })
-        // A challenge picked on the homepage/challenge page before this
-        // shortcut sign-in was stashed in localStorage — apply it now, same
-        // as the full signup flow does, so this path doesn't drop it and
-        // dump the player back on the challenge picker after signing in.
-        await applyPendingChallenge(playerId)
-        await refresh()
-        nav('/home', { replace: true })
-      } catch (e) {
-        setError(e.message || 'Something went wrong.')
-      } finally {
-        setLoading(false)
-      }
     }
 
     return (
-      <div className="auth-wrap fade-in">
-        <div className="auth-card">
-          <div className="brand"><BrandLogo /><div className="brand-name">Hockey Shot<br/>Challenge</div></div>
-          <h2 className="auth-title">Almost there.</h2>
-          <p className="auth-sub">One quick setup and you're in.</p>
-          <label className="input-label">
-            <span>First name (shown to your coach)</span>
-            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Your real first name" className="input-field" autoFocus />
-          </label>
-          <label className="input-label" style={{ marginTop: 12 }}>
-            <span>Player name (on leaderboards)</span>
-            <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Same as your name, or a nickname" className="input-field" />
-          </label>
-          <div className="label-sm" style={{ marginTop: 14 }}>Position</div>
-          <div className="chip-row chip-row--3">
-            {['F', 'D', 'G'].map((p) => (
-              <button key={p} className={`chip chip--big ${position === p ? 'chip--active' : ''}`} onClick={() => setPosition(p)}>
-                <div className="chip-letter">{p}</div>
-                <div className="chip-sub">{p === 'F' ? 'Forward' : p === 'D' ? 'Defense' : 'Goalie'}</div>
-              </button>
-            ))}
+      <div className="auth-wrap">
+        <div className="auth-card" style={{ textAlign: 'center', padding: 40 }}>
+          <div style={{ fontFamily: 'var(--font-display)', color: 'var(--text-mute)', letterSpacing: 2, fontSize: 12 }}>
+            SETTING UP YOUR PROFILE…
           </div>
-          {error && <div className="error">{error}</div>}
-          <button className="btn-primary" onClick={finishGoogleSetup} disabled={!firstName || !displayName || !position || loading}>
-            {loading ? 'Setting up…' : 'Make my card →'}
-          </button>
         </div>
         <style>{styles}</style>
       </div>
@@ -385,14 +88,6 @@ export default function AuthScreen() {
     return (
       <div className="auth-wrap fade-in">
         <div style={{ maxWidth: 420, margin: '0 auto', width: '100%' }}>
-          {/* Prominent "New here?" banner */}
-          <div className="auth-banner auth-banner--green">
-            <div className="auth-banner-label">New to Hockey Shot Challenge?</div>
-            <button className="auth-banner-btn auth-banner-btn--green" onClick={() => { setMode('signup'); setError(''); setErrorField(null) }}>
-              Create a card →
-            </button>
-          </div>
-
           <div className="auth-card">
             <div className="brand">
               <BrandLogo />
@@ -406,7 +101,16 @@ export default function AuthScreen() {
               Continue with Google
             </button>
 
-            <button className="btn-text" onClick={() => nav('/')} style={{ marginBottom: 8 }}>
+            <div className="auth-card-divider" style={{ margin: '24px 0' }}></div>
+
+            <div style={{ textAlign: 'center', marginBottom: 8 }}>
+              <div style={{ fontSize: 13, color: '#8899b4', marginBottom: 12 }}>New to Hockey Shot Challenge?</div>
+              <button className="auth-banner-btn auth-banner-btn--green" onClick={() => setMode('signup')} style={{ width: '100%' }}>
+                Start a challenge →
+              </button>
+            </div>
+
+            <button className="btn-text" onClick={() => nav('/')}>
               ← Back to home
             </button>
           </div>
@@ -420,408 +124,35 @@ export default function AuthScreen() {
   return (
     <div className="auth-wrap fade-in">
       <div style={{ maxWidth: 420, margin: '0 auto', width: '100%' }}>
-        {/* Find Your Club banner */}
-        <div className="auth-banner auth-banner--green">
-          <div className="auth-banner-label">Looking for your club?</div>
-          <button className="auth-banner-btn auth-banner-btn--green" onClick={() => nav('/find-club')}>
-            Find Your Association →
+        <div className="auth-card">
+          <div className="brand">
+            <BrandLogo />
+            <div className="brand-name">Hockey Shot<br/>Challenge</div>
+          </div>
+
+          <h2 className="auth-title">Start tracking.</h2>
+          <p className="auth-sub" style={{ marginBottom: 24 }}>Pick a challenge and log your shots. Takes 30 seconds.</p>
+
+          <button className="google-btn" onClick={() => createPlayerWithGoogleAuth()} style={{ marginBottom: 24 }}>
+            <GoogleIcon />
+            Sign in with Google
+          </button>
+
+          <div className="auth-card-divider" style={{ margin: '24px 0' }}></div>
+
+          <div style={{ textAlign: 'center', marginBottom: 8 }}>
+            <div style={{ fontSize: 13, color: '#8899b4', marginBottom: 12 }}>Already tracking?</div>
+            <button className="auth-banner-btn auth-banner-btn--blue" onClick={() => setMode('signin')} style={{ width: '100%' }}>
+              Sign in here →
+            </button>
+          </div>
+
+          <button className="btn-text" onClick={() => nav('/')}>
+            ← Back to home
           </button>
         </div>
-
-        {/* Prominent "Already have an account" banner */}
-        <div className="auth-banner auth-banner--blue">
-          <div className="auth-banner-label">Already have an account?</div>
-          <button className="auth-banner-btn auth-banner-btn--blue" onClick={() => { setMode('signin'); setError(''); setErrorField(null) }}>
-            Sign in here →
-          </button>
-        </div>
+        <style>{styles}</style>
       </div>
-
-      <div className="auth-card">
-        {step === 1 && (
-          <>
-            <div className="brand">
-              <BrandLogo />
-              <div className="brand-name">Hockey Shot<br/>Challenge</div>
-            </div>
-
-            {preClub ? (
-              <>
-                <div className="club-banner">
-                  <div className="club-banner-label">JOINING</div>
-                  <div className="club-banner-name">{preClub.name}</div>
-                  {preClub.city && <div className="club-banner-city">{preClub.city}</div>}
-                </div>
-
-                <div className="picker-label">PICK YOUR TEAM</div>
-
-                <label className="input-label">
-                  <span>Age division</span>
-                  <select
-                    value={ageDivision}
-                    onChange={(e) => { setAgeDivision(e.target.value); if (errorField === 'ageDivision') { setError(''); setErrorField(null) } }}
-                    className={`input-field ${errorField === 'ageDivision' ? 'input-field--error' : ''}`}
-                    autoFocus
-                  >
-                    <option value="">Pick one</option>
-                    {AGE_DIVISIONS.map((a) => (
-                      <option key={a} value={a}>{a}</option>
-                    ))}
-                  </select>
-                  {errorField === 'ageDivision' && <div className="field-error">{error}</div>}
-                </label>
-
-                <label className="input-label" style={{ marginTop: 12 }}>
-                  <span>Tier</span>
-                  <select
-                    value={tier}
-                    onChange={(e) => { setTier(e.target.value); if (errorField === 'tier') { setError(''); setErrorField(null) } }}
-                    className={`input-field ${errorField === 'tier' ? 'input-field--error' : ''}`}
-                  >
-                    <option value="">Pick one</option>
-                    {TIERS.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                  {errorField === 'tier' && <div className="field-error">{error}</div>}
-                </label>
-
-                <div className="path-hint" style={{ marginTop: 10 }}>
-                  Not sure? Ask your coach or pick the closest match.
-                </div>
-
-                {error && !errorField && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
-
-                <button
-                  className="btn-primary"
-                  onClick={continueFromStep1}
-                  disabled={!ageDivision || !tier}
-                  style={{ marginTop: 16 }}
-                >
-                  Continue →
-                </button>
-                <button
-                  className="btn-text"
-                  onClick={() => {
-                    setPreClub(null)
-                    setPath(null)
-                    setTeamName('')
-                    setClubName('')
-                    setAgeDivision('')
-                    setTier('')
-                  }}
-                >
-                  Sign up without the club
-                </button>
-              </>
-            ) : (
-              <>
-                {pickedSpec && (
-                  <div className="challenge-banner">
-                    <div className="challenge-banner-label">YOUR CHALLENGE</div>
-                    <div className="challenge-banner-name">{pickedSpec.total.toLocaleString()} Shot {pickedSpec.label} Challenge</div>
-                    {nextSpec && (
-                      <div className="challenge-banner-next">
-                        Next up after this: <strong>{nextSpec.total.toLocaleString()} Shot {nextSpec.label}</strong>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <h2 className="auth-title">Let's get you set up.</h2>
-                <p className="auth-sub" style={{ marginBottom: 14 }}>Takes 2 minutes. You'll sign in with Google at the end.</p>
-
-                <div className="for-row">
-                  <div className="for-label">WHO ARE YOU SIGNING UP?</div>
-                  <div className="for-options">
-                    <button
-                      className={`for-btn ${signingUpFor === 'self' ? 'for-btn--active' : ''}`}
-                      onClick={() => { setSigningUpFor('self'); setError(''); setErrorField(null) }}
-                    >
-                      Myself
-                    </button>
-                    <button
-                      className={`for-btn ${signingUpFor === 'player' ? 'for-btn--active' : ''}`}
-                      onClick={() => { setSigningUpFor('player'); setError(''); setErrorField(null) }}
-                    >
-                      My kid
-                    </button>
-                  </div>
-                  {signingUpFor === 'player' && (
-                    <div className="for-parent-note">
-                      Your Google account holds the profile. You can add more players later — one account for all your kids.
-                    </div>
-                  )}
-                </div>
-
-                {/* One club-search flow, not two near-identical cards. Grouping by
-                    club/age/tier matters for leaderboards, so the search is the
-                    default posture — "I don't have a club yet" is a small,
-                    conscious link, not a pre-selected sibling option. */}
-                <div className="path-card path-card--active">
-                  <div className="path-head">
-                    <div className="path-icon">🏒</div>
-                    <div>
-                      <div className="path-title">Find your club</div>
-                      <div className="path-sub">Groups you with your team on the leaderboard</div>
-                    </div>
-                  </div>
-                  <div className="path-body">
-                    {!joinClub ? (
-                      <>
-                        <div style={{ position: 'relative' }}>
-                          <input
-                            type="text"
-                            value={joinClubQuery}
-                            onChange={(e) => setJoinClubQuery(e.target.value)}
-                            placeholder="Burlington Eagles, Mississauga…"
-                            autoCorrect="off"
-                            autoCapitalize="none"
-                            spellCheck="false"
-                            className="input-field"
-                            autoFocus
-                          />
-                          {joinClubQuery.trim().length >= 2 && (
-                            <div className="join-club-dropdown">
-                              {joinSearching && <div className="join-club-status">Searching…</div>}
-                              {!joinSearching && joinClubResults.length === 0 && (
-                                <div className="join-club-status">No clubs found.</div>
-                              )}
-                              {joinClubResults.map((c) => (
-                                <button
-                                  key={c.id}
-                                  className="join-club-result"
-                                  onClick={() => { setJoinClub(c); setJoinClubQuery(''); setJoinClubResults([]); setPath('join') }}
-                                >
-                                  <span className="join-club-result-name">{c.name}</span>
-                                  {c.city && <span className="join-club-result-meta">{c.city}</span>}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        {!showFreeText ? (
-                          <button className="btn-text" style={{ marginTop: 6, fontSize: 11 }} onClick={() => setShowFreeText(true)}>
-                            My club isn't listed
-                          </button>
-                        ) : (
-                          <>
-                            <label className="input-label" style={{ marginTop: 12 }}>
-                              <span>Team name</span>
-                              <input
-                                type="text"
-                                value={teamName}
-                                onChange={(e) => { setTeamName(e.target.value.toUpperCase()); setPath('join'); if (errorField === 'teamName') { setError(''); setErrorField(null) } }}
-                                placeholder="e.g. NORTHSTARS"
-                                autoCapitalize="characters"
-                                autoCorrect="off"
-                                spellCheck="false"
-                                className={`input-field input-field--code ${errorField === 'teamName' ? 'input-field--error' : ''}`}
-                              />
-                              {errorField === 'teamName' && <div className="field-error">{error}</div>}
-                            </label>
-                            <div className="path-hint">Same name as your teammates = same leaderboard.</div>
-                          </>
-                        )}
-                        {path === 'solo' ? (
-                          <div className="path-hint" style={{ marginTop: 10, fontWeight: 700 }}>
-                            No problem — starting without a club. <button className="btn-text" style={{ fontSize: 11, padding: 0 }} onClick={() => setPath(null)}>Actually, let me search</button>
-                          </div>
-                        ) : (
-                          <button className="btn-text" style={{ marginTop: 10, fontSize: 12 }} onClick={() => setPath('solo')}>
-                            I don't have a club yet — skip this
-                          </button>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <div className="join-club-selected">
-                          <div className="join-club-selected-name">{joinClub.name}</div>
-                          {joinClub.city && <div className="join-club-selected-city">{joinClub.city}</div>}
-                          <button className="join-club-change" onClick={() => { setJoinClub(null); setAgeDivision(''); setTier('') }}>Change</button>
-                        </div>
-                        <label className="input-label" style={{ marginTop: 12 }}>
-                          <span>Age division</span>
-                          <select
-                            value={ageDivision}
-                            onChange={(e) => { setAgeDivision(e.target.value); if (errorField === 'ageDivision') { setError(''); setErrorField(null) } }}
-                            className={`input-field ${errorField === 'ageDivision' ? 'input-field--error' : ''}`}
-                          >
-                            <option value="">Pick one</option>
-                            {AGE_DIVISIONS.map((a) => <option key={a} value={a}>{a}</option>)}
-                          </select>
-                          {errorField === 'ageDivision' && <div className="field-error">{error}</div>}
-                        </label>
-                        <label className="input-label" style={{ marginTop: 10 }}>
-                          <span>Tier</span>
-                          <select
-                            value={tier}
-                            onChange={(e) => { setTier(e.target.value); if (errorField === 'tier') { setError(''); setErrorField(null) } }}
-                            className={`input-field ${errorField === 'tier' ? 'input-field--error' : ''}`}
-                          >
-                            <option value="">Pick one</option>
-                            {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
-                          </select>
-                          {errorField === 'tier' && <div className="field-error">{error}</div>}
-                        </label>
-                        <div className="path-hint" style={{ marginTop: 6 }}>Not sure? Ask your coach.</div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {error && !errorField && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
-
-                <button className="btn-primary" onClick={continueFromStep1} disabled={!path} style={{ marginTop: 16 }}>
-                  Continue →
-                </button>
-
-                <button className="btn-text" onClick={() => { setMode('signin'); setError(''); setErrorField(null) }}>
-                  Already playing? Sign in
-                </button>
-                <button className="btn-text" onClick={() => nav('/')}>
-                  ← Back to home
-                </button>
-              </>
-            )}
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            <div className="step-chip">Step 2 of 2</div>
-            <h2 className="auth-title">{signingUpFor === 'player' ? 'About your player.' : 'Who are you?'}</h2>
-            <p className="auth-sub">
-              {signingUpFor === 'player'
-                ? 'Their coach will see their real name. Their leaderboard name is up to them.'
-                : 'Your coach will see your real name. Your leaderboard name is up to you.'}
-            </p>
-
-            <label className="input-label">
-              <span>{signingUpFor === 'player' ? "Player's first name (shown to their coach)" : 'First name (shown to your coach)'}</span>
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => { setFirstName(e.target.value); if (errorField === 'firstName') { setError(''); setErrorField(null) } }}
-                placeholder={signingUpFor === 'player' ? "Their real first name" : "Your real first name"}
-                className={`input-field ${errorField === 'firstName' ? 'input-field--error' : ''}`}
-                autoFocus
-              />
-              {errorField === 'firstName' && <div className="field-error">{error}</div>}
-            </label>
-
-            <label className="input-label" style={{ marginTop: 12 }}>
-              <span>Player name <span style={{ color: 'var(--text-mute)', fontWeight: 400 }}>(optional — on leaderboards)</span></span>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder={signingUpFor === 'player' ? "What do they go by?" : "Add a nickname, or skip"}
-                className="input-field"
-              />
-            </label>
-
-            <div className="label-sm">{signingUpFor === 'player' ? "Their position" : 'Position'}</div>
-            <div className={`chip-row chip-row--3 ${errorField === 'position' ? 'chip-row--error' : ''}`}>
-              {['F', 'D', 'G'].map((p) => (
-                <button
-                  key={p}
-                  className={`chip chip--big ${position === p ? 'chip--active' : ''}`}
-                  onClick={() => { setPosition(p); if (errorField === 'position') { setError(''); setErrorField(null) } }}
-                >
-                  <div className="chip-letter">{p}</div>
-                  <div className="chip-sub">{p === 'F' ? 'Forward' : p === 'D' ? 'Defense' : 'Goalie'}</div>
-                </button>
-              ))}
-            </div>
-            {errorField === 'position' && <div className="field-error" style={{ marginTop: -10, marginBottom: 12 }}>{error}</div>}
-
-            {error && !errorField && <div className="error">{error}</div>}
-
-            <button
-              className="google-btn"
-              onClick={saveAndGoogleAuth}
-              disabled={!firstName || !position || loading}
-              style={{ marginTop: 8 }}
-            >
-              <GoogleIcon />
-              {loading ? 'One sec…' : signingUpFor === 'player' ? 'Save with Google →' : 'Continue with Google →'}
-            </button>
-            <div className="path-hint" style={{ textAlign: 'center', marginBottom: 4 }}>
-              {signingUpFor === 'player'
-                ? 'Your Google account. Their player profile.'
-                : 'No password. Kids can use a parent’s Google account.'}
-            </div>
-
-            <button className="btn-text" onClick={() => setStep(1)}>
-              ← Back
-            </button>
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <div className="celebration">
-              <div className="celebration-ring">
-                <div className="celebration-inner">🎉</div>
-              </div>
-              <div className="celebration-title">You're in, {displayName}!</div>
-              {generatedClubName && (
-                <div className="club-joined">
-                  On {generatedClubName}{generatedTeamName ? ` · ${generatedTeamName}` : ''}
-                </div>
-              )}
-            </div>
-
-            <div className="screenshot-hero">
-              <div className="screenshot-icon">📸</div>
-              <div className="screenshot-title">Screenshot this screen!</div>
-              <div className="screenshot-sub">This is how you sign back in. If you lose it, you lose your shots.</div>
-            </div>
-
-            <div className="username-big">
-              <div className="username-label">YOUR USERNAME</div>
-              <div className="username-value-big">@{generatedUsername}</div>
-              <button className={`copy-btn ${copiedWhat === 'username' ? 'copy-btn--done' : ''}`} onClick={() => copyText(generatedUsername, 'username')}>
-                {copiedWhat === 'username' ? '✓ Copied' : 'Copy username'}
-              </button>
-            </div>
-
-            <div className="save-tips">Text it to a parent so they have it too.</div>
-
-            {generatedTeamName && !preClub && (
-              <div className="invite-card">
-                <div className="invite-top">
-                  <div className="invite-label">YOUR TEAM</div>
-                  <div className="invite-team-name">{generatedTeamName}</div>
-                </div>
-                <div className="invite-hint">
-                  Tell your teammates the team name so they can join you.
-                </div>
-                <button className="invite-btn" onClick={shareTeam}>
-                  {shared || copiedWhat === 'share' ? '✓ Ready to send' : '↗ Invite teammates'}
-                </button>
-              </div>
-            )}
-
-            {preClub && generatedTeamName && (
-              <div className="invite-card">
-                <div className="invite-top">
-                  <div className="invite-label">YOUR TEAM</div>
-                  <div className="invite-team-name">{generatedTeamName}</div>
-                </div>
-                <div className="invite-hint">
-                  Tell your teammates the age & tier so they can join you.
-                </div>
-              </div>
-            )}
-
-            <button className="btn-primary" onClick={() => nav('/home')}>
-              Got it — let's shoot 🏒
-            </button>
-          </>
-        )}
-      </div>
-      <style>{styles}</style>
     </div>
   )
 }
@@ -849,566 +180,117 @@ function BrandLogo() {
 const styles = `
 .auth-wrap {
   min-height: 100dvh;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 16px;
-  width: 100%; max-width: none;
+  width: 100%;
 }
 .auth-card {
-  width: 100%; max-width: 380px;
+  width: 100%;
+  max-width: 380px;
   background: var(--surface);
   border: 0.5px solid var(--border-dim);
   border-radius: var(--radius-lg);
   padding: 24px 16px;
 }
 .brand {
-  display: flex; align-items: center; gap: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 20px;
 }
 .brand-name {
   font-family: var(--font-display);
-  font-weight: 800; font-size: 17px;
-  letter-spacing: 1px; text-transform: uppercase;
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   line-height: 1.1;
-}
-.step-chip {
-  display: inline-block;
-  background: var(--bg);
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 12px; color: var(--text-mute);
-  letter-spacing: 1px; text-transform: uppercase;
-  font-weight: 500; margin-bottom: 12px;
 }
 .auth-title {
   font-family: var(--font-display);
-  font-size: 22px; line-height: 1.1;
-  margin-bottom: 4px; font-weight: 700;
+  font-size: 22px;
+  line-height: 1.1;
+  margin-bottom: 4px;
+  font-weight: 700;
   letter-spacing: 0.3px;
 }
 .auth-sub {
-  font-size: 13px; color: var(--text-mute);
+  font-size: 13px;
+  color: var(--text-mute);
   margin: 0 0 18px;
 }
-
-.club-banner {
-  background: var(--surface-raised);
-  border: 0.5px solid var(--accent);
-  border-radius: var(--radius);
-  padding: 14px;
-  margin-bottom: 18px;
-  text-align: center;
-}
-.club-banner-label {
-  font-size: 12px; color: var(--text-mute);
-  letter-spacing: 2px; text-transform: uppercase;
-  font-weight: 500;
-}
-.club-banner-name {
-  font-family: var(--font-display);
-  font-size: 22px; font-weight: 800;
-  color: var(--ice);
-  margin-top: 4px;
-  letter-spacing: 0.5px;
-  line-height: 1;
-}
-.club-banner-city {
-  font-size: 12px; color: var(--text-mute);
-  margin-top: 4px;
-}
-
-.challenge-banner {
-  background: var(--surface-raised);
-  border: 0.5px solid rgba(61, 214, 140, 0.4);
-  border-radius: var(--radius);
-  padding: 14px;
-  margin-bottom: 18px;
-  text-align: center;
-}
-.challenge-banner-label {
-  font-size: 12px; color: var(--text-mute);
-  letter-spacing: 2px; text-transform: uppercase;
-  font-weight: 500;
-}
-.challenge-banner-name {
-  font-family: var(--font-display);
-  font-size: 20px; font-weight: 800;
-  color: var(--success);
-  margin-top: 4px;
-  letter-spacing: 0.3px;
-  line-height: 1.2;
-}
-.challenge-banner-next {
-  font-size: 12px; color: var(--text-soft);
-  margin-top: 6px;
-}
-.challenge-banner-next strong { color: var(--ice); }
-
-.picker-label {
-  font-size: 13px; color: #8899b4;
-  letter-spacing: 1px; text-transform: uppercase;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.input-label { display: block; margin-bottom: 4px; }
-.input-label > span {
-  display: block;
-  font-size: 13px; color: #8899b4;
-  letter-spacing: 0.5px; text-transform: uppercase;
-  margin-bottom: 8px; font-weight: 600;
-}
-.input-field {
-  width: 100%;
-  background: var(--bg);
-  border: 0.5px solid var(--border-dim);
-  border-radius: var(--radius);
-  padding: 14px 14px;
-  color: var(--text);
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.15s;
-  font-family: inherit;
-  min-height: 44px;
-}
-.input-field:focus { border-color: var(--accent); }
-.input-field::placeholder {
-  color: var(--text-mute);
-  opacity: 0.5;
-}
-.input-field--code {
-  letter-spacing: 2px;
-  font-family: var(--font-display);
-  font-weight: 700; color: var(--ice);
-}
-.input-field--code::placeholder { letter-spacing: 2px; }
-
-.path-card {
-  background: var(--bg);
-  border: 0.5px solid var(--border-dim);
-  border-radius: var(--radius);
-  padding: 14px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.path-card--active {
-  background: var(--surface-raised);
-  border-color: var(--accent);
-}
-.path-head {
-  display: flex; align-items: center; gap: 12px;
-}
-.path-icon {
-  width: 36px; height: 36px;
-  font-size: 20px;
-  background: var(--accent-bg);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.path-title {
-  font-family: var(--font-display);
-  font-size: 16px; font-weight: 800;
-  letter-spacing: 0.4px; line-height: 1.1;
-}
-.path-sub {
-  font-size: 12px; color: var(--text-mute);
-  margin-top: 2px;
-}
-.path-check {
-  margin-left: auto;
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  border: 1.5px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text);
-  font-size: 13px; font-weight: 700;
-  flex-shrink: 0;
-}
-.path-check--active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-.path-body {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 0.5px solid var(--border-dim);
-}
-.path-hint {
-  font-size: 13px; color: #8899b4;
-  line-height: 1.4; margin-top: 6px;
-}
-.or-divider {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-mute);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin: 12px 0;
-  font-weight: 500;
-}
-
-.chip-row { display: grid; gap: 6px; margin-bottom: 16px; }
-.chip-row--3 { grid-template-columns: repeat(3, 1fr); }
-.chip-row--4 { grid-template-columns: repeat(2, 1fr); }
-.chip {
-  background: var(--bg);
-  border: 0.5px solid var(--border-dim);
-  border-radius: var(--radius);
-  padding: 10px 8px;
-  color: var(--ice);
-  font-size: 13px; text-align: center;
-  transition: all 0.15s;
-}
-.chip--big { padding: 14px 6px; }
-.chip--active {
-  background: var(--accent);
-  border-color: var(--accent-soft);
-  color: white;
-}
-.chip-letter {
-  font-family: var(--font-display);
-  font-size: 22px; font-weight: 800;
-  letter-spacing: 1px; line-height: 1;
-}
-.chip-sub { font-size: 10px; margin-top: 3px; opacity: 0.75; }
-
-.btn-primary {
-  width: 100%;
-  background: var(--accent);
-  color: white;
-  border-radius: var(--radius);
-  padding: 16px 14px;
-  font-size: 15px; font-weight: 600;
-  letter-spacing: 0.3px;
-  margin-bottom: 10px;
-  transition: transform 0.1s;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn-primary:active:not(:disabled) { transform: scale(0.98); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-text {
-  width: 100%;
-  color: var(--text-mute);
-  font-size: 13px;
-  padding: 12px 10px;
-  text-align: center;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn-text:hover { color: var(--ice); }
-.error {
-  background: rgba(255, 84, 84, 0.1);
-  border: 0.5px solid rgba(255, 84, 84, 0.3);
-  color: var(--danger);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-.field-error {
-  color: var(--danger);
-  font-size: 12px;
-  margin-top: 6px;
-}
-.auth-banner {
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 16px;
-  text-align: center;
-}
-.auth-banner--green {
-  background: rgba(61, 214, 140, 0.1);
-  border: 1px solid rgba(61, 214, 140, 0.3);
-}
-.auth-banner--blue {
-  background: rgba(41, 121, 255, 0.1);
-  border: 1px solid rgba(41, 121, 255, 0.3);
-}
-.auth-banner-label {
-  font-size: 13px;
-  color: var(--text-soft);
-  margin-bottom: 6px;
-}
-.auth-banner-btn {
-  border-radius: 8px;
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  width: 100%;
-}
-.auth-banner-btn--green {
-  background: rgba(61, 214, 140, 0.2);
-  color: #4ade80;
-  border: 1.5px solid rgba(61, 214, 140, 0.4);
-}
-.auth-banner-btn--blue {
-  background: var(--accent);
-  color: white;
-  border: none;
-}
-.input-field--error {
-  border-color: var(--danger) !important;
-}
-.chip-row--error .chip {
-  border-color: var(--danger);
-}
-
-.celebration { text-align: center; margin: 4px 0 18px; }
-.celebration-ring {
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  background: var(--accent-bg);
-  border: 2px solid var(--accent);
-  margin: 0 auto 10px;
-  display: flex; align-items: center; justify-content: center;
-}
-.celebration-inner { font-size: 28px; }
-.celebration-title {
-  font-family: var(--font-display);
-  font-size: 22px; font-weight: 700;
-  letter-spacing: 0.4px;
-}
-.club-joined {
-  font-size: 13px;
-  color: var(--ice);
-  margin-top: 6px;
-  letter-spacing: 0.3px;
-}
-.screenshot-hero {
-  background: linear-gradient(135deg, rgba(41, 121, 255, 0.15), rgba(168, 212, 245, 0.08));
-  border: 1px solid rgba(41, 121, 255, 0.4);
-  border-radius: var(--radius);
-  padding: 16px;
-  text-align: center;
-  margin-bottom: 14px;
-}
-.screenshot-icon { font-size: 36px; line-height: 1; margin-bottom: 6px; }
-.screenshot-title {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  color: white;
-  margin-bottom: 4px;
-}
-.screenshot-sub {
-  font-size: 13px;
-  color: var(--text-soft);
-  line-height: 1.4;
-}
-.username-big {
-  background: var(--bg);
-  border: 0.5px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 16px 14px;
-  text-align: center;
-  margin-bottom: 10px;
-}
-.username-label {
-  font-size: 12px; color: var(--text-mute);
-  letter-spacing: 2px; font-weight: 500;
-}
-.username-value-big {
-  font-family: var(--font-display);
-  font-size: 28px; font-weight: 800;
-  color: var(--ice);
-  letter-spacing: 1px;
-  margin: 6px 0 12px;
-}
-.copy-btn {
-  width: 100%;
-  background: var(--surface);
-  border: 0.5px solid var(--border-dim);
-  border-radius: var(--radius);
-  padding: 10px;
-  color: var(--ice);
-  font-size: 12px; font-weight: 500;
-  letter-spacing: 0.3px;
-  font-family: inherit;
-  transition: all 0.15s;
-}
-.copy-btn--done {
-  background: rgba(61, 214, 140, 0.15);
-  border-color: rgba(61, 214, 140, 0.4);
-  color: var(--success);
-}
-.save-tips {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-mute);
-  margin-bottom: 16px;
-  letter-spacing: 0.3px;
-  line-height: 1.4;
-}
-.invite-card {
-  background: var(--surface-raised);
-  border: 0.5px solid var(--accent);
-  border-radius: var(--radius);
-  padding: 14px;
-  margin-bottom: 14px;
-}
-.invite-top { text-align: center; margin-bottom: 8px; }
-.invite-label {
-  font-size: 12px; color: var(--text-mute);
-  letter-spacing: 2px; font-weight: 500;
-}
-.invite-team-name {
-  font-family: var(--font-display);
-  font-size: 22px; font-weight: 800;
-  color: var(--ice);
-  letter-spacing: 1px;
-  margin-top: 2px;
-}
-.invite-hint {
-  font-size: 12px;
-  color: var(--text-soft);
-  text-align: center;
-  margin-bottom: 12px;
-  line-height: 1.4;
-}
-.invite-btn {
-  width: 100%;
-  background: var(--accent);
-  color: white;
-  border-radius: var(--radius);
-  padding: 12px;
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-}
-
-.for-row {
-  margin-bottom: 18px;
-}
-.for-label {
-  font-size: 13px; color: #8899b4;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  font-weight: 600; margin-bottom: 8px;
-}
-.for-options {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-}
-.for-btn {
-  background: var(--bg);
-  border: 0.5px solid var(--border-dim);
-  border-radius: var(--radius);
-  padding: 12px 8px;
-  color: var(--text-mute);
-  font-size: 14px; font-weight: 600;
-  text-align: center;
-  transition: all 0.15s;
-  font-family: inherit;
-}
-.for-btn--active {
-  background: var(--surface-raised);
-  border-color: var(--accent);
-  color: white;
-}
-.for-parent-note {
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--ice);
-  line-height: 1.5;
-  background: rgba(168,212,245,0.07);
-  border: 0.5px solid rgba(168,212,245,0.2);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-}
-
 .google-btn {
   width: 100%;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
   background: white;
-  color: #3c4043;
-  border: 1px solid #dadce0;
+  border: 0.5px solid #e0e0e0;
   border-radius: var(--radius);
-  padding: 14px 16px;
-  font-size: 15px; font-weight: 600;
-  letter-spacing: 0.3px;
-  margin-bottom: 8px;
-  transition: all 0.15s;
-  font-family: inherit;
-  cursor: pointer;
-  min-height: 44px;
-}
-.google-btn:hover:not(:disabled) { background: #f8f9fa; }
-.google-btn:active:not(:disabled) { transform: scale(0.98); }
-.google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.join-club-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0; right: 0;
-  background: var(--surface);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius);
-  z-index: 30;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  overflow: hidden;
-}
-.join-club-result {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
-  padding: 10px 14px;
-  border-bottom: 0.5px solid var(--border-dim);
-  text-align: left;
-  transition: background 0.1s;
-}
-.join-club-result:last-child { border-bottom: none; }
-.join-club-result:hover { background: var(--bg); }
-.join-club-result-name {
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 700;
-  color: white;
-}
-.join-club-result-meta { font-size: 11px; color: var(--text-mute); margin-top: 1px; }
-.join-club-status {
-  padding: 12px 14px;
-  font-size: 12px;
-  color: var(--text-mute);
-  text-align: center;
-}
-.join-club-selected {
-  background: var(--surface-raised);
-  border: 0.5px solid var(--accent);
-  border-radius: var(--radius);
-  padding: 10px 14px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-}
-.join-club-selected-name {
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 700;
-  color: white;
-  flex: 1;
-}
-.join-club-selected-city { font-size: 11px; color: var(--text-mute); }
-.join-club-change {
-  background: transparent;
-  color: var(--accent);
-  font-size: 11px;
   font-weight: 600;
-  padding: 0;
-  flex-shrink: 0;
+  font-size: 14px;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all 0.2s;
 }
-
-.label-sm {
-  font-size: 10px;
-  color: var(--text-mute);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+.google-btn:hover {
+  background: #f8f8f8;
+  border-color: #d0d0d0;
+}
+.google-btn:active {
+  transform: scale(0.98);
+}
+.auth-card-divider {
+  height: 0.5px;
+  background: var(--border-dim);
+}
+.auth-banner-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+.auth-banner-btn:hover {
+  opacity: 0.9;
+}
+.auth-banner-btn:active {
+  transform: scale(0.98);
+}
+.auth-banner-btn--green {
+  background: #34a853;
+}
+.auth-banner-btn--blue {
+  background: #2979ff;
+}
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--text-soft);
+  font-size: 14px;
   font-weight: 500;
-  margin: 14px 0 6px;
+  cursor: pointer;
+  padding: 8px;
+  transition: color 0.2s;
+  margin-top: 8px;
+}
+.btn-text:hover {
+  color: var(--text);
+}
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 `

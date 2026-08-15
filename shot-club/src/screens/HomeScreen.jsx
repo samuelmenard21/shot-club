@@ -284,13 +284,15 @@ export default function HomeScreen() {
 
         const { current_shots, goal_shots, challenge_type, progress_pct, shots_remaining } = playerChallengeProgress
         const challengeLabels = { '1k': 'ROOKIE', '2_5k': 'PRO', '5k': 'ELITE', '10k': 'HALL OF FAMER', 'custom': 'CUSTOM' }
+        const challengeOrder = ['1k', '2_5k', '5k', '10k']
+        const challengeLevel = challenge_type === 'custom' ? null : (challengeOrder.indexOf(challenge_type) + 1)
 
         const stickDots = stickCount > 0 && stickCount % 10 === 0 ? 10 : stickCount % 10
 
         return (
           <div className="challenge-hero-mobile">
             <div className="chm-content">
-              <div className="chm-label">{challengeLabels[challenge_type]}</div>
+              <div className="chm-label">{challengeLabels[challenge_type]}{challengeLevel && ` · Level ${challengeLevel} of 4`}</div>
               <div className="chm-progress">
                 <span className="chm-shots">{current_shots.toLocaleString()}</span>
                 <span className="chm-goal">/ {goal_shots.toLocaleString()}</span>
