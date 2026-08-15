@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { createPlayerWithGoogleAuth, signInWithGooglePlayer } from '../lib/auth'
+import { createPlayerWithGoogleAuth } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
 import { setSEO } from '../lib/seo'
 import { applyPendingChallenge, stashPendingChallenge } from '../lib/challenges'
-import { getSpec, CHALLENGE_ORDER, CHALLENGE_SPECS } from '../lib/challengeSpecs'
 
 export default function AuthScreen() {
-  const [mode, setMode] = useState('signup')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const nav = useNavigate()
@@ -15,8 +13,6 @@ export default function AuthScreen() {
   const { player, loading: authLoading, refresh } = useAuth()
 
   const isOAuthReturn = searchParams.get('oauth') === '1'
-  const pickedChallengeId = searchParams.get('challenge')
-  const pickedSpec = pickedChallengeId ? getSpec(pickedChallengeId) : null
 
   useEffect(() => {
     stashPendingChallenge(searchParams.get('challenge'))
@@ -26,26 +22,17 @@ export default function AuthScreen() {
     if (isOAuthReturn && !authLoading) {
       if (player) {
         applyPendingChallenge(player.id).finally(() => nav('/home', { replace: true }))
-      } else {
-        // Do nothing - let OAuth flow create minimal profile
       }
     }
   }, [isOAuthReturn, authLoading, player])
 
   useEffect(() => {
     setSEO({
-      title: mode === 'signin' ? 'Sign in' : 'Start tracking',
-      description: 'Sign up for Hockey Shot Challenge. Free. 30 seconds. No email needed.',
+      title: 'Sign in',
+      description: 'Track your hockey shots. Free. 30 seconds. No email needed.',
       noindex: true,
     })
-  }, [mode])
-
-  useEffect(() => {
-    const modeParam = searchParams.get('mode')
-    if (modeParam === 'signin') {
-      setMode('signin')
-    }
-  }, [searchParams])
+  }, [])
 
   // Google OAuth return - auto-create minimal profile
   if (isOAuthReturn && !authLoading && !player) {
@@ -83,44 +70,7 @@ export default function AuthScreen() {
     )
   }
 
-  // Sign in mode
-  if (mode === 'signin') {
-    return (
-      <div className="auth-wrap fade-in">
-        <div style={{ maxWidth: 420, margin: '0 auto', width: '100%' }}>
-          <div className="auth-card">
-            <div className="brand">
-              <BrandLogo />
-              <div className="brand-name">Hockey Shot<br/>Challenge</div>
-            </div>
-            <h2 className="auth-title">Welcome back.</h2>
-            <p className="auth-sub">Sign in with your Google account to get back to your dashboard.</p>
-
-            <button className="google-btn" onClick={() => signInWithGooglePlayer()} style={{ marginBottom: 24 }}>
-              <GoogleIcon />
-              Continue with Google
-            </button>
-
-            <div className="auth-card-divider" style={{ margin: '24px 0' }}></div>
-
-            <div style={{ textAlign: 'center', marginBottom: 8 }}>
-              <div style={{ fontSize: 13, color: '#8899b4', marginBottom: 12 }}>New to Hockey Shot Challenge?</div>
-              <button className="auth-banner-btn auth-banner-btn--green" onClick={() => setMode('signup')} style={{ width: '100%' }}>
-                Start a challenge →
-              </button>
-            </div>
-
-            <button className="btn-text" onClick={() => nav('/')}>
-              ← Back to home
-            </button>
-          </div>
-        </div>
-        <style>{styles}</style>
-      </div>
-    )
-  }
-
-  // Signup mode
+  // Single login screen for everyone
   return (
     <div className="auth-wrap fade-in">
       <div style={{ maxWidth: 420, margin: '0 auto', width: '100%' }}>
@@ -130,22 +80,13 @@ export default function AuthScreen() {
             <div className="brand-name">Hockey Shot<br/>Challenge</div>
           </div>
 
-          <h2 className="auth-title">Start tracking.</h2>
+          <h2 className="auth-title">Track every shot.</h2>
           <p className="auth-sub" style={{ marginBottom: 24 }}>Pick a challenge and log your shots. Takes 30 seconds.</p>
 
           <button className="google-btn" onClick={() => createPlayerWithGoogleAuth()} style={{ marginBottom: 24 }}>
             <GoogleIcon />
             Sign in with Google
           </button>
-
-          <div className="auth-card-divider" style={{ margin: '24px 0' }}></div>
-
-          <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <div style={{ fontSize: 13, color: '#8899b4', marginBottom: 12 }}>Already tracking?</div>
-            <button className="auth-banner-btn auth-banner-btn--blue" onClick={() => setMode('signin')} style={{ width: '100%' }}>
-              Sign in here →
-            </button>
-          </div>
 
           <button className="btn-text" onClick={() => nav('/')}>
             ← Back to home
