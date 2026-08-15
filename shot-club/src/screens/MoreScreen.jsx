@@ -3,7 +3,6 @@ import { useAuth } from '../hooks/useAuth'
 import { useNotifications } from '../hooks/useNotifications'
 import { signOut, deleteAccount, getPlayersForAccount, changePlayerTeam } from '../lib/auth'
 import { setDailyGoal } from '../lib/progress'
-import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 import ConnectClubPrompt from '../components/ConnectClubPrompt'
 
@@ -17,16 +16,7 @@ export default function MoreScreen() {
   const [shared, setShared] = useState(false)
   const [goal, setGoal] = useState(player?.daily_goal || 50)
   const [savingGoal, setSavingGoal] = useState(false)
-  const [lifetimeShotGoal, setLifetimeShotGoal] = useState(player?.lifetime_shot_goal || 5000)
-  const [stickhandlingHourGoal, setStickhandlingHourGoal] = useState(player?.stickhandling_hour_goal || 5)
-  const [targetDate, setTargetDate] = useState(player?.lifetime_shot_goal_date || getDefaultTargetDate())
-  const [savingLifetimeGoal, setSavingLifetimeGoal] = useState(false)
 
-  function getDefaultTargetDate() {
-    const d = new Date()
-    d.setMonth(d.getMonth() + 3)
-    return d.toISOString().split('T')[0]
-  }
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
@@ -112,31 +102,6 @@ export default function MoreScreen() {
       toast('Could not update goal. Try again.', 'error')
     } finally {
       setSavingGoal(false)
-    }
-  }
-
-  const updateLifetimeGoals = async () => {
-    setSavingLifetimeGoal(true)
-    try {
-      const { error } = await supabase
-        .from('players')
-        .update({
-          lifetime_shot_goal: Math.max(1, Math.min(50000, Math.round(lifetimeShotGoal))),
-          stickhandling_hour_goal: Math.max(0.5, Math.min(500, Math.round(stickhandlingHourGoal * 10) / 10)),
-          lifetime_shot_goal_date: targetDate,
-        })
-        .eq('id', player.id)
-      if (error) throw error
-      await refresh()
-      toast('✓ Goals updated', 'success')
-    } catch (e) {
-      console.error('Failed to save goals:', e)
-      setLifetimeShotGoal(player.lifetime_shot_goal || 5000)
-      setStickhandlingHourGoal(player.stickhandling_hour_goal || 5)
-      setTargetDate(player?.lifetime_shot_goal_date || getDefaultTargetDate())
-      toast('Could not save goals. Try again.', 'error')
-    } finally {
-      setSavingLifetimeGoal(false)
     }
   }
 
@@ -234,48 +199,6 @@ export default function MoreScreen() {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Lifetime Goals Section */}
-      <div className="lifetime-goals-section">
-        <div className="label-sm">Lifetime Goals</div>
-        <div className="goal-input-row">
-          <label>
-            <div className="goal-input-label">Shots Goal</div>
-            <input
-              type="number"
-              className="goal-input"
-              value={lifetimeShotGoal}
-              onChange={(e) => setLifetimeShotGoal(Math.max(1, parseInt(e.target.value) || 0))}
-              min="1"
-              max="50000"
-            />
-          </label>
-          <label>
-            <div className="goal-input-label">Stickhandling (hrs)</div>
-            <input
-              type="number"
-              className="goal-input"
-              value={stickhandlingHourGoal}
-              onChange={(e) => setStickhandlingHourGoal(Math.max(0.5, parseFloat(e.target.value) || 0))}
-              min="0.5"
-              max="500"
-              step="0.5"
-            />
-          </label>
-        </div>
-        <label>
-          <div className="goal-input-label">Target Date</div>
-          <input
-            type="date"
-            className="goal-input goal-input--date"
-            value={targetDate}
-            onChange={(e) => setTargetDate(e.target.value)}
-          />
-        </label>
-        <button className="goal-save-btn" onClick={updateLifetimeGoals} disabled={savingLifetimeGoal}>
-          {savingLifetimeGoal ? 'Saving…' : 'Update Goals'}
-        </button>
       </div>
 
       {accountPlayers.length > 0 && (
@@ -583,17 +506,6 @@ const styles = `
 .goals-section {
   margin-bottom: 20px;
 }
-.lifetime-goals-section {
-  background: var(--surface);
-  border: 0.5px solid var(--border-dim);
-  border-radius: var(--radius);
-  padding: 14px;
-  margin-bottom: 16px;
-}
-.goal-current-row {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 12px;
-}
 .goal-options {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -619,53 +531,6 @@ const styles = `
   border-color: var(--accent);
 }
 .goal-chip:disabled { opacity: 0.5; }
-.goal-input-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.goal-input-label {
-  font-size: 10px;
-  color: var(--text-mute);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  font-weight: 500;
-  margin-bottom: 6px;
-  display: block;
-}
-.goal-input {
-  width: 100%;
-  padding: 8px 10px;
-  font-size: 13px;
-  border: 0.5px solid var(--border-dim);
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: inherit;
-  margin-bottom: 12px;
-}
-.goal-input:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-.goal-input--date {
-  grid-column: 1 / -1;
-}
-.goal-save-btn {
-  width: 100%;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.goal-save-btn:active:not(:disabled) { transform: scale(0.98); }
-.goal-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .kv-row {
   display: flex; justify-content: space-between; align-items: center;
