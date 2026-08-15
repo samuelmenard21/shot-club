@@ -11,5 +11,11 @@
 /5000-shot-challenge    /5000-shot-elite-challenge             301
 /10000-shot-challenge   /10000-shot-hall-of-famer-challenge    301
 
+# Old tracker short URLs -> current challenge landing pages
+/1k-tracker             /1000-shot-rookie-challenge             301
+/2_5k-tracker           /2500-shot-pro-challenge                301
+/5k-tracker             /5000-shot-elite-challenge              301
+/10k-tracker            /10000-shot-hall-of-famer-challenge     301
+
 # SPA fallback — all client routes serve index.html
 /* /index.html 200
