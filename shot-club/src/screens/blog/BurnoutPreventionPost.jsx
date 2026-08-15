@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
 import { usePostHog } from '../../hooks/usePostHog'
+import SEOFooter from '../../components/SEOFooter'
 import AuthorBio from '../../components/AuthorBio'
 
 export default function BurnoutPreventionPost() {

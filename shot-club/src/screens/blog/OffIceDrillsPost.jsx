@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
 import AuthorBio from '../../components/AuthorBio'
+import SEOFooter from '../../components/SEOFooter'
 
 export default function OffIceDrillsPost() {
   const nav = useNavigate()

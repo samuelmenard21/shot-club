@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../../lib/seo'
 import AuthorBio from '../../components/AuthorBio'
+import SEOFooter from '../../components/SEOFooter'
 
 export default function EliteChallengePost() {
   const nav = useNavigate()
@@ -113,6 +114,8 @@ export default function EliteChallengePost() {
         <button className="post-foot-link" onClick={() => nav('/blog')}>← All guides</button>
         <button className="post-foot-link" onClick={() => nav('/')}>Home</button>
       </footer>
+
+      <SEOFooter />
 
       <style>{styles}</style>
     </div>

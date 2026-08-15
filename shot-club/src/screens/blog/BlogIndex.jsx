@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, CANONICAL_URL } from '../../lib/seo'
+import SEOFooter from '../../components/SEOFooter'
 
 const POSTS = [
   {
@@ -132,6 +133,8 @@ export default function BlogIndex() {
         <button className="blog-foot-link" onClick={() => nav('/')}>← Home</button>
         <button className="blog-foot-cta" onClick={() => nav('/start')}>Start free — it's 2 minutes →</button>
       </footer>
+
+      <SEOFooter />
 
       <style>{styles}</style>
     </div>

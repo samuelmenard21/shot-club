@@ -6,6 +6,7 @@ import { stashPendingChallenge } from '../lib/challenges'
 import { signInWithGooglePlayer } from '../lib/auth'
 import { usePostHog } from '../hooks/usePostHog'
 import { useAuth } from '../hooks/useAuth'
+import SEOFooter from '../components/SEOFooter'
 
 // One template drives all four challenge pages. Copy differs per tier (below)
 // so the pages don't read as duplicate content to Google, but layout, CSS,
@@ -545,6 +546,8 @@ export default function ChallengeLandingScreen({ challengeId }) {
         </div>
         <p style={{ fontSize: '12px', color: 'var(--text-mute)', marginTop: '24px' }}>Hockey Shot Challenge — free {spec.total.toLocaleString()} shot challenge tracker for players and associations</p>
       </footer>
+
+      <SEOFooter />
 
       <style>{styles}</style>
     </div>
