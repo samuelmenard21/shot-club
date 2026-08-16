@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import SEOFooter from '../components/SEOFooter'
 import { supabase } from '../lib/supabase'
 import { getRank } from '../lib/ranks'
 import { getLifetimeBreakdown } from '../lib/shots'
@@ -47,6 +48,8 @@ export default function CardPublicScreen() {
     return (
       <div className="pc-wrap pc-loading">
         <div>Loading…</div>
+
+      <SEOFooter />
         <style>{styles}</style>
       </div>
     )
@@ -60,6 +63,8 @@ export default function CardPublicScreen() {
           <p style={{ color: 'var(--text-mute)', marginBottom: 20 }}>We couldn't find a player with that username.</p>
           <button className="pc-cta" onClick={() => nav('/')}>Go to Hockey Shot Challenge</button>
         </div>
+
+      <SEOFooter />
         <style>{styles}</style>
       </div>
     )
@@ -174,6 +179,8 @@ export default function CardPublicScreen() {
         <div className="pc-hint">Free. 30 seconds. No email needed.</div>
       </div>
 
+
+      <SEOFooter />
       <style>{styles}</style>
     </div>
   )

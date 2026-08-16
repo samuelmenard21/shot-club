@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import SEOFooter from '../components/SEOFooter'
 import { searchClubs } from '../lib/clubs'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 
@@ -312,6 +313,8 @@ export default function ClubsScreen() {
         <div className="cs-foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge · Built in Burlington, ON · Free for all youth hockey</div>
       </footer>
 
+
+      <SEOFooter />
       <style>{styles}</style>
     </div>
   )
