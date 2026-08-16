@@ -10,7 +10,7 @@ export default function CoachLandingScreen() {
   useEffect(() => {
     setSEO({
       title: 'Hockey Coaching Dashboard — Track Player Off-Ice Training Free',
-      description: 'Know which players are grinding at home. Build team culture around work ethic. See effort, streaks, ranks, and 1v1 results — free coaching dashboard.',
+      description: 'See which players practice at home. Know who works hardest. Build a team where effort matters — free coaching dashboard.',
       url: `${CANONICAL_URL}/coach`,
     })
     addStructuredData({
@@ -35,9 +35,9 @@ export default function CoachLandingScreen() {
 
       <section className="cl-hero">
         <div className="cl-eyebrow">FREE FOR COACHES · SIGN IN WITH GOOGLE</div>
-        <h1 className="cl-title">Know who's grinding. Build a winning culture.</h1>
+        <h1 className="cl-title">See who works hardest. Reward the grinders.</h1>
         <p className="cl-sub">
-          Off-ice training separates the serious players from the casual ones. See exactly who's putting in work at home, recognize the grinders, and build a team culture where effort matters.
+          Know which players are practicing at home. See who puts in the work every week. Show your team that hard work matters.
         </p>
         <button className="cl-cta" onClick={() => nav('/coach/start')}>
           Set up my team — it's free →

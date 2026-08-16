@@ -160,9 +160,9 @@ export default function LandingScreen() {
       {/* ── HERO ── */}
       <section className="hero">
         <div className="hero-eyebrow">FREE · FOR HOCKEY PLAYERS · AGES 6–18</div>
-        <h1 className="hero-title">Get better faster than your peers.</h1>
+        <h1 className="hero-title">Get better faster than your teammates.</h1>
         <p className="hero-sub">
-          Off-ice training separates the grinders from the casual players. Track shots in 5 seconds. Compete weekly. Watch who puts in the work.
+          Track your shots in 5 seconds. Compete against your team every week. See who's putting in the practice time.
         </p>
 
         {totalShots > 0 && (
@@ -219,19 +219,19 @@ export default function LandingScreen() {
         <div className="hero-paths hero-paths--three">
           <button className="hero-path hero-path--player" onClick={() => nav('/start')}>
             <div className="hero-path-eyebrow">FOR PLAYERS</div>
-            <div className="hero-path-title">Prove you're serious. Compete weekly. Climb the leaderboard.</div>
+            <div className="hero-path-title">Show your hard work. Compete with your team. Be the hardest worker.</div>
             <div className="hero-path-btn hero-path-btn--player">Start your streak →</div>
           </button>
 
           <button className="hero-path hero-path--parent" onClick={() => nav('/start')}>
             <div className="hero-path-eyebrow">FOR PARENTS</div>
-            <div className="hero-path-title">Real accountability without nagging. Proof they're training at home.</div>
+            <div className="hero-path-title">No nagging needed. See proof they're training. Know they're serious.</div>
             <div className="hero-path-btn hero-path-btn--parent">Track multiple kids →</div>
           </button>
 
           <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
             <div className="hero-path-eyebrow">FOR COACHES</div>
-            <div className="hero-path-title">Know who's grinding. Recognize the work ethic. Build a winning culture.</div>
+            <div className="hero-path-title">See who works hardest at home. Know who's serious. Reward the grinders.</div>
             <div className="hero-path-btn hero-path-btn--coach">See team effort →</div>
           </button>
         </div>

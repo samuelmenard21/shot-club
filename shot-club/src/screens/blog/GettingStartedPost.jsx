@@ -71,10 +71,10 @@ export default function GettingStartedPost() {
         </header>
 
         <div className="post-body">
-          <p>You know your kid needs to work on their shot at home. You've told them. Their coach has told them. But telling them isn't enough—actually getting them to show up and grind, consistently, when you're not there? That's the real challenge.</p>
-          <p>The problem: kids don't practice to please adults. They practice because their peers are practicing. When they can see that their teammates are putting in 100 shots a week and they're at 50, that gap becomes real in a way words never will.</p>
-          <p>Hockey Shot Challenge changes this by making the work visible. Kids log their shots, their teammates see it on a weekly leaderboard, and suddenly there's accountability that actually works. The scoreboard does the nagging for you.</p>
-          <p>Here's how to set it up—takes 5 minutes.</p>
+          <p>Your kid knows they should practice shots at home. You've told them. Their coach has told them. But telling them isn't enough. Getting them to actually show up and practice, over and over, when you're not there? That's hard.</p>
+          <p>Here's the thing: kids don't practice just to make adults happy. Kids practice because they see other kids practicing. When your kid can see that their teammates are logging 100 shots a week and they're at 50, that's real. They'll want to catch up and beat them.</p>
+          <p>Hockey Shot Challenge makes this work by showing the leaderboard. Your kid logs their shots, their whole team sees it every week, and now there's real competition. The scoreboard does the pushing for you—no nagging needed.</p>
+          <p>Here's how to get started—takes 5 minutes.</p>
 
           <h2>Step 1: Go to hockeyshotchallenge.com</h2>
           <p>No app to download. It works right in your phone's browser. Bookmark it so your kid can find it easily.</p>
