@@ -114,6 +114,8 @@ export default function GettingStartedPost() {
 
       <AuthorBio />
 
+      <SEOFooter />
+
 
       <footer className="post-footer">
         <button className="post-foot-link" onClick={() => nav('/blog')}>← All guides</button>

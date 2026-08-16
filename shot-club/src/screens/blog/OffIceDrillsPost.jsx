@@ -85,6 +85,8 @@ export default function OffIceDrillsPost() {
 
         <AuthorBio />
 
+      <SEOFooter />
+
 
         <div className="post-footer">
           <button className="post-foot-link" onClick={() => nav('/blog')}>← All guides</button>

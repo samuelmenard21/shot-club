@@ -126,6 +126,8 @@ export default function HockeyIQVsSkillPost() {
 
       <AuthorBio />
 
+      <SEOFooter />
+
       <footer className="post-footer">
         <button className="post-foot-link" onClick={() => nav('/blog')}>← All guides</button>
         <button className="post-foot-link" onClick={() => nav('/')}>Home</button>

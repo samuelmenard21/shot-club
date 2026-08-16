@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import SEOFooter from '../components/SEOFooter'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import { searchClubs } from '../lib/clubs'
 
@@ -210,6 +211,8 @@ export default function ForClubsScreen() {
         </div>
       </footer>
 
+
+      <SEOFooter />
       <style>{styles}</style>
     </div>
   )

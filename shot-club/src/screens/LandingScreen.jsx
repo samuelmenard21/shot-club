@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setSEO, addStructuredData, CANONICAL_URL } from '../lib/seo'
 import ContactSection from '../components/ContactSection'
+import SEOFooter from '../components/SEOFooter'
 import { searchClubs } from '../lib/clubs'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -311,6 +312,8 @@ export default function LandingScreen() {
       </section>
 
       <ContactSection />
+
+      <SEOFooter />
 
       <footer className="land-footer">
         <div style={{ maxWidth: 1100, margin: '0 auto', width: '100%', padding: '0 20px' }}>
