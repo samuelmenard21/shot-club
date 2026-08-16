@@ -160,9 +160,9 @@ export default function LandingScreen() {
       {/* ── HERO ── */}
       <section className="hero">
         <div className="hero-eyebrow">FREE · FOR HOCKEY PLAYERS · AGES 6–18</div>
-        <h1 className="hero-title">Shoot more. Track it. Build the habit.</h1>
+        <h1 className="hero-title">Get better faster than your peers.</h1>
         <p className="hero-sub">
-          Pick a challenge and track your shots every day. Watch your progress toward 1K, 2.5K, 5K, or 10K. Parents can manage multiple kids and see real-time stats.
+          Off-ice training separates the grinders from the casual players. Track shots in 5 seconds. Compete weekly. Watch who puts in the work.
         </p>
 
         {totalShots > 0 && (
@@ -219,20 +219,20 @@ export default function LandingScreen() {
         <div className="hero-paths hero-paths--three">
           <button className="hero-path hero-path--player" onClick={() => nav('/start')}>
             <div className="hero-path-eyebrow">FOR PLAYERS</div>
-            <div className="hero-path-title">Pick a challenge. Track your shots. Build your habit.</div>
-            <div className="hero-path-btn hero-path-btn--player">Sign up to track →</div>
+            <div className="hero-path-title">Prove you're serious. Compete weekly. Climb the leaderboard.</div>
+            <div className="hero-path-btn hero-path-btn--player">Start your streak →</div>
           </button>
 
           <button className="hero-path hero-path--parent" onClick={() => nav('/start')}>
             <div className="hero-path-eyebrow">FOR PARENTS</div>
-            <div className="hero-path-title">Manage multiple kids in one account.</div>
-            <div className="hero-path-btn hero-path-btn--parent">Start free →</div>
+            <div className="hero-path-title">Real accountability without nagging. Proof they're training at home.</div>
+            <div className="hero-path-btn hero-path-btn--parent">Track multiple kids →</div>
           </button>
 
           <button className="hero-path hero-path--coach" onClick={() => nav('/coach')}>
             <div className="hero-path-eyebrow">FOR COACHES</div>
-            <div className="hero-path-title">See who's training at home.</div>
-            <div className="hero-path-btn hero-path-btn--coach">Set up team →</div>
+            <div className="hero-path-title">Know who's grinding. Recognize the work ethic. Build a winning culture.</div>
+            <div className="hero-path-btn hero-path-btn--coach">See team effort →</div>
           </button>
         </div>
 
