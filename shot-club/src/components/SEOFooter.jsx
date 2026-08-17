@@ -10,12 +10,15 @@ export default function SEOFooter() {
           <h3>Quick Links</h3>
           <button onClick={() => nav('/')}>Home</button>
           <button onClick={() => nav('/start')}>Sign In</button>
+          <button onClick={() => nav('/player')}>For Players</button>
+          <button onClick={() => nav('/coach')}>For Coaches</button>
           <button onClick={() => nav('/for-clubs')}>For Clubs</button>
           <button onClick={() => nav('/find-club')}>Find Club</button>
         </div>
 
         <div className="seo-footer-section">
-          <h3>Popular Guides</h3>
+          <h3>Learn</h3>
+          <button onClick={() => nav('/blog')}>All Guides</button>
           <button onClick={() => nav('/blog/getting-started')}>Getting Started</button>
           <button onClick={() => nav('/blog/parents-guide-youth-hockey')}>Parents' Guide</button>
           <button onClick={() => nav('/blog/building-practice-routine')}>Practice Routine</button>
@@ -25,9 +28,17 @@ export default function SEOFooter() {
         <div className="seo-footer-section">
           <h3>Challenges</h3>
           <button onClick={() => nav('/challenges')}>All Challenges</button>
-          <button onClick={() => nav('/1000-shot-rookie-challenge')}>Rookie Challenge</button>
-          <button onClick={() => nav('/2500-shot-pro-challenge')}>Pro Challenge</button>
-          <button onClick={() => nav('/5000-shot-elite-challenge')}>Elite Challenge</button>
+          <button onClick={() => nav('/1000-shot-rookie-challenge')}>Rookie (1K)</button>
+          <button onClick={() => nav('/2500-shot-pro-challenge')}>Pro (2.5K)</button>
+          <button onClick={() => nav('/5000-shot-elite-challenge')}>Elite (5K)</button>
+          <button onClick={() => nav('/10000-shot-hall-of-famer-challenge')}>Hall of Famer (10K)</button>
+          <button onClick={() => nav('/province-wide-challenge')}>Leagues & Teams</button>
+        </div>
+
+        <div className="seo-footer-section">
+          <h3>Rankings</h3>
+          <button onClick={() => nav('/rankings')}>Player Rankings</button>
+          <button onClick={() => nav('/clubs')}>Find Clubs</button>
         </div>
 
         <div className="seo-footer-section">
