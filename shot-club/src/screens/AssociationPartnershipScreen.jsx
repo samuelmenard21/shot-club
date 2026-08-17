@@ -26,7 +26,7 @@ export default function AssociationPartnershipScreen() {
       {/* NAV */}
       <nav className="assoc-nav">
         <button className="assoc-logo" onClick={() => nav('/')}>🏒 Hockey Shot Challenge</button>
-        <button className="assoc-contact" onClick={() => window.location.href = 'mailto:samuelmenard@gmail.com?subject=Association Partnership'}>
+        <button className="assoc-contact" onClick={() => window.location.href = 'mailto:hello@hockeyshotchallenge.com?subject=Association Partnership'}>
           Get Started →
         </button>
       </nav>
@@ -41,7 +41,7 @@ export default function AssociationPartnershipScreen() {
 
         <button
           className="assoc-btn assoc-btn--primary"
-          onClick={() => window.location.href = 'mailto:samuelmenard@gmail.com?subject=Association Partnership'}
+          onClick={() => window.location.href = 'mailto:hello@hockeyshotchallenge.com?subject=Association Partnership'}
         >
           Partner With Us (Free)
         </button>
@@ -217,7 +217,7 @@ export default function AssociationPartnershipScreen() {
         <p className="assoc-final-sub">Email us to set up your association's free leaderboard.</p>
         <button
           className="assoc-btn assoc-btn--primary"
-          onClick={() => window.location.href = 'mailto:samuelmenard@gmail.com?subject=Association Partnership - 10K Challenge'}
+          onClick={() => window.location.href = 'mailto:hello@hockeyshotchallenge.com?subject=Association Partnership - 10K Challenge'}
         >
           Get Started (Free)
         </button>
@@ -243,7 +243,7 @@ export default function AssociationPartnershipScreen() {
           </div>
         </div>
         <div style={{ borderTop: '1px solid var(--border-dim)', paddingTop: 20 }}>
-          <p>Questions? <a href="mailto:samuelmenard@gmail.com" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Email us</a></p>
+          <p>Questions? <a href="mailto:hello@hockeyshotchallenge.com" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Email us</a></p>
           <p style={{ fontSize: '12px', color: 'var(--text-mute)', marginTop: '8px' }}>Hockey Shot Challenge — Free 10K Challenge Platform for Associations</p>
         </div>
       </footer>

@@ -16,7 +16,7 @@ export default function AboutScreen() {
     })
   }, [])
 
-  const emailAddress = 'samuelmenard@gmail.com'
+  const emailAddress = 'hello@hockeyshotchallenge.com'
   const emailEncoded = emailAddress
     .split('')
     .map((char) => `&#${char.charCodeAt(0)};`)
