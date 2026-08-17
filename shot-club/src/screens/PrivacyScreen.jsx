@@ -59,7 +59,7 @@ export default function PrivacyScreen() {
         </ul>
 
         <h2>Contact</h2>
-        <p>Questions or requests? Email us at <a href="mailto:hello@hockeyshotchallenge.com">hello@hockeyshotchallenge.com</a>.</p>
+        <p>Questions or requests? <a href="mailto:samuelmenard@gmail.com">Contact us</a>.</p>
       </div>
 
       <SEOFooter />

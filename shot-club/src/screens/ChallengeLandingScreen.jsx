@@ -540,7 +540,7 @@ export default function ChallengeLandingScreen({ challengeId }) {
             <div>
               <h4 style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 12 }}>Help</h4>
               <button onClick={() => nav('/about')} style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', marginBottom: 8 }}>About</button>
-              <a href="mailto:hello@hockeyshotchallenge.com" style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', textDecoration: 'none' }}>Contact</a>
+              <a href="mailto:samuelmenard@gmail.com" style={{ display: 'block', background: 'none', border: 'none', color: 'var(--ice)', fontSize: 14, cursor: 'pointer', textAlign: 'left', textDecoration: 'none' }}>Contact</a>
             </div>
           </div>
         </div>

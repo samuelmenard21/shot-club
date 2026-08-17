@@ -16,11 +16,6 @@ export default function AboutScreen() {
     })
   }, [])
 
-  const emailAddress = 'hello@hockeyshotchallenge.com'
-  const emailEncoded = emailAddress
-    .split('')
-    .map((char) => `&#${char.charCodeAt(0)};`)
-    .join('')
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'var(--font-body)' }}>
@@ -133,7 +128,7 @@ export default function AboutScreen() {
                 LinkedIn
               </a>
               <a
-                href={`mailto:${emailAddress}`}
+                href="mailto:samuelmenard@gmail.com"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -158,7 +153,7 @@ export default function AboutScreen() {
                 }}
               >
                 <span>✉️</span>
-                Email
+                Contact
               </a>
             </div>
           </div>
