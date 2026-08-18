@@ -129,6 +129,38 @@ export default function BlogIndex() {
         ))}
       </div>
 
+      <section className="blog-popular">
+        <div className="blog-popular-inner">
+          <h2 className="blog-popular-title">Popular Guides</h2>
+          <div className="blog-popular-grid">
+            <button className="blog-popular-card" onClick={() => nav('/blog/getting-started')}>
+              <span className="blog-popular-emoji">🚀</span>
+              <span className="blog-popular-label">Getting Started</span>
+            </button>
+            <button className="blog-popular-card" onClick={() => nav('/blog/building-practice-routine')}>
+              <span className="blog-popular-emoji">📋</span>
+              <span className="blog-popular-label">Practice Routine</span>
+            </button>
+            <button className="blog-popular-card" onClick={() => nav('/blog/parents-guide-youth-hockey')}>
+              <span className="blog-popular-emoji">👨‍👩‍👧‍👦</span>
+              <span className="blog-popular-label">Parents' Guide</span>
+            </button>
+            <button className="blog-popular-card" onClick={() => nav('/blog/off-ice-drills')}>
+              <span className="blog-popular-emoji">🎯</span>
+              <span className="blog-popular-label">Off-Ice Drills</span>
+            </button>
+            <button className="blog-popular-card" onClick={() => nav('/blog/5-week-progression')}>
+              <span className="blog-popular-emoji">📈</span>
+              <span className="blog-popular-label">5-Week Progression</span>
+            </button>
+            <button className="blog-popular-card" onClick={() => nav('/blog/80-20-finishers')}>
+              <span className="blog-popular-emoji">🏆</span>
+              <span className="blog-popular-label">Why 20% Finish</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
       <footer className="blog-footer">
         <button className="blog-foot-link" onClick={() => nav('/')}>← Home</button>
         <button className="blog-foot-cta" onClick={() => nav('/start')}>Start free — it's 2 minutes →</button>
@@ -205,6 +237,58 @@ body:has(.blog-wrap) { background: var(--bg) !important; }
 }
 .blog-card-desc { font-size: 15px; color: #8899b4; line-height: 1.55; margin-bottom: 14px; }
 .blog-card-read { font-size: 14px; color: var(--accent); font-weight: 600; }
+
+.blog-popular {
+  background: linear-gradient(135deg, rgba(41, 121, 255, 0.05) 0%, rgba(61, 214, 140, 0.05) 100%);
+  border-top: 1px solid rgba(41, 121, 255, 0.1);
+  border-bottom: 1px solid rgba(41, 121, 255, 0.1);
+  padding: 60px 20px;
+  margin: 40px 0;
+}
+.blog-popular-inner {
+  max-width: 1000px; margin: 0 auto;
+}
+.blog-popular-title {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 4vw, 32px);
+  font-weight: 800; color: white;
+  text-align: center; margin-bottom: 36px;
+}
+.blog-popular-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+.blog-popular-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 20px;
+  background: rgba(15, 22, 36, 0.6);
+  border: 1px solid rgba(41, 121, 255, 0.15);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.blog-popular-card:hover {
+  border-color: var(--accent);
+  background: rgba(41, 121, 255, 0.1);
+  transform: translateY(-2px);
+}
+.blog-popular-emoji {
+  font-size: 32px; display: block;
+}
+.blog-popular-label {
+  font-size: 14px; font-weight: 600;
+  color: var(--text-soft); line-height: 1.3;
+}
+.blog-popular-card:hover .blog-popular-label { color: var(--ice); }
+
+@media (max-width: 640px) {
+  .blog-popular-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .blog-popular { padding: 40px 20px; margin: 24px 0; }
+}
 
 .blog-footer {
   border-top: 1px solid #1a2035;

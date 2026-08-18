@@ -17,12 +17,18 @@ export default function SEOFooter() {
         </div>
 
         <div className="seo-footer-section">
-          <h3>Learn</h3>
+          <h3>Guides</h3>
           <button onClick={() => nav('/blog')}>All Guides</button>
           <button onClick={() => nav('/blog/getting-started')}>Getting Started</button>
           <button onClick={() => nav('/blog/parents-guide-youth-hockey')}>Parents' Guide</button>
           <button onClick={() => nav('/blog/building-practice-routine')}>Practice Routine</button>
           <button onClick={() => nav('/blog/off-ice-drills')}>Off-Ice Drills</button>
+          <button onClick={() => nav('/blog/7-off-ice-drills')}>7 Off-Ice Drills</button>
+          <button onClick={() => nav('/blog/hockey-iq-vs-skill')}>Hockey IQ vs Skill</button>
+          <button onClick={() => nav('/blog/5-week-progression')}>5-Week Progression</button>
+          <button onClick={() => nav('/blog/burnout-prevention')}>Burnout Prevention</button>
+          <button onClick={() => nav('/blog/80-20-finishers')}>The 80/20 Rule</button>
+          <button onClick={() => nav('/blog/how-squad-battles-work')}>Squad Battles</button>
         </div>
 
         <div className="seo-footer-section">
@@ -33,6 +39,14 @@ export default function SEOFooter() {
           <button onClick={() => nav('/5000-shot-elite-challenge')}>Elite (5K)</button>
           <button onClick={() => nav('/10000-shot-hall-of-famer-challenge')}>Hall of Famer (10K)</button>
           <button onClick={() => nav('/province-wide-challenge')}>Leagues & Teams</button>
+        </div>
+
+        <div className="seo-footer-section">
+          <h3>Challenge Guides</h3>
+          <button onClick={() => nav('/blog/rookie-challenge')}>Rookie Challenge</button>
+          <button onClick={() => nav('/blog/pro-challenge')}>Pro Challenge</button>
+          <button onClick={() => nav('/blog/elite-challenge')}>Elite Challenge</button>
+          <button onClick={() => nav('/blog/hall-of-famer-challenge')}>Hall of Famer</button>
         </div>
 
         <div className="seo-footer-section">
