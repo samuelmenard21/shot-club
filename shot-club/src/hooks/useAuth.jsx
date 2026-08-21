@@ -20,15 +20,28 @@ export function AuthProvider({ children }) {
     let mounted = true
     let settled = false
 
-    refresh().finally(() => {
-      settled = true
-      if (mounted) setLoading(false)
-    })
+    // Defer auth refresh so it doesn't block hydration on public pages.
+    // Use requestIdleCallback for better priority; fall back to setTimeout.
+    const scheduleRefresh = () => {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          refresh().finally(() => {
+            settled = true
+            if (mounted) setLoading(false)
+          })
+        }, { timeout: 4000 })
+      } else {
+        setTimeout(() => {
+          refresh().finally(() => {
+            settled = true
+            if (mounted) setLoading(false)
+          })
+        }, 0)
+      }
+    }
+    scheduleRefresh()
 
-    // Belt-and-suspenders: getUserSafe() (lib/supabase.js) already times out
-    // and self-heals a hung auth call at the source. This is just a backstop
-    // so nothing else in refresh() (e.g. the players query) can leave the
-    // loading screen stuck either.
+    // Belt-and-suspenders: if refresh doesn't settle in 7s, unblock anyway
     const timeout = setTimeout(() => {
       if (!settled && mounted) setLoading(false)
     }, 7000)
