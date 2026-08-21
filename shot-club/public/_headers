@@ -1,3 +1,7 @@
+# Disable Cloudflare Email Protection (prevents /cdn-cgi/l/email-protection in crawls)
+/*
+  Disable-Email-Protection: on
+
 # Cache control for Cloudflare Pages
 
 # Prerendered public pages: cache at edge for 1 day, revalidate browser copy every hour
