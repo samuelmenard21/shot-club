@@ -1,64 +1,62 @@
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 export default function SEOFooter() {
-  const nav = useNavigate()
-
   return (
     <footer className="seo-footer">
       <div className="seo-footer-container">
         <div className="seo-footer-section">
           <h3>Quick Links</h3>
-          <button onClick={() => nav('/')}>Home</button>
-          <button onClick={() => nav('/start')}>Sign In</button>
-          <button onClick={() => nav('/player')}>For Players</button>
-          <button onClick={() => nav('/coach')}>For Coaches</button>
-          <button onClick={() => nav('/for-clubs')}>For Clubs</button>
-          <button onClick={() => nav('/find-club')}>Find Club</button>
+          <Link to="/">Home</Link>
+          <Link to="/start">Sign In</Link>
+          <Link to="/player">For Players</Link>
+          <Link to="/coach">For Coaches</Link>
+          <Link to="/for-clubs">For Clubs</Link>
+          <Link to="/find-club">Find Club</Link>
         </div>
 
         <div className="seo-footer-section">
           <h3>Guides</h3>
-          <button onClick={() => nav('/blog')}>All Guides</button>
-          <button onClick={() => nav('/blog/getting-started')}>Getting Started</button>
-          <button onClick={() => nav('/blog/parents-guide-youth-hockey')}>Parents' Guide</button>
-          <button onClick={() => nav('/blog/building-practice-routine')}>Practice Routine</button>
-          <button onClick={() => nav('/blog/off-ice-drills')}>Off-Ice Drills</button>
-          <button onClick={() => nav('/blog/7-off-ice-drills')}>7 Off-Ice Drills</button>
-          <button onClick={() => nav('/blog/hockey-iq-vs-skill')}>Hockey IQ vs Skill</button>
-          <button onClick={() => nav('/blog/5-week-progression')}>5-Week Progression</button>
-          <button onClick={() => nav('/blog/burnout-prevention')}>Burnout Prevention</button>
-          <button onClick={() => nav('/blog/80-20-finishers')}>The 80/20 Rule</button>
-          <button onClick={() => nav('/blog/how-squad-battles-work')}>Squad Battles</button>
+          <Link to="/blog">All Guides</Link>
+          <Link to="/blog/getting-started">Getting Started</Link>
+          <Link to="/blog/parents-guide-youth-hockey">Parents' Guide</Link>
+          <Link to="/blog/building-practice-routine">Practice Routine</Link>
+          <Link to="/blog/off-ice-drills">Off-Ice Drills</Link>
+          <Link to="/blog/7-off-ice-drills">7 Off-Ice Drills</Link>
+          <Link to="/blog/hockey-iq-vs-skill">Hockey IQ vs Skill</Link>
+          <Link to="/blog/5-week-progression">5-Week Progression</Link>
+          <Link to="/blog/burnout-prevention">Burnout Prevention</Link>
+          <Link to="/blog/80-20-finishers">The 80/20 Rule</Link>
+          <Link to="/blog/how-squad-battles-work">Squad Battles</Link>
         </div>
 
         <div className="seo-footer-section">
           <h3>Challenges</h3>
-          <button onClick={() => nav('/challenges')}>All Challenges</button>
-          <button onClick={() => nav('/1000-shot-rookie-challenge')}>Rookie (1K)</button>
-          <button onClick={() => nav('/2500-shot-pro-challenge')}>Pro (2.5K)</button>
-          <button onClick={() => nav('/5000-shot-elite-challenge')}>Elite (5K)</button>
-          <button onClick={() => nav('/10000-shot-hall-of-famer-challenge')}>Hall of Famer (10K)</button>
-          <button onClick={() => nav('/province-wide-challenge')}>Leagues & Teams</button>
+          <Link to="/challenges">All Challenges</Link>
+          <Link to="/1000-shot-rookie-challenge">Rookie (1K)</Link>
+          <Link to="/2500-shot-pro-challenge">Pro (2.5K)</Link>
+          <Link to="/5000-shot-elite-challenge">Elite (5K)</Link>
+          <Link to="/10000-shot-hall-of-famer-challenge">Hall of Famer (10K)</Link>
+          <Link to="/province-wide-challenge">Leagues & Teams</Link>
         </div>
 
         <div className="seo-footer-section">
           <h3>Challenge Guides</h3>
-          <button onClick={() => nav('/blog/rookie-challenge')}>Rookie Challenge</button>
-          <button onClick={() => nav('/blog/pro-challenge')}>Pro Challenge</button>
-          <button onClick={() => nav('/blog/elite-challenge')}>Elite Challenge</button>
-          <button onClick={() => nav('/blog/hall-of-famer-challenge')}>Hall of Famer</button>
+          <Link to="/blog/rookie-challenge">Rookie Challenge</Link>
+          <Link to="/blog/pro-challenge">Pro Challenge</Link>
+          <Link to="/blog/elite-challenge">Elite Challenge</Link>
+          <Link to="/blog/hall-of-famer-challenge">Hall of Famer</Link>
         </div>
 
         <div className="seo-footer-section">
           <h3>Rankings</h3>
-          <button onClick={() => nav('/rankings')}>Player Rankings</button>
-          <button onClick={() => nav('/clubs')}>Find Clubs</button>
+          <Link to="/rankings">Player Rankings</Link>
+          <Link to="/clubs">Find Clubs</Link>
         </div>
 
         <div className="seo-footer-section">
           <h3>Legal</h3>
-          <button onClick={() => nav('/privacy')}>Privacy Policy</button>
-          <button onClick={() => nav('/about')}>About Us</button>
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/about">About Us</Link>
         </div>
       </div>
 
@@ -92,7 +90,7 @@ const styles = `
   text-transform: uppercase;
 }
 
-.seo-footer-section button {
+.seo-footer-section a {
   display: block;
   color: var(--text-soft);
   background: none;
@@ -103,9 +101,10 @@ const styles = `
   cursor: pointer;
   transition: color 0.2s;
   text-align: left;
+  text-decoration: none;
 }
 
-.seo-footer-section button:hover {
+.seo-footer-section a:hover {
   color: var(--text);
 }
 
@@ -120,7 +119,7 @@ const styles = `
     margin-bottom: 12px;
   }
 
-  .seo-footer-section button {
+  .seo-footer-section a {
     font-size: 13px;
     padding: 6px 0;
   }

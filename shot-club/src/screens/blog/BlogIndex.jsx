@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { setSEO, CANONICAL_URL } from '../../lib/seo'
 import SEOFooter from '../../components/SEOFooter'
 
@@ -116,16 +116,16 @@ export default function BlogIndex() {
 
       <div className="blog-list">
         {POSTS.map((post) => (
-          <button
+          <Link
             key={post.slug}
             className="blog-card"
-            onClick={() => nav(`/blog/${post.slug}`)}
+            to={`/blog/${post.slug}`}
           >
             <div className="blog-card-date">{post.date}</div>
             <h2 className="blog-card-title">{post.title}</h2>
             <p className="blog-card-desc">{post.description}</p>
             <span className="blog-card-read">Read →</span>
-          </button>
+          </Link>
         ))}
       </div>
 
@@ -133,30 +133,30 @@ export default function BlogIndex() {
         <div className="blog-popular-inner">
           <h2 className="blog-popular-title">Popular Guides</h2>
           <div className="blog-popular-grid">
-            <button className="blog-popular-card" onClick={() => nav('/blog/getting-started')}>
+            <Link className="blog-popular-card" to="/blog/getting-started">
               <span className="blog-popular-emoji">🚀</span>
               <span className="blog-popular-label">Getting Started</span>
-            </button>
-            <button className="blog-popular-card" onClick={() => nav('/blog/building-practice-routine')}>
+            </Link>
+            <Link className="blog-popular-card" to="/blog/building-practice-routine">
               <span className="blog-popular-emoji">📋</span>
               <span className="blog-popular-label">Practice Routine</span>
-            </button>
-            <button className="blog-popular-card" onClick={() => nav('/blog/parents-guide-youth-hockey')}>
+            </Link>
+            <Link className="blog-popular-card" to="/blog/parents-guide-youth-hockey">
               <span className="blog-popular-emoji">👨‍👩‍👧‍👦</span>
               <span className="blog-popular-label">Parents' Guide</span>
-            </button>
-            <button className="blog-popular-card" onClick={() => nav('/blog/off-ice-drills')}>
+            </Link>
+            <Link className="blog-popular-card" to="/blog/off-ice-drills">
               <span className="blog-popular-emoji">🎯</span>
               <span className="blog-popular-label">Off-Ice Drills</span>
-            </button>
-            <button className="blog-popular-card" onClick={() => nav('/blog/5-week-progression')}>
+            </Link>
+            <Link className="blog-popular-card" to="/blog/5-week-progression">
               <span className="blog-popular-emoji">📈</span>
               <span className="blog-popular-label">5-Week Progression</span>
-            </button>
-            <button className="blog-popular-card" onClick={() => nav('/blog/80-20-finishers')}>
+            </Link>
+            <Link className="blog-popular-card" to="/blog/80-20-finishers">
               <span className="blog-popular-emoji">🏆</span>
               <span className="blog-popular-label">Why 20% Finish</span>
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -217,6 +217,7 @@ body:has(.blog-wrap) { background: var(--bg) !important; }
   display: flex; flex-direction: column; gap: 16px;
 }
 .blog-card {
+  display: block;
   background: #0f1624;
   border: 1px solid #1a2847;
   border-radius: 16px;
@@ -225,6 +226,7 @@ body:has(.blog-wrap) { background: var(--bg) !important; }
   cursor: pointer;
   transition: border-color 0.15s, transform 0.1s;
   width: 100%;
+  text-decoration: none;
 }
 .blog-card:hover { border-color: var(--accent); }
 .blog-card:active { transform: scale(0.99); }
@@ -268,6 +270,7 @@ body:has(.blog-wrap) { background: var(--bg) !important; }
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
+  text-decoration: none;
 }
 .blog-popular-card:hover {
   border-color: var(--accent);
