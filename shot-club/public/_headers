@@ -7,27 +7,29 @@
 # Prerendered public pages: cache at edge for 1 day, revalidate browser copy every hour
 /
   Cache-Control: public, max-age=3600, s-maxage=86400
-/player
+/player/
   Cache-Control: public, max-age=3600, s-maxage=86400
-/coach
+/coach/
   Cache-Control: public, max-age=3600, s-maxage=86400
-/for-clubs
+/for-clubs/
   Cache-Control: public, max-age=3600, s-maxage=86400
-/blog*
+/blog/
   Cache-Control: public, max-age=3600, s-maxage=86400
-/challenges*
+/blog/*
   Cache-Control: public, max-age=3600, s-maxage=86400
-/1000-shot-rookie-challenge
+/challenges/
   Cache-Control: public, max-age=3600, s-maxage=86400
-/2500-shot-pro-challenge
+/1000-shot-rookie-challenge/
   Cache-Control: public, max-age=3600, s-maxage=86400
-/5000-shot-elite-challenge
+/2500-shot-pro-challenge/
   Cache-Control: public, max-age=3600, s-maxage=86400
-/10000-shot-hall-of-famer-challenge
+/5000-shot-elite-challenge/
   Cache-Control: public, max-age=3600, s-maxage=86400
-/privacy
+/10000-shot-hall-of-famer-challenge/
+  Cache-Control: public, max-age=3600, s-maxage=86400
+/privacy/
   Cache-Control: public, max-age=86400, s-maxage=604800
-/about
+/about/
   Cache-Control: public, max-age=86400, s-maxage=604800
 
 # Auth pages: only browser cache, no edge cache (contains user-specific data)
