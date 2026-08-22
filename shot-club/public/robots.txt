@@ -2,6 +2,8 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api/
+Disallow: /sitemap-static.xml
+Disallow: /sitemap-clubs.xml
 
 Sitemap: https://hockeyshotchallenge.com/sitemap.xml
 
