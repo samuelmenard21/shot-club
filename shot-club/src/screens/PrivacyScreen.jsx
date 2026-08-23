@@ -59,7 +59,7 @@ export default function PrivacyScreen() {
         </ul>
 
         <h2>Contact</h2>
-        <p>Questions or requests? <a href="mailto:samuelmenard@gmail.com">Contact us</a>.</p>
+        <p>Questions or requests? <a href="#" onClick={(e) => { e.preventDefault(); window.location.href = 'mailto:samuelmenard@gmail.com' }}>Contact us</a>.</p>
       </div>
 
       <SEOFooter />

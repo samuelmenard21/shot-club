@@ -128,7 +128,8 @@ export default function AboutScreen() {
                 LinkedIn
               </a>
               <a
-                href="mailto:samuelmenard@gmail.com"
+                href="#"
+                onClick={(e) => { e.preventDefault(); window.location.href = 'mailto:samuelmenard@gmail.com' }}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',

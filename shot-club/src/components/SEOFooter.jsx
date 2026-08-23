@@ -12,6 +12,7 @@ export default function SEOFooter() {
           <Link to="/coach">For Coaches</Link>
           <Link to="/for-clubs">For Clubs</Link>
           <Link to="/find-club">Find Club</Link>
+          <Link to="/association-partnership">Association Partnership</Link>
         </div>
 
         <div className="seo-footer-section">

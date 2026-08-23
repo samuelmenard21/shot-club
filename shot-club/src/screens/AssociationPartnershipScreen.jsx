@@ -243,7 +243,7 @@ export default function AssociationPartnershipScreen() {
           </div>
         </div>
         <div style={{ borderTop: '1px solid var(--border-dim)', paddingTop: 20 }}>
-          <p>Questions? <a href="mailto:samuelmenard@gmail.com" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Email us</a></p>
+          <p>Questions? <a href="#" onClick={(e) => { e.preventDefault(); window.location.href = 'mailto:samuelmenard@gmail.com' }} style={{ color: 'var(--accent)', textDecoration: 'none' }}>Email us</a></p>
           <p style={{ fontSize: '12px', color: 'var(--text-mute)', marginTop: '8px' }}>Hockey Shot Challenge — Free 10K Challenge Platform for Associations</p>
         </div>
       </footer>
