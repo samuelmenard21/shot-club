@@ -637,7 +637,7 @@ function ClubFooter({ nav }) {
       <BrandLink nav={nav} />
       <div className="club-foot-links">
         <Link to="/" className="club-foot-link">Home</Link>
-        <Link to="/for-clubs" className="club-foot-link">For Clubs</Link>
+        <Link to="/for-clubs/" className="club-foot-link">For Clubs</Link>
       </div>
       <div className="club-foot-copy">© {new Date().getFullYear()} Hockey Shot Challenge · Built in Burlington, ON</div>
     </footer>

@@ -14,10 +14,10 @@ function rgba(hex, alpha) {
 }
 
 const CHALLENGE_PATHS = {
-  '1k': '/1000-shot-rookie-challenge',
-  '2_5k': '/2500-shot-pro-challenge',
-  '5k': '/5000-shot-elite-challenge',
-  '10k': '/10000-shot-hall-of-famer-challenge',
+  '1k': '/1000-shot-rookie-challenge/',
+  '2_5k': '/2500-shot-pro-challenge/',
+  '5k': '/5000-shot-elite-challenge/',
+  '10k': '/10000-shot-hall-of-famer-challenge/',
 }
 
 export default function ChallengeSelector() {
@@ -27,7 +27,7 @@ export default function ChallengeSelector() {
     setSEO({
       title: 'Hockey Shot Challenges — Track Your Progress',
       description: 'Rookie, Pro, Elite, or Hall of Famer — pick your hockey shot challenge, track your progress, and join the leaderboard.',
-      url: 'https://hockeyshotchallenge.com/challenges',
+      url: 'https://hockeyshotchallenge.com/challenges/',
     })
   }, [])
 

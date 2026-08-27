@@ -119,7 +119,7 @@ export default function BlogIndex() {
           <Link
             key={post.slug}
             className="blog-card"
-            to={`/blog/${post.slug}`}
+            to={`/blog/${post.slug}/`}
           >
             <div className="blog-card-date">{post.date}</div>
             <h2 className="blog-card-title">{post.title}</h2>
@@ -133,27 +133,27 @@ export default function BlogIndex() {
         <div className="blog-popular-inner">
           <h2 className="blog-popular-title">Popular Guides</h2>
           <div className="blog-popular-grid">
-            <Link className="blog-popular-card" to="/blog/getting-started">
+            <Link className="blog-popular-card" to="/blog/getting-started/">
               <span className="blog-popular-emoji">🚀</span>
               <span className="blog-popular-label">Getting Started</span>
             </Link>
-            <Link className="blog-popular-card" to="/blog/building-practice-routine">
+            <Link className="blog-popular-card" to="/blog/building-practice-routine/">
               <span className="blog-popular-emoji">📋</span>
               <span className="blog-popular-label">Practice Routine</span>
             </Link>
-            <Link className="blog-popular-card" to="/blog/parents-guide-youth-hockey">
+            <Link className="blog-popular-card" to="/blog/parents-guide-youth-hockey/">
               <span className="blog-popular-emoji">👨‍👩‍👧‍👦</span>
               <span className="blog-popular-label">Parents' Guide</span>
             </Link>
-            <Link className="blog-popular-card" to="/blog/off-ice-drills">
+            <Link className="blog-popular-card" to="/blog/off-ice-drills/">
               <span className="blog-popular-emoji">🎯</span>
               <span className="blog-popular-label">Off-Ice Drills</span>
             </Link>
-            <Link className="blog-popular-card" to="/blog/5-week-progression">
+            <Link className="blog-popular-card" to="/blog/5-week-progression/">
               <span className="blog-popular-emoji">📈</span>
               <span className="blog-popular-label">5-Week Progression</span>
             </Link>
-            <Link className="blog-popular-card" to="/blog/80-20-finishers">
+            <Link className="blog-popular-card" to="/blog/80-20-finishers/">
               <span className="blog-popular-emoji">🏆</span>
               <span className="blog-popular-label">Why 20% Finish</span>
             </Link>

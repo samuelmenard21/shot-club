@@ -7,57 +7,57 @@ export default function SEOFooter() {
         <div className="seo-footer-section">
           <h3>Quick Links</h3>
           <Link to="/">Home</Link>
-          <Link to="/start">Sign In</Link>
-          <Link to="/player">For Players</Link>
-          <Link to="/coach">For Coaches</Link>
-          <Link to="/for-clubs">For Clubs</Link>
-          <Link to="/find-club">Find Club</Link>
-          <Link to="/association-partnership">Association Partnership</Link>
+          <Link to="/start/">Sign In</Link>
+          <Link to="/player/">For Players</Link>
+          <Link to="/coach/">For Coaches</Link>
+          <Link to="/for-clubs/">For Clubs</Link>
+          <Link to="/find-club/">Find Club</Link>
+          <Link to="/association-partnership/">Association Partnership</Link>
         </div>
 
         <div className="seo-footer-section">
           <h3>Guides</h3>
-          <Link to="/blog">All Guides</Link>
-          <Link to="/blog/getting-started">Getting Started</Link>
-          <Link to="/blog/parents-guide-youth-hockey">Parents' Guide</Link>
-          <Link to="/blog/building-practice-routine">Practice Routine</Link>
-          <Link to="/blog/off-ice-drills">Off-Ice Drills</Link>
-          <Link to="/blog/7-off-ice-drills">7 Off-Ice Drills</Link>
-          <Link to="/blog/hockey-iq-vs-skill">Hockey IQ vs Skill</Link>
-          <Link to="/blog/5-week-progression">5-Week Progression</Link>
-          <Link to="/blog/burnout-prevention">Burnout Prevention</Link>
-          <Link to="/blog/80-20-finishers">The 80/20 Rule</Link>
-          <Link to="/blog/how-squad-battles-work">Squad Battles</Link>
+          <Link to="/blog/">All Guides</Link>
+          <Link to="/blog/getting-started/">Getting Started</Link>
+          <Link to="/blog/parents-guide-youth-hockey/">Parents' Guide</Link>
+          <Link to="/blog/building-practice-routine/">Practice Routine</Link>
+          <Link to="/blog/off-ice-drills/">Off-Ice Drills</Link>
+          <Link to="/blog/7-off-ice-drills/">7 Off-Ice Drills</Link>
+          <Link to="/blog/hockey-iq-vs-skill/">Hockey IQ vs Skill</Link>
+          <Link to="/blog/5-week-progression/">5-Week Progression</Link>
+          <Link to="/blog/burnout-prevention/">Burnout Prevention</Link>
+          <Link to="/blog/80-20-finishers/">The 80/20 Rule</Link>
+          <Link to="/blog/how-squad-battles-work/">Squad Battles</Link>
         </div>
 
         <div className="seo-footer-section">
           <h3>Challenges</h3>
-          <Link to="/challenges">All Challenges</Link>
-          <Link to="/1000-shot-rookie-challenge">Rookie (1K)</Link>
-          <Link to="/2500-shot-pro-challenge">Pro (2.5K)</Link>
-          <Link to="/5000-shot-elite-challenge">Elite (5K)</Link>
-          <Link to="/10000-shot-hall-of-famer-challenge">Hall of Famer (10K)</Link>
-          <Link to="/province-wide-challenge">Leagues & Teams</Link>
+          <Link to="/challenges/">All Challenges</Link>
+          <Link to="/1000-shot-rookie-challenge/">Rookie (1K)</Link>
+          <Link to="/2500-shot-pro-challenge/">Pro (2.5K)</Link>
+          <Link to="/5000-shot-elite-challenge/">Elite (5K)</Link>
+          <Link to="/10000-shot-hall-of-famer-challenge/">Hall of Famer (10K)</Link>
+          <Link to="/province-wide-challenge/">Leagues & Teams</Link>
         </div>
 
         <div className="seo-footer-section">
           <h3>Challenge Guides</h3>
-          <Link to="/blog/rookie-challenge">Rookie Challenge</Link>
-          <Link to="/blog/pro-challenge">Pro Challenge</Link>
-          <Link to="/blog/elite-challenge">Elite Challenge</Link>
-          <Link to="/blog/hall-of-famer-challenge">Hall of Famer</Link>
+          <Link to="/blog/rookie-challenge/">Rookie Challenge</Link>
+          <Link to="/blog/pro-challenge/">Pro Challenge</Link>
+          <Link to="/blog/elite-challenge/">Elite Challenge</Link>
+          <Link to="/blog/hall-of-famer-challenge/">Hall of Famer</Link>
         </div>
 
         <div className="seo-footer-section">
           <h3>Rankings</h3>
-          <Link to="/rankings">Player Rankings</Link>
-          <Link to="/clubs">Find Clubs</Link>
+          <Link to="/rankings/">Player Rankings</Link>
+          <Link to="/clubs/">Find Clubs</Link>
         </div>
 
         <div className="seo-footer-section">
           <h3>Legal</h3>
-          <Link to="/privacy">Privacy Policy</Link>
-          <Link to="/about">About Us</Link>
+          <Link to="/privacy/">Privacy Policy</Link>
+          <Link to="/about/">About Us</Link>
         </div>
       </div>
 

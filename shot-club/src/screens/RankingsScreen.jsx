@@ -72,7 +72,7 @@ export default function RankingsScreen() {
       {!loading && rankings.length === 0 && (
         <div className="rk-empty">
           <p>No shots logged yet. Be the first association on the board!</p>
-          <Link to="/clubs" className="rk-cta-btn">Find your association →</Link>
+          <Link to="/clubs/" className="rk-cta-btn">Find your association →</Link>
         </div>
       )}
 
@@ -111,7 +111,7 @@ export default function RankingsScreen() {
 
       <div className="rk-footer">
         <p className="rk-footer-text">Is your association missing?</p>
-        <Link to="/clubs" className="rk-footer-link">Find your club →</Link>
+        <Link to="/clubs/" className="rk-footer-link">Find your club →</Link>
       </div>
       <style>{styles}</style>
     </div>
