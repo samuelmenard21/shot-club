@@ -12,7 +12,7 @@ export default function OffIceDrillsAdvancedPost() {
   useEffect(() => {
     trackBlogViewed('7-off-ice-drills', '7 Off-Ice Drills That Actually Improve Shot Accuracy')
     setSEO({
-      title: '7 Off-Ice Drills That Actually Improve Shot Accuracy (Tested by Coaches)',
+      title: '7 Off-Ice Drills That Improve Shot Accuracy',
       description: `7 proven off-ice hockey drills coaches recommend. Step-by-step instructions for each. Build accuracy, consistency, and muscle memory at home.`,
       url: `${CANONICAL_URL}/blog/7-off-ice-drills`,
       type: 'article',

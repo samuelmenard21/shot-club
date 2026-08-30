@@ -9,7 +9,7 @@ export default function HallOfFamerChallengePost() {
 
   useEffect(() => {
     setSEO({
-      title: 'The Hall of Famer Challenge (10,000 Shots): Why Elite Athletes Never Stop Training',
+      title: 'The Hall of Famer Challenge (10,000 Shots)',
       description: `At 10,000 shots, mastery begins. Players become mentors. Habits become identity. Here's what happens when someone actually commits to elite-level training.`,
       url: `${CANONICAL_URL}/blog/hall-of-famer-challenge`,
       type: 'article',
